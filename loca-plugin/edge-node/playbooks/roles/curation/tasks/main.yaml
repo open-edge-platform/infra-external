@@ -1,0 +1,104 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Store Tinkerbell Orchestrator root CA cert to edge node
+  ansible.builtin.copy:
+    dest: "{{ curation_root_ca_cert_path }}/tinkerbell.crt"
+    content: >
+      {{ orchestrator.tinkerbell_certificate | regex_replace("\s","\n") |
+      regex_replace("BEGIN\nCERT","BEGIN CERT") | regex_replace("END\nCERT","END CERT") | trim }}
+    mode: "644"
+  become: true
+
+- name: Update root CA certs on OS
+  ansible.builtin.command:
+    cmd: update-ca-certificates -f
+  become: true
+  changed_when: true
+
+- name: Store edge node client credentials
+  become: true
+  block:
+  - name: Create directory for edge node configuration in {{ curation_top_level_dir }}
+    ansible.builtin.file:
+      path: "{{ curation_top_level_dir }}"
+      mode: "750"
+      state: directory
+  - name: Create directory for client credentials
+    ansible.builtin.file:
+      path: "{{ curation_top_level_dir }}/client-credentials"
+      mode: "600"
+      state: directory
+  - name: Persist client credentials on disk
+    ansible.builtin.copy:
+      dest: "{{ item.path }}"
+      content: "{{ item.content }}"
+      mode: "600"
+    with_items:
+    - { path: "{{ curation_top_level_dir }}/client-credentials/client_id", content: "{{ credentials.client_id }}" }
+    - { path: "{{ curation_top_level_dir }}/client-credentials/client_secret", content: "{{ credentials.client_secret }}" }
+  - name: Change hostname to ensure that telemetry reports correct metrics
+    become: true
+    changed_when: true
+    ansible.builtin.command:
+      cmd: "hostnamectl hostname {{ credentials.hostname }}"
+
+- name: Download installer
+  ansible.builtin.get_url:
+    url: "https://tinkerbell-nginx.{{ orchestrator.url }}:{{ orchestrator.port }}/tink-stack/Installer.sh"
+    dest: "/tmp/"
+    mode: "755"
+  changed_when: true
+  become: true
+
+- name: Skip firewall configuration to enable ssh
+  ansible.builtin.lineinfile:
+    path: /tmp/.success_install_status
+    create: true
+    line: "install_fws done"
+    mode: "644"
+  become: true
+  when: dev_mode | default(false)
+
+- name: Remove ubuntu-vg from volumes that will be deleted
+  ansible.builtin.replace:
+    path: "/tmp/Installer.sh"
+    regexp: 'echo \"\$vgs\" \| sed'
+    replace: 'echo "$vgs" | sed -e ''s/ubuntu-vg//'''
+
+- name: Get PV with Ubuntu-vg
+  ansible.builtin.command:
+    cmd: "pvs --select  vg_name=ubuntu-vg --noheadings -o pv_name"
+  register: pv_with_ubuntu_vg
+  changed_when: true
+
+- name: Overwrite rootfs drive detection
+  ansible.builtin.replace:
+    path: "/tmp/Installer.sh"
+    regexp: 'rootfs=.*$'
+    replace: 'rootfs="{{ pv_with_ubuntu_vg.stdout | regex_replace("\s", "") }}" '
+
+- name: Remove PV from list of deleted PVs
+  ansible.builtin.replace:
+    path: "/tmp/Installer.sh"
+    regexp: 'echo \"\$pvs\" \| sed'
+    replace: 'echo "$pvs" | sed -e ''s/{{ pv_with_ubuntu_vg.stdout | regex_replace("\s", "") |  regex_replace("/", "\/") }}//'''
+
+- name: Replace global partprobe with drive-specific partprobe
+  ansible.builtin.replace:
+    path: "/tmp/Installer.sh"
+    regexp: 'partprobe'
+    replace: 'partprobe "/dev/$disk"'
+
+- name: Delete optional lvmvg lv
+  ansible.builtin.command:
+    cmd: "lvremove lvmvg --yes"
+  changed_when: true
+  ignore_errors: true
+
+- name: Run installer
+  ansible.builtin.command:
+    cmd: "./Installer.sh"
+    chdir: "/tmp"
+  become: true
+  changed_when: true

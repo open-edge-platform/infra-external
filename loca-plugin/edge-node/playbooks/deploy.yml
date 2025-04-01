@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Deploy
+  hosts: edge
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+  - name: Wait for system to become reachable
+    ansible.builtin.wait_for_connection:
+      timeout: 600
+  - name: Run deploy plabook
+    block:
+    - name: Run curation
+      ansible.builtin.import_role:
+        name: curation
+    always:
+    - name: Run post-deploy role
+      ansible.builtin.import_role:
+        name: post-deploy
+      when: not (dev_mode | default(false))

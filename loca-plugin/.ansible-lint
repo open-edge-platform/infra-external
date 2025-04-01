@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+skip_list:
+  - ignore-errors
+  - role-name
+exclude_paths:
+- edge-node/post-script.yml

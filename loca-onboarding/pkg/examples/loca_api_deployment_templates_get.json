@@ -1,0 +1,98 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "count": 1,
+    "next": "",
+    "previous": "",
+    "results": [
+      {
+        "id": "676093b3d1d25ae7772324cf",
+        "created_at": "2024-12-16T20:55:15.249Z",
+        "updated_at": "2024-12-31T16:23:41.718Z",
+        "name": "os-fb0e1ea1-SE360V2",
+        "kind": "os",
+        "instanceInfo": {
+          "name": "intel{{#}}.cluster.onprem",
+          "flavor": "Edge Manageability Framework",
+          "flavorOptions": {
+            "version": "Ubuntu 22.04.3",
+            "osVersion": "Ubuntu 22.04.3"
+          }
+        },
+        "networking": {
+          "dns": {
+            "domain": "cluster.onprem",
+            "hostname": "intel{{#}}",
+            "hostFQDN": "intel{{#}}.cluster.onprem"
+          }
+        },
+        "devices": [
+          {
+            "filters": {
+              "model": [
+                "ThinkEdge SE360 V2"
+              ]
+            },
+            "numberOfDevices": 1,
+            "firmware": {
+              "name": "",
+              "type": ""
+            },
+            "osSettings": {
+              "credentials": [
+                {
+                  "kind": "OS",
+                  "username": "root",
+                  "password": "********",
+                  "approach": "static",
+                  "credentialPolicy": {
+                    "id": "67608f3f8d765014b56c9587",
+                    "created_at": "2024-12-16T20:36:15.121Z",
+                    "updated_at": "2024-12-16T20:36:15.121Z",
+                    "name": "os-fb0e1ea1-SE360V2",
+                    "kind": "OS",
+                    "approach": "static"
+                  }
+                }
+              ],
+              "vaultCredentials": null,
+              "vaultInternalSecretPath": null
+            }
+          }
+        ],
+        "extraVars": {
+          "os_resource_id": "os-fb0e1ea1",
+          "post_script": "echo 'PermitRootLogin yes' \u003e\u003e /etc/ssh/sshd_config \u0026\u0026 systemctl restart sshd",
+          "pretty_name": "Ubuntu 22.04.3"
+        },
+        "extraVarsWithDisplayName": {},
+        "extraVarsVaultInternalSecretPath": null,
+        "status": "Valid",
+        "instances": [
+          "intel002.cluster.onprem"
+        ],
+        "description": "",
+        "deviceProfile": {
+          "id": "671f9b4f3c99a3902980ff3b",
+          "created_at": "2024-10-28T14:10:23.272Z",
+          "updated_at": "2024-12-16T20:55:10.15Z",
+          "name": "Ubuntu-Default",
+          "pattern": "",
+          "deviceModels": [
+            "ThinkEdge SE350 V2",
+            "ThinkEdge SE360 V2"
+          ],
+          "bmc": null,
+          "uefi": {
+            "DevicesandIOPorts.OnboardSATAMode": "AHCI",
+            "SecureBootConfiguration.SecureBootSetting": "Enabled"
+          },
+          "flavor": "Edge Manageability Framework",
+          "template": null
+        },
+        "alerts": null
+      }
+    ]
+  }
+}

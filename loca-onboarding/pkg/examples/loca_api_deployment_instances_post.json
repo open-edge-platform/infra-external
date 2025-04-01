@@ -1,0 +1,10 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "task_uuid": [
+      "ed2f2415-cf24-4807-9f78-55448d9ee136"
+    ],
+    "workflow": "Save Instance Plan And Deploy"
+  }
+}

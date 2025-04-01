@@ -1,0 +1,117 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "count": 3,
+    "next": "",
+    "previous": "",
+    "results": [
+      {
+        "id": "66f5164ef6675425c2320b8c",
+        "created_at": "2024-09-26T08:07:42.17Z",
+        "updated_at": "2024-09-26T08:07:42.17Z",
+        "mongouuid": "",
+        "name": "VaultInternal",
+        "status": "inventory",
+        "isDeployedByUsers": false,
+        "role": "Hashicorp Vault",
+        "type": "Cloud Service",
+        "connectionCheck": false,
+        "port": 8222,
+        "protocol": "https",
+        "retries": 0,
+        "siteAssociation": [
+          "any"
+        ],
+        "platformType": "Secrets Vault",
+        "serviceAddress": "loca-vault-internal",
+        "credentials": [
+          {
+            "kind": "APP",
+            "username": "",
+            "password": "********",
+            "approach": "token"
+          },
+          {
+            "kind": "APP",
+            "username": "",
+            "password": "********",
+            "approach": "certificate"
+          }
+        ],
+        "childServices": null,
+        "parentService": "",
+        "softwareVersion": "",
+        "instances": null,
+        "description": "",
+        "roleReference": "000000000000000000000000"
+      },
+      {
+        "id": "673dfb8bd1d25ae777230b99",
+        "created_at": "2024-11-11T15:04:20.83Z",
+        "updated_at": "2024-11-11T15:14:01.72Z",
+        "mongouuid": "",
+        "name": "new-site",
+        "status": "active",
+        "isDeployedByUsers": true,
+        "role": "Edge Orchestrator",
+        "type": "Cloud Service",
+        "connectionCheck": false,
+        "port": 0,
+        "protocol": "",
+        "retries": 0,
+        "siteAssociation": [
+          "new-site"
+        ],
+        "platformType": "Edge Manageability Framework",
+        "serviceAddress": "kind.internal",
+        "credentials": [],
+        "childServices": null,
+        "parentService": "",
+        "softwareVersion": "",
+        "instances": [
+          {
+            "name": "intel001.kind.internal",
+            "status": "Finished successfully"
+          }
+        ],
+        "description": "",
+        "roleReference": "671f9b4f3c99a3902980ff38"
+      },
+      {
+        "id": "67321cf4d1d25ae77722baea",
+        "created_at": "2024-11-11T15:04:20.83Z",
+        "updated_at": "2024-11-11T15:04:20.83Z",
+        "mongouuid": "",
+        "name": "new-site-lxca",
+        "status": "active",
+        "isDeployedByUsers": true,
+        "role": "Lenovo LXCA",
+        "type": "Cloud Service",
+        "connectionCheck": true,
+        "port": 443,
+        "protocol": "HTTPS",
+        "retries": 3,
+        "siteAssociation": [
+          "new-site"
+        ],
+        "platformType": "Hardware management",
+        "serviceAddress": "sc.lxca.lab",
+        "credentials": [
+          {
+            "kind": "APP",
+            "username": "edgeinfra",
+            "password": "********",
+            "approach": "static"
+          }
+        ],
+        "childServices": null,
+        "parentService": "",
+        "softwareVersion": "4.0.0",
+        "instances": null,
+        "description": "",
+        "roleReference": "66f5163154bd9b1208884007"
+      }
+    ]
+  }
+}

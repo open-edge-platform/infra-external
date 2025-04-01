@@ -1,0 +1,132 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "count": 1,
+    "next": "",
+    "previous": "",
+    "results": [
+      {
+        "id": "6762a7dad1d25ae777232512",
+        "created_at": "2024-12-18T10:45:46.553Z",
+        "updated_at": "2024-12-18T10:45:46.553Z",
+        "uuid": "3008f848-8bf1-40a2-aab5-49f188007c66",
+        "operation": "Deploy",
+        "kind": "os",
+        "deploymentDetails": {
+          "templateName": "os-fb0e1ea1-SE360V2",
+          "numberOfSites": 1,
+          "flavorName": "Edge Manageability Framework",
+          "cloudVersion": "Ubuntu 22.04.3",
+          "nodesOfCluster": 1,
+          "deviceModel": "ThinkEdge SE360 V2",
+          "authenticationType": "static",
+          "deviceProfile": {
+            "id": "671f9b4f3c99a3902980ff3b",
+            "created_at": "2024-10-28T14:10:23.272Z",
+            "updated_at": "2024-12-16T20:55:10.15Z",
+            "name": "Ubuntu-Default",
+            "bmc": {},
+            "uefi": {
+              "secureBoot": true
+            },
+            "flavor": "Edge Manageability Framework",
+            "template": [
+              "676093add1d25ae7772324c4",
+              "676093add1d25ae7772324c7",
+              "676093add1d25ae7772324ca"
+            ]
+          }
+        },
+        "instanceSummary": {
+          "instanceName": "intel002.cluster.onprem",
+          "siteName": "santa-clara",
+          "cloudServices": {
+            "Edge Orchestrator": [
+              "santa-clara"
+            ]
+          },
+          "networkServices": {
+            "DNS": [
+              "santa-clara-dns1"
+            ],
+            "NTP": [
+              "santa-clara-ntp1"
+            ]
+          },
+          "networkDetails": [
+            {
+              "networkRole": "Management",
+              "ipRangeName": "santa-clara-OS-range1",
+              "ipRangeID": "6760a6b1d1d25ae7772324ed",
+              "startIPAddress": "192.168.202.6",
+              "endIPAddress": "192.168.202.99",
+              "subnet": "192.168.202.0/24",
+              "netmask": 24,
+              "numberOfReservedIPs": 0,
+              "flavorExtraIPs": null,
+              "gateway": "192.168.202.1"
+            }
+          ],
+          "hardwareDetails": [
+            {
+              "deviceID": "6762a760d1d25ae77723250e",
+              "mongouuid": "dda13f59-5140-4cf4-84ff-56dc866ad42c",
+              "serverModel": "ThinkEdge SE360 V2",
+              "serialNumber": "1234567890",
+              "serverFamily": "ThinkEdge",
+              "machineType": "7DAM",
+              "bmcIPAddress": "192.168.201.10",
+              "bmcMACAddress": "08:3a:88:ff:cf:2b",
+              "osVersion": "Ubuntu 22.04.3",
+              "hostname": "intel002",
+              "domain": "cluster.onprem",
+              "hostFQDN": "intel002.cluster.onprem",
+              "interfaces": [
+                {
+                  "nic": "",
+                  "name": "Management",
+                  "ipv4Addr": "192.168.202.7",
+                  "netmask": 24,
+                  "kind": "default"
+                }
+              ],
+              "credentials": [
+                {
+                  "kind": "OS",
+                  "username": "root",
+                  "password": "********",
+                  "approach": "static"
+                }
+              ],
+              "vaultCredentials": [
+                {
+                  "enable": false,
+                  "name": "",
+                  "secretPath": "",
+                  "manual": false,
+                  "ctUser": false
+                }
+              ],
+              "vaultInternalSecretPath": [
+                "Loca/Instance_planning/intel002.cluster.onprem/1234567890/OS"
+              ],
+              "warnings": [],
+              "settings": "",
+              "settingsVaultInternalSecretPath": "Loca/Device/1234567890/Settings"
+            }
+          ]
+        },
+        "deploymentExtra": {
+          "customer_id": "123",
+          "fde_enabled": "true",
+          "os_resource_id": "os-fb0e1ea1",
+          "post_script": "echo 'PermitRootLogin yes' \u003e\u003e /etc/ssh/sshd_config \u0026\u0026 systemctl restart sshd",
+          "pretty_name": "Ubuntu 22.04.3",
+          "product_keys": "abc"
+        },
+        "pullSecretVaultInternalSecretPath": ""
+      }
+    ]
+  }
+}

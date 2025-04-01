@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+version: 3
+
+build_arg_defaults:
+  ANSIBLE_GALAXY_CLI_COLLECTION_OPTS: '--pre'
+
+dependencies:
+  ansible_core:
+    package_pip: ansible-core==2.13.10
+  ansible_runner:
+    package_pip: ansible-runner
+  galaxy: %s
+  python: %s
+  system: %s
+
+images:
+  base_image:
+    name: %s
+ 
+additional_build_steps:
+  prepend_final: |
+    RUN whoami
+    RUN cat /etc/os-release

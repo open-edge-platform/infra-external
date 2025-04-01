@@ -1,0 +1,29 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "id": "673dfb8bd1d25ae777230b99",
+    "created_at": "2024-11-20T15:08:59.40Z",
+    "updated_at": "2024-11-20T15:08:59.40Z",
+    "name": "new-site",
+    "platformType": "Edge Manageability Framework",
+    "isDeployedByUsers": true,
+    "role": "Edge Orchestrator",
+    "siteAssociation": [
+      "new-site"
+    ],
+    "serviceAddress": "kind.internal",
+    "connectionCheck": false,
+    "retries": 0,
+    "protocol": "",
+    "port": 0,
+    "status": "active",
+    "instances": null,
+    "serviceSettings": {
+      "TinkerbellCA": "-----BEGIN CERTIFICATE----- -----END CERTIFICATE----- "
+    },
+    "softwareVersion": "",
+    "credentials": [],
+    "roleReference": "671f9b4f3c99a3902980ff38"
+  }
+}

@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Disable SSH password authentication
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+    mode: "0644"
+    content: "PasswordAuthentication no\n"
+
+- name: Delete default cloud-init ssh config
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d/50-cloud-init.conf
+    state: absent
+
+- name: Remove enabling ssh from ufw
+  community.general.ufw:
+    rule: allow
+    port: ssh
+    proto: tcp
+    delete: true
+    state: enabled
+
+- name: Stop & disable sshd
+  ansible.builtin.systemd:
+    name: ssh
+    state: stopped
+    enabled: false
+
+- name: Remove User with rescue
+  become: true
+  block:
+  - name: Remove user
+    ansible.builtin.user:
+      name: "{{ ansible_user }}"
+      state: absent
+      remove: true
+      force: true
+  rescue:
+  - name: Fail on unexpected error
+    when: "'Failed to connect to the host via ssh' not in ansible_failed_result.msg" # if user was successfully deleted, then SSH error is returned
+    ansible.builtin.fail:
+      msg: failed to delete user
+  - name: Show message on user deletion
+    when: "'Failed to connect to the host via ssh' in ansible_failed_result.msg" # if user was successfully deleted, then SSH error is returned
+    ansible.builtin.debug:
+      msg: User was successfully deleted. Error could be ignored.

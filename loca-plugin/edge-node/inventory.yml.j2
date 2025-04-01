@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+edge:
+  hosts:
+{% for host in instance.spec.devices.auto %}
+    {{ host.hostName }}:
+      ansible_python_interpreter: "/usr/bin/python3"
+      ansible_connection: ssh
+      ansible_ssh_extra_args: "-c aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr,aes256-cbc"
+      ansible_host: "{{ host.osSettings.networks.Management.ipv4Addr }}"
+      ansible_ssh_user: "{{ host.osSettings.credentials[0].username }}"
+      ansible_ssh_pass: "{{ host.osSettings.credentials[0].password | decrypt(vault_pass) }}"
+      ansible_become: true
+      ansible_become_password: "{{ host.osSettings.credentials[0].password | decrypt(vault_pass) }}"
+{% endfor %}
+all:
+  vars:
+    os_resource_id: "{{ instance.spec.extraVars.os_resource_id }}"
+    dev_mode: false
+    orchestrator:
+      url: "{{ instance.spec.cloudServices.get('Edge Orchestrator')[0].serviceAddress }}"
+      port: "{{ 443 if instance.spec.cloudServices.get('Edge Orchestrator')[0].port == 0 else instance.spec.cloudServices.get('Edge Orchestrator')[0].port }}"
+      tinkerbell_certificate: "{{ instance.spec.cloudServices.get('Edge Orchestrator')[0].serviceSettings.TinkerbellCA }}"
+    credentials:
+      client_id: "{{ instance.spec.devices.auto[0].settings.en_credentials.client_id }}"
+      client_secret: "{{ instance.spec.devices.auto[0].settings.en_credentials.client_secret }}"
+      hostname: "{{ instance.spec.devices.auto[0].settings.en_credentials.hostname }}"

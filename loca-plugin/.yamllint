@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+---
+extends: default
+ignore:
+- edge-node/post-script.yml
+- .github/workflows/*
+rules:
+  comments-indentation: false
+  comments:
+    min-spaces-from-content: 0
+  line-length:
+    max: 160
+  indentation:
+    indent-sequences: false
+  braces:
+    min-spaces-inside: 0 # yamllint defaults to 0
+    max-spaces-inside: 1
+skip_list:
+- yaml[indentation]

@@ -1,0 +1,294 @@
+{
+  "statusCode": 0,
+  "message": "ok",
+  "data": {
+    "id": "658c483ef445a55d541460db",
+    "created_at": "2024-08-21T06:12:40.096Z",
+    "updated_at": "2024-08-21T06:13:35.851Z",
+    "name": "test123456.santa-clara.us.customer.com",
+    "kind": "os",
+    "status": "Failed",
+    "stage": "instance post-configuring",
+    "operation": "Deploy",
+    "site": "SANTA-CLARA",
+    "flavor": "Edge Manageability Framework",
+    "flavorVersion": "Ubuntu 22.04.3",
+    "template": {
+      "id": "671faba5d1d25ae77722a8f0",
+      "created_at": "2024-10-28T15:20:05.144Z",
+      "updated_at": "2024-10-28T15:20:05.144Z",
+      "name": "os-ad3152d3",
+      "kind": "os",
+      "instanceInfo": {
+        "name": "intel{{#}}.cluster.onprem",
+        "flavor": "Edge Manageability Framework",
+        "flavorOptions": {
+          "version": "Ubuntu 22.04.3",
+          "osVersion": "Ubuntu 22.04.3"
+        }
+      },
+      "networking": {
+        "dns": {
+          "domain": "cluster.onprem",
+          "hostname": "intel{{#}}",
+          "hostFQDN": "intel{{#}}.cluster.onprem"
+        }
+      },
+      "devices": [
+        {
+          "filters": {
+            "model": [
+              "ThinkEdge SE360 V2"
+            ]
+          },
+          "numberOfDevices": 1,
+          "firmware": {
+            "name": "",
+            "type": ""
+          },
+          "osSettings": {
+            "credentials": [
+              {
+                "kind": "OS",
+                "username": "root",
+                "password": "********",
+                "approach": "static",
+                "credentialPolicy": {
+                  "id": "671f95a73c99a3902980ff11",
+                  "created_at": "2024-10-28T13:46:15.411Z",
+                  "updated_at": "2024-10-28T13:46:15.411Z",
+                  "name": "os-ad3152d3",
+                  "kind": "OS",
+                  "approach": "static"
+                }
+              }
+            ],
+            "vaultCredentials": null,
+            "vaultInternalSecretPath": null
+          }
+        }
+      ],
+      "extraVars": {
+        "os_resource_id": "os-8e4327ee",
+        "post_script": "echo 'PermitRootLogin yes' \u003e\u003e /etc/ssh/sshd_config \u0026\u0026 systemctl restart sshd",
+        "pretty_name": "Ubuntu 22.04.3"
+      },
+      "extraVarsWithDisplayName": {},
+      "extraVarsVaultInternalSecretPath": null,
+      "status": "active",
+      "instances": null,
+      "description": "",
+      "deviceProfile": {
+        "id": "671f9b4f3c99a3902980ff3b",
+        "created_at": "2024-10-28T14:10:23.272Z",
+        "updated_at": "2024-10-28T15:17:30.739Z",
+        "name": "Ubuntu-Default",
+        "pattern": "",
+        "deviceModels": [
+          "ThinkEdge SE350 V2",
+          "ThinkEdge SE360 V2"
+        ],
+        "bmc": null,
+        "uefi": {
+          "DevicesandIOPorts.OnboardSATAMode": "AHCI",
+          "SecureBootConfiguration.SecureBootSetting": "Enabled"
+        },
+        "flavor": "Edge Manageability Framework",
+        "template": null
+      },
+      "alerts": null
+    },
+    "nodes": [
+      {
+        "serialNumber": "J900VN44",
+        "networks": {
+          "Management": {
+            "nic": "nic0",
+            "name": "Management",
+            "ipv4Addr": "192.168.202.6",
+            "netmask": 24,
+            "kind": "default"
+          }
+        },
+        "hostname": "intel001",
+        "hostdomain": "cluster.onprem",
+        "fqdn": "intel001.cluster.onprem",
+        "osVersion": "Ubuntu 22.04.3",
+        "credentials": [
+          {
+            "kind": "OS",
+            "username": "root",
+            "password": "********",
+            "approach": "static"
+          }
+        ],
+        "vaultCredentials": [
+          {
+            "enable": false,
+            "name": "",
+            "secretPath": "",
+            "manual": false,
+            "ctUser": false
+          }
+        ],
+        "serverModel": "ThinkEdge SE360 V2",
+        "machineType": "7DAM",
+        "settings": "{\"en_credentials\":{\"client_id\":\"edgenode-54e37e34-f708-4d24-8c65-a47756d9ac37\",\"client_secret\":\"4qZC2T3sLBcxUn7CwDoNt4OgWF4EixMM\",\"oid\":\"testuid1\"}}"
+      }
+    ],
+    "deviceProfile": {
+      "id": "671f9b4f3c99a3902980ff3b",
+      "created_at": "2024-10-28T14:10:23.272Z",
+      "updated_at": "2024-10-28T15:17:30.739Z",
+      "name": "Ubuntu-Default",
+      "pattern": "",
+      "deviceModels": [
+        "ThinkEdge SE350 V2",
+        "ThinkEdge SE360 V2"
+      ],
+      "bmc": {},
+      "uefi": {
+        "Onboard SATA Mode": "AHCI",
+        "Secure Boot Setting": "Enabled"
+      },
+      "flavor": "Edge Manageability Framework",
+      "template": null
+    },
+    "cloudServices": {
+      "Edge Orchestrator": [
+        {
+          "id": "671fab7ad1d25ae77722a8e8",
+          "created_at": "2024-10-28T15:19:22.53Z",
+          "updated_at": "2024-10-28T15:19:22.53Z",
+          "name": "SANTA-CLARA",
+          "status": "active",
+          "isDeployedByUsers": true,
+          "role": "Edge Orchestrator",
+          "roleReference": "671f9b4f3c99a3902980ff38",
+          "type": "Cloud Service",
+          "connectionCheck": false,
+          "networks": [],
+          "port": 0,
+          "protocol": "",
+          "retries": 0,
+          "siteAssociation": [
+            "SANTA-CLARA"
+          ],
+          "platformType": "Edge Manageability Framework",
+          "serviceAddress": "Edge Manageability Framework",
+          "credentials": [],
+          "vaultCredentials": [],
+          "vaultInternalSecretPath": null,
+          "childServices": null,
+          "parentService": "",
+          "softwareVersion": "",
+          "instances": null,
+          "serviceSettings": "",
+          "description": "",
+          "vaultMountPath": "",
+          "vaultSecretPath": "",
+          "vaultSPTemplates": null,
+          "vaultSecretTemplate": null,
+          "readOnly": false,
+          "vaultUpdate": false
+        }
+      ]
+    },
+    "cloudNetworks": {
+      "Management": {
+        "netmask": "255.255.255.0",
+        "prefix": 24,
+        "gateway": "192.168.202.1",
+        "subnet": "192.168.202.0/24",
+        "addressStart": "192.168.202.6",
+        "addressEnd": "192.168.202.99",
+        "vlan": "",
+        "flavorExtraIPs": null
+      }
+    },
+    "networkServices": {
+      "DNS": [
+        {
+          "id": "671fab7ad1d25ae77722a8ea",
+          "created_at": "2024-10-28T15:19:22.531Z",
+          "updated_at": "2024-10-28T15:19:22.531Z",
+          "name": "SANTA-CLARA-dns1",
+          "status": "active",
+          "isDeployedByUsers": true,
+          "role": "DNS",
+          "roleReference": "000000000000000000000000",
+          "type": "Network Service",
+          "connectionCheck": true,
+          "networks": [],
+          "port": 53,
+          "protocol": "DNS",
+          "retries": 3,
+          "siteAssociation": [
+            "SANTA-CLARA"
+          ],
+          "platformType": "",
+          "serviceAddress": "",
+          "credentials": [],
+          "vaultCredentials": [],
+          "vaultInternalSecretPath": null,
+          "childServices": null,
+          "parentService": "",
+          "softwareVersion": "",
+          "instances": null,
+          "serviceSettings": "",
+          "description": "",
+          "vaultMountPath": "",
+          "vaultSecretPath": "",
+          "vaultSPTemplates": null,
+          "vaultSecretTemplate": null,
+          "readOnly": false,
+          "vaultUpdate": false
+        }
+      ],
+      "NTP": [
+        {
+          "id": "671fab7ad1d25ae77722a8eb",
+          "created_at": "2024-10-28T15:19:22.531Z",
+          "updated_at": "2024-10-28T15:19:22.531Z",
+          "name": "SANTA-CLARA-ntp1",
+          "status": "active",
+          "isDeployedByUsers": true,
+          "role": "NTP",
+          "roleReference": "000000000000000000000000",
+          "type": "Network Service",
+          "connectionCheck": true,
+          "networks": [],
+          "port": 123,
+          "protocol": "NTP",
+          "retries": 3,
+          "siteAssociation": [
+            "SANTA-CLARA"
+          ],
+          "platformType": "",
+          "serviceAddress": "",
+          "credentials": [],
+          "vaultCredentials": [],
+          "vaultInternalSecretPath": null,
+          "childServices": null,
+          "parentService": "",
+          "softwareVersion": "",
+          "instances": null,
+          "serviceSettings": "",
+          "description": "",
+          "vaultMountPath": "",
+          "vaultSecretPath": "",
+          "vaultSPTemplates": null,
+          "vaultSecretTemplate": null,
+          "readOnly": false,
+          "vaultUpdate": false
+        }
+      ]
+    },
+    "extraVars": {
+      "os_resource_id": "os-ad3152d3",
+      "post_script": "echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && systemctl restart sshd",
+      "pretty_name": "Ubuntu 22.04.5 LTS"
+    },
+    "extraVarsVaultInternalSecretPath": null
+  }
+}

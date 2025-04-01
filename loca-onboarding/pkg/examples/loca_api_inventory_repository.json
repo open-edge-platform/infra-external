@@ -1,0 +1,24 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "count": 1,
+    "next": "",
+    "previous": "",
+    "results": [
+      {
+        "id": "67078c4c54bd9b1208884129",
+        "created_at": "2024-10-10T08:11:56.59Z",
+        "updated_at": "2024-10-10T08:16:36.50Z",
+        "name": "ubuntu-22.04.3-live-server-amd64.iso",
+        "uuid": "a9afe03c-3f6a-470c-a143-f19a2c9c59e1",
+        "mapping_name": "16d0f2e2-c3c4-43b4-9891-0778f4b03545.iso",
+        "type": "iso",
+        "size": "1.99GB",
+        "details": {
+          "md5": "2072007c1d5b504c9a4858240e28e669"
+        }
+      }
+    ]
+  }
+}

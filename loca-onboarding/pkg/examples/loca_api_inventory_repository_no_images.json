@@ -1,0 +1,11 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "count": 0,
+    "next": "",
+    "previous": "",
+    "results": [
+    ]
+  }
+}

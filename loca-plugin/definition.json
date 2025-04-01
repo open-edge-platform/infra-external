@@ -1,0 +1,470 @@
+{
+    "version": "v1",
+    "kind": "ansible",
+    "vendor": "Intel",
+    "metadata": {
+        "name": "intel",
+        "flavor": "Edge Manageability Framework",
+        "flavorType": "os",
+        "flavorVendor": "Intel",
+        "supportedFlavorVersions": [
+            "Ubuntu 22.04.1",
+            "Ubuntu 22.04.2",
+            "Ubuntu 22.04.3",
+            "Ubuntu 22.04.4",
+            "Ubuntu 22.04.5"
+        ],
+        "supportOSDeploy": false
+    },
+    "cloudSpec": {
+        "networkServices": [
+            {
+                "name": "DNS",
+                "quantity": 1,
+                "optional": true
+            },
+            {
+                "name": "NTP",
+                "quantity": 1,
+                "optional": true
+            }
+        ],
+        "cloudServices": [
+            {
+                "name": "Edge Orchestrator",
+                "quantity": 1,
+                "optional": false,
+                "settingRules": [
+                    {
+                        "name": "TinkerbellCA",
+                        "displayName": "TinkerbellCA",
+                        "paramType": "string",
+                        "format": "",
+                        "requiredForDeployment": true,
+                        "optional": false
+                    }
+                ]
+            }
+        ],
+        "cloudNetworks": [
+            {
+                "name": "BMC",
+                "minimumIPsNum": 1
+            },
+            {
+                "name": "Management",
+                "minimumIPsNum": 1
+            }
+        ],
+        "supportednZTPRegistrationMethods": [
+            "USB",
+            "ThinkShield"
+        ],
+        "supportedHardwareRegistrationMethod": [
+            "Add by Discovery",
+            "Add by IP",
+            "Add by Excel",
+            "Add by Utility"
+        ],
+        "devices": [
+            {
+                "cloudRole": "auto",
+                "numberOfDevices": {
+                    "minimum": 1,
+                    "maximum": 1
+                },
+                "deviceTypes": [
+                    {
+                        "name": "ThinkEdge SE450",
+                        "supportedOSes": {}
+                    },
+                    {
+                        "name": "ThinkEdge SE350 V2",
+                        "supportedOSes": {}
+                    },
+                    {
+                        "name": "ThinkEdge SE360 V2",
+                        "supportedOSes": {}
+                    }
+                ],
+                "deviceProfilePatterns": [
+                    {
+                        "name": "Ubuntu-profile1",
+                        "deviceModels": [
+                            "ThinkEdge SE350 V2",
+                            "ThinkEdge SE360 V2"
+                        ],
+                        "bmc": {
+                            "bestRecipe": [
+                            ],
+                            "supportedConfigItems": [
+                                {
+                                    "name": "IMM.PowerRestorePolicy",
+                                    "displayName": "Power Restore Policy",
+                                    "values": [
+                                        {
+                                            "name": "Always Off",
+                                            "displayName": "Always Off"
+                                        },
+                                        {
+                                            "name": "Restore",
+                                            "displayName": "Restore"
+                                        },
+                                        {
+                                            "name": "Always On",
+                                            "displayName": "Always On"
+                                        },
+                                        {
+                                            "name": "RestoreWithRandomDelay",
+                                            "displayName": "RestoreWithRandomDelay"
+                                        },
+                                        {
+                                            "name": "AlwaysOnWithRandomDelay",
+                                            "displayName": "AlwaysOnWithRandomDelay"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "uefi": {
+                            "bestRecipe": [
+                                {
+                                    "name": "SecureBootConfiguration.SecureBootSetting",
+                                    "displayName": "Secure Boot Setting",
+                                    "values": [
+                                        {
+                                            "name": "Enabled",
+                                            "displayName": "Enabled"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "DevicesandIOPorts.OnboardSATAMode",
+                                    "displayName": "Onboard SATA Mode",
+                                    "values": [
+                                        {
+                                            "name": "AHCI",
+                                            "displayName": "AHCI"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "supportedConfigItems": [
+                                {
+                                    "name": "OperatingModes.ChooseOperatingMode",
+                                    "displayName": "Operating Mode",
+                                    "values": [
+                                        {
+                                            "name": "Minimal Power",
+                                            "displayName": "Minimal Power"
+                                        },
+                                        {
+                                            "name": "Efficiency - Favor Power",
+                                            "displayName": "Efficiency - Favor Power"
+                                        },
+                                        {
+                                            "name": "Efficiency - Favor Performance",
+                                            "displayName": "Efficiency - Favor Performance"
+                                        },
+                                        {
+                                            "name": "Maximum Performance",
+                                            "displayName": "Maximum Performance"
+                                        },
+                                        {
+                                            "name": "Custom Mode",
+                                            "displayName": "Custom Mode"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Processors.MONITORMWAIT",
+                                    "displayName": "Processors MWait",
+                                    "values": [
+                                        {
+                                            "name": "Enabled",
+                                            "displayName": "Enabled"
+                                        },
+                                        {
+                                            "name": "Disabled",
+                                            "displayName": "Disabled"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Processors.HyperThreading",
+                                    "displayName": "Processors HyperThreading",
+                                    "values": [
+                                        {
+                                            "name": "Enabled",
+                                            "displayName": "Enabled"
+                                        },
+                                        {
+                                            "name": "Disabled",
+                                            "displayName": "Disabled"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Processors.CStates",
+                                    "displayName": "Processors CStates",
+                                    "values": [
+                                        {
+                                            "name": "Legacy",
+                                            "displayName": "Legacy"
+                                        },
+                                        {
+                                            "name": "Disabled",
+                                            "displayName": "Disabled"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "Ubuntu-profile2",
+                        "deviceModels": [
+                            "ThinkEdge SE450"
+                        ],
+                        "bmc": {
+                            "bestRecipe": [
+                            ],
+                            "supportedConfigItems": [
+                                {
+                                    "name": "IMM.PowerRestorePolicy",
+                                    "displayName": "Power Restore Policy",
+                                    "values": [
+                                        {
+                                            "name": "Always Off",
+                                            "displayName": "Always Off"
+                                        },
+                                        {
+                                            "name": "Restore",
+                                            "displayName": "Restore"
+                                        },
+                                        {
+                                            "name": "Always On",
+                                            "displayName": "Always On"
+                                        },
+                                        {
+                                            "name": "RestoreWithRandomDelay",
+                                            "displayName": "RestoreWithRandomDelay"
+                                        },
+                                        {
+                                            "name": "AlwaysOnWithRandomDelay",
+                                            "displayName": "AlwaysOnWithRandomDelay"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "uefi": {
+                            "bestRecipe": [
+                                {
+                                    "name": "SecureBootConfiguration.SecureBootSetting",
+                                    "displayName": "Secure Boot Setting",
+                                    "values": [
+                                        {
+                                            "name": "Disabled",
+                                            "displayName": "Disabled"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "DevicesandIOPorts.OnboardSATAMode",
+                                    "displayName": "Onboard SATA Mode",
+                                    "values": [
+                                        {
+                                            "name": "AHCI",
+                                            "displayName": "AHCI"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "supportedConfigItems": [
+                                {
+                                    "name": "OperatingModes.ChooseOperatingMode",
+                                    "displayName": "Operating Mode",
+                                    "values": [
+                                        {
+                                            "name": "Minimal Power",
+                                            "displayName": "Minimal Power"
+                                        },
+                                        {
+                                            "name": "Efficiency - Favor Power",
+                                            "displayName": "Efficiency - Favor Power"
+                                        },
+                                        {
+                                            "name": "Efficiency - Favor Performance",
+                                            "displayName": "Efficiency - Favor Performance"
+                                        },
+                                        {
+                                            "name": "Maximum Performance",
+                                            "displayName": "Maximum Performance"
+                                        },
+                                        {
+                                            "name": "Custom Mode",
+                                            "displayName": "Custom Mode"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Processors.MONITORMWAIT",
+                                    "displayName": "Processors MWait",
+                                    "values": [
+                                        {
+                                            "name": "Enabled",
+                                            "displayName": "Enabled"
+                                        },
+                                        {
+                                            "name": "Disabled",
+                                            "displayName": "Disabled"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Processors.HyperThreading",
+                                    "displayName": "Processors HyperThreading",
+                                    "values": [
+                                        {
+                                            "name": "Enabled",
+                                            "displayName": "Enabled"
+                                        },
+                                        {
+                                            "name": "Disabled",
+                                            "displayName": "Disabled"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "Processors.CStates",
+                                    "displayName": "Processors CStates",
+                                    "values": [
+                                        {
+                                            "name": "Legacy",
+                                            "displayName": "Legacy"
+                                        },
+                                        {
+                                            "name": "Autonomous",
+                                            "displayName": "Autonomous"
+                                        },
+                                        {
+                                            "name": "Disabled",
+                                            "displayName": "Disabled"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "bmcConfig": {
+                    "enable": false
+                },
+                "uefiConfig": {
+                    "enable": false
+                },
+                "firmwareUpgrade": {
+                    "enable": true
+                },
+                "oses": [
+                    "Ubuntu 22.04.1",
+                    "Ubuntu 22.04.2",
+                    "Ubuntu 22.04.3",
+                    "Ubuntu 22.04.4",
+                    "Ubuntu 22.04.5"
+                ],
+                "supportedOSCredentialApproaches": [
+                    "auto",
+                    "static"
+                ],
+                "networks": [
+                    {
+                        "name": "BMC",
+                        "nic": {
+                            "name": "BMC",
+                            "kind": "default"
+                        }
+                    },
+                    {
+                        "name": "Management",
+                        "nic": {
+                            "name": "nic0",
+                            "kind": "default"
+                        }
+                    }
+                ],
+                "settingRules": [
+                    {
+                        "name": "en_credentials",
+                        "displayName": "edgeNodeCredentials",
+                        "paramType": "object",
+                        "model": "Secret",
+                        "properties": [
+                            {
+                                "name": "client_id",
+                                "displayName": "clientID",
+                                "paramType": "string"
+                            },
+                            {
+                                "name": "client_secret",
+                                "displayName": "clientSecret",
+                                "paramType": "string"
+                            },
+                            {
+                                "name": "hostname",
+                                "displayName": "hostname",
+                                "paramType": "string",
+                                "optional": true
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "operations": [
+            {
+                "name": "Deploy",
+                "entrypoints": [
+                    {
+                        "stage": "afterFlavorOperated",
+                        "shim": "post-os.yml"
+                    }
+                ],
+                "extraVars": [
+                    {
+                        "name": "post_script",
+                        "displayName": "Post Script",
+                        "paramType": "string",
+                        "format": "MultilineText",
+                        "optional": false,
+                        "default": "echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && systemctl restart sshd"
+                    },
+                    {
+                        "name": "encrypt_disk",
+                        "displayName": "Encrypt boot disk",
+                        "renderWithTemplate": false,
+                        "renderStepInCloudTemplate": "step2",
+                        "paramType": "boolean",
+                        "default": false,
+                        "optional": true
+                    },
+                    {
+                        "name": "os_resource_id",
+                        "displayName": "OsResourceID of OS to deploy",
+                        "paramType": "string",
+                        "format": "MultilineText",
+                        "optional": false
+                    },
+                    {
+                        "name": "pretty_name",
+                        "displayName": "Pretty name of OS",
+                        "paramType": "string",
+                        "format": "MultilineText",
+                        "optional": true
+                    }
+                ]
+            }
+        ]
+    }
+}

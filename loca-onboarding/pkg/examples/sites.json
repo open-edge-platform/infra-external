@@ -1,0 +1,99 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "count": 1,
+    "next": "",
+    "previous": "",
+    "results": [
+      {
+        "city": "Santa Clara",
+        "cloudServicesAffinityQ": {
+          "Edge Orchestrator": [
+            {
+              "name": "SANTA-CLARA",
+              "priority": 1,
+              "role": "Edge Orchestrator",
+              "allocationStrategy": "",
+              "extra": null
+            }
+          ]
+        },
+        "cloudType": "Edge Manageability Framework",
+        "country": "managed-by-inframanager",
+        "created_at": "2025-01-14T15:11:08.04Z",
+        "geo": "managed-by-inframanager",
+        "gpsCoordinates": "0.0000000,0.0000000",
+        "id": "67867e8c72ac02b957720828",
+        "ipRangesAffinityQ": {
+          "BMC": [
+            {
+              "name": "SANTA-CLARA-XCC-range1",
+              "priority": 1,
+              "role": "BMC",
+              "allocationStrategy": "User allocated",
+              "extra": {
+                "size": 94,
+                "vlan": "",
+                "startAddress": "192.168.201.6/24",
+                "endAddress": "192.168.201.99/24",
+                "subnet": "192.168.201.0/24",
+                "gateway": "192.168.201.1"
+              }
+            }
+          ],
+          "Management": [
+            {
+              "name": "SANTA-CLARA-OS-range1",
+              "priority": 1,
+              "role": "Management",
+              "allocationStrategy": "LOC-A allocated",
+              "extra": {
+                "size": 94,
+                "vlan": "",
+                "startAddress": "192.168.202.6/24",
+                "endAddress": "192.168.202.99/24",
+                "subnet": "192.168.202.0/24",
+                "gateway": "192.168.202.1"
+              }
+            }
+          ]
+        },
+        "name": "SANTA-CLARA",
+        "networkServicesAffinityQ": {
+          "DNS": [
+            {
+              "name": "SANTA-CLARA-dns1",
+              "priority": 1,
+              "role": "DNS",
+              "allocationStrategy": "",
+              "extra": null
+            }
+          ],
+          "NTP": [
+            {
+              "name": "SANTA-CLARA-ntp1",
+              "priority": 1,
+              "role": "NTP",
+              "allocationStrategy": "",
+              "extra": null
+            }
+          ]
+        },
+        "province": "managed-by-inframanager",
+        "sanityCheckStatus": "notReady",
+        "sanityCheckSummary": [
+          {
+            "alert": [
+              "No credentials are allowed for the service: name"
+            ],
+            "type": "Edge Manageability Framework"
+          }
+        ],
+        "siteCode": "site-e67d4c60",
+        "status": "active",
+        "updated_at": "2025-01-14T16:37:37.73Z"
+      }
+    ]
+  }
+}

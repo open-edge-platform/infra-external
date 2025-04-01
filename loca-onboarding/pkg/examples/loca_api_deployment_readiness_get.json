@@ -1,0 +1,69 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "count": 1,
+    "next": "",
+    "previous": "",
+    "results": [
+      {
+        "id": "6762a792d1d25ae777232510",
+        "uuid": "89863439-6110-44e4-bdb7-dbb108bdc25b",
+        "operation": "Deploy",
+        "template": "os-fb0e1ea1-SE360V2",
+        "created_at": "2024-12-18T10:44:34.945Z",
+        "updated_at": "2024-12-18T10:44:34.945Z",
+        "site": {
+          "name": "santa-clara",
+          "status": "active",
+          "siteCode": "site-2a4caafe",
+          "city": "managed-by-inframanager",
+          "province": "managed-by-inframanager",
+          "country": "managed-by-inframanager",
+          "geo": "managed-by-inframanager"
+        },
+        "readiness": "ready",
+        "availableIPsSize": 93,
+        "maximumDevices": 1,
+        "alerts": null,
+        "networkDetails": [
+          {
+            "networkRole": "Management",
+            "ipRangeName": "santa-clara-OS-range1",
+            "ipRangeID": "6760a6b1d1d25ae7772324ed",
+            "startIPAddress": "192.168.202.6",
+            "endIPAddress": "192.168.202.99",
+            "subnet": "192.168.202.0/24",
+            "netmask": 24,
+            "numberOfReservedIPs": 0,
+            "flavorExtraIPs": null,
+            "gateway": "192.168.202.1"
+          }
+        ],
+        "hardwareDetails": [
+          {
+            "deviceID": "6762a760d1d25ae77723250e",
+            "mongouuid": "dda13f59-5140-4cf4-84ff-56dc866ad42c",
+            "serverModel": "ThinkEdge SE360 V2",
+            "serialNumber": "1234567890",
+            "serverFamily": "ThinkEdge",
+            "machineType": "7DAM",
+            "bmcIPAddress": "192.168.201.10",
+            "bmcMACAddress": "08:3a:88:ff:cf:2b",
+            "osVersion": "",
+            "hostname": "",
+            "domain": "",
+            "hostFQDN": "",
+            "interfaces": [],
+            "credentials": [],
+            "vaultCredentials": [],
+            "vaultInternalSecretPath": null,
+            "warnings": [],
+            "settings": "",
+            "settingsVaultInternalSecretPath": "Loca/Device/1234567890/Settings"
+          }
+        ]
+      }
+    ]
+  }
+}

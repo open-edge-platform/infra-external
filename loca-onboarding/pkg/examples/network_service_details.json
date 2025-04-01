@@ -1,0 +1,31 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "id": "66d5a4a57bc832e5fbf72706",
+    "created_at": "2024-09-02T11:42:29.177Z",
+    "updated_at": "2024-09-02T11:55:48.171Z",
+    "mongouuid": "",
+    "name": "SANTA-CLARA-dns1",
+    "status": "active",
+    "role": "DNS",
+    "roleReference": "000000000000000000000000",
+    "type": "Network Service",
+    "connectionCheck": true,
+    "port": 53,
+    "protocol": "DNS",
+    "retries": 3,
+    "siteAssociation": [
+      "SANTA-CLARA"
+    ],
+    "platformType": "",
+    "serviceAddress": "192.168.202.250",
+    "childServices": null,
+    "parentService": "",
+    "softwareVersion": "",
+    "instances": [
+      "test123456.santa-clara.us.cluster.onprem"
+    ],
+    "description": ""
+  }
+}

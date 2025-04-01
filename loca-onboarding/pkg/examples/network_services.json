@@ -1,0 +1,65 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "count": 2,
+    "next": "",
+    "previous": "",
+    "results": [
+      {
+        "id": "671fab7ad1d25ae77722a8ea",
+        "created_at": "2024-10-28T15:19:22.53Z",
+        "updated_at": "2024-10-28T15:27:50.52Z",
+        "mongouuid": "",
+        "name": "SANTA-CLARA-dns1",
+        "status": "active",
+        "role": "DNS",
+        "roleReference": "000000000000000000000000",
+        "type": "Network Service",
+        "connectionCheck": true,
+        "port": 53,
+        "protocol": "DNS",
+        "retries": 3,
+        "siteAssociation": [
+          "SANTA-CLARA"
+        ],
+        "platformType": "",
+        "serviceAddress": "192.168.202.250",
+        "childServices": null,
+        "parentService": "",
+        "softwareVersion": "",
+        "instances": [
+          "test123456.santa-clara.us.cluster.onprem"
+        ],
+        "description": ""
+      },
+      {
+        "id": "671fab7ad1d25ae77722a8eb",
+        "created_at": "2024-10-28T15:19:22.53Z",
+        "updated_at": "2024-10-28T15:27:50.52Z",
+        "mongouuid": "",
+        "name": "SANTA-CLARA-ntp1",
+        "status": "active",
+        "role": "NTP",
+        "roleReference": "000000000000000000000000",
+        "type": "Network Service",
+        "connectionCheck": true,
+        "port": 123,
+        "protocol": "NTP",
+        "retries": 3,
+        "siteAssociation": [
+          "SANTA-CLARA"
+        ],
+        "platformType": "",
+        "serviceAddress": "192.168.202.250",
+        "childServices": null,
+        "parentService": "",
+        "softwareVersion": "",
+        "instances": [
+          "test123456.santa-clara.us.cluster.onprem"
+        ],
+        "description": ""
+      }
+    ]
+  }
+}

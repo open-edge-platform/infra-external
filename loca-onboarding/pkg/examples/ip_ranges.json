@@ -1,0 +1,53 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "count": 2,
+    "next": "",
+    "previous": "",
+    "results": [
+      {
+        "id": "66d5a4a57bc832e5fbf7270c",
+        "created_at": "2024-09-02T11:42:29.177Z",
+        "updated_at": "2024-09-02T11:55:48.178Z",
+        "name": "SANTA-CLARA-OS-range1",
+        "subnet": "192.168.202.0/24",
+        "startAddress": "192.168.202.6",
+        "endAddress": "192.168.202.99",
+        "size": 94,
+        "description": "",
+        "netmask": 24,
+        "role": "Management",
+        "gateway": "192.168.202.1",
+        "siteAssociation": [
+          "SANTA-CLARA"
+        ],
+        "vlan": "",
+        "allocationStrategy": "LOC-A allocated",
+        "instances": [
+          "test123456.santa-clara.us.cluster.onprem"
+        ]
+      },
+      {
+        "id": "671fab7ad1d25ae77722a8ed",
+        "created_at": "2024-10-28T15:19:22.53Z",
+        "updated_at": "2024-10-28T15:19:22.53Z",
+        "name": "SANTA-CLARA-XCC-range1",
+        "subnet": "192.168.201.0/24",
+        "startAddress": "192.168.201.6",
+        "endAddress": "192.168.201.99",
+        "size": 94,
+        "description": "",
+        "netmask": 24,
+        "role": "BMC",
+        "gateway": "192.168.201.1",
+        "siteAssociation": [
+          "SANTA-CLARA"
+        ],
+        "vlan": "",
+        "allocationStrategy": "User allocated",
+        "instances": []
+      }
+    ]
+  }
+}

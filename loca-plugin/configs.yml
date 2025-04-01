@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# plugin ansible code path
+codePath: edge-node/
+# plugin definition
+pluginDefinitionPath: definition.json
+
+# we use ansible-builder to buider an awx execution environment image.
+# for further details, please refer to: https://ansible.readthedocs.io/projects/builder/en/latest/#quickstart-for-ansible-builder
+# all needed python packages defined here
+pipRequirementsPath: requirements.txt
+# all ansible collections defined here
+collectionRequirementsPath: collection-requirements.yaml
+# all system package defined here>
+systemRequirementsPath: bindep.txt
+# base image of the execution environment.
+# Other available base images:
+#   - quay.io/rockylinux/rockylinux:9
+#   - quay.io/centos/centos:stream9
+#   - registry.fedoraproject.org/fedora:38
+#   - registry.redhat.io/ansible-automation-platform-23/ee-minimal-rhel8:latest
+#     (needs an account)
+baseImage: quay.io/centos/centos:stream9
+# optional. we have an built-in execution environment template.but, it will be overwritten if executionTemplatePath is defined
+# executionTemplatePath: ./template.txt.example
+
+# optional. Only required when using the upload command.
+locaUrl: https://192.168.202.19
+locaUser: admin

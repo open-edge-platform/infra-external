@@ -1,0 +1,9 @@
+{
+  "statusCode": 0,
+  "message": "Remove Cloud services task created",
+  "data": {
+    "task_uuid": [
+      "e83c81ab-415a-4377-ae47-e7355702764e"
+    ]
+  }
+}

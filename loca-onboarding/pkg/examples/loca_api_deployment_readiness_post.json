@@ -1,0 +1,10 @@
+{
+  "statusCode": 0,
+  "message": "Readiness create successfully",
+  "data": {
+    "task_uuid": [
+      "89863439-6110-44e4-bdb7-dbb108bdc25b"
+    ],
+    "workflow": "Check Site Readiness by template"
+  }
+}

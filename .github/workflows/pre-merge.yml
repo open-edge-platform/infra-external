@@ -1,0 +1,102 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+name: Pre-Merge CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+      - release-*
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-checks:
+    runs-on: ubuntu-latest
+    outputs:
+      filtered_projects: ${{ steps.filter-changes.outputs.filtered_projects }}
+      other_changed_projects: ${{ steps.filter-changes.outputs.other_changed_projects }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Verify Branch Name"
+        uses: open-edge-platform/orch-ci/verify-branch-name@main
+      - name: "Discover Changed Subfolders"
+        id: discover-changes
+        uses: open-edge-platform/orch-ci/discover-changed-subfolders@main
+      - name: "Filter Out Unwanted Changed Subfolders"
+        id: filter-changes
+        run: |
+          folders_to_remove='[".github",".reuse","LICENSES","loca-plugin"]'
+          changed_projects='${{ steps.discover-changes.outputs.changed_projects }}'
+          
+          filtered_projects=$(echo "$changed_projects" | jq -cr --argjson folders_to_remove "$folders_to_remove" 'map(select(. as $item | $folders_to_remove | index($item) | not))')
+          other_changed_projects=$(echo "$changed_projects" | jq -cr --argjson filtered_projects "$filtered_projects" 'map(select(. as $item | $filtered_projects | index($item) | not))')
+          
+          echo "filtered_projects=$filtered_projects" >> $GITHUB_OUTPUT
+          echo "other_changed_projects=$other_changed_projects" >> $GITHUB_OUTPUT
+  pre-merge-pipeline:
+    needs: pre-checks
+    if: ${{ needs.pre-checks.outputs.filtered_projects != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        project_folder: ${{ fromJson(needs.pre-checks.outputs.filtered_projects) }}
+    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@main
+    with:
+      run_security_scans: true
+      run_version_check: true
+      run_dep_version_check: true
+      run_build: true
+      run_lint: true
+      run_test: true
+      run_validate_clean_folder: true
+      run_docker_build: true
+      run_scan_containers: false
+      run_artifact: false
+      prefix_tag_separator: "/"
+      project_folder: ${{ matrix.project_folder }}
+    secrets: inherit
+
+  # Custom pre-merge pipeline for loca-plugin
+  pre-merge-pipeline-loca-plugin:
+    needs: pre-checks
+    if: ${{ contains(needs.pre-checks.outputs.other_changed_projects, 'loca-plugin') }}
+    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@main
+    with:
+      run_security_scans: true
+      run_version_check: true
+      run_dep_version_check: false
+      run_build: false
+      run_lint: true
+      run_test: false
+      run_validate_clean_folder: true
+      run_docker_build: false
+      run_scan_containers: false
+      run_artifact: false
+      prefix_tag_separator: "/"
+      project_folder: "loca-plugin"
+    secrets: inherit
+  final-check:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [pre-merge-pipeline, pre-merge-pipeline-loca-plugin]
+    steps:
+      - name: Final Status Check
+        run: |
+          pre_merge_pipeline_result="${{ needs.pre-merge-pipeline.result }}"
+          pre_merge_loca_plugin_result="${{ needs.pre-merge-pipeline-loca-plugin.result }}"
+          
+          echo "Pre-merge pipeline result: $pre_merge_pipeline_result"
+          echo "Pre-merge loca-plugin result: $pre_merge_loca_plugin_result"
+
+          if [ "$pre_merge_pipeline_result" == "success" ] || [ "$pre_merge_pipeline_result" == "skipped" ] || [ "$pre_merge_loca_plugin_result" == "success" ]; then
+            echo "At least one pre-merge check passed successfully."
+          else
+            echo "Both pre-merge checks failed or were skipped. PR can't get merged"
+            exit 1
+          fi

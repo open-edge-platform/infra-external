@@ -1,0 +1,30 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+- name: Intel deployment
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Deploy intel cloud # yamllint disable-line rule:indentation
+      ansible.builtin.debug:
+        msg: "Plugin Intel Deployment Started..."
+
+    # This task is used to convert the variables of the loca into the desired format
+    - name: Render inventory
+      ansible.builtin.template:
+        src: inventory.yml.j2
+        dest: /tmp/inventory.yml
+        mode: '0644'
+      changed_when: true
+
+    # This task is used to validate the content of the rendered file
+    - name: Render inventory
+      ansible.builtin.command:
+        cmd: cat /tmp/inventory.yml
+      changed_when: true
+
+    # This task is used to drive ansible to complete the playbook
+    - name: Execute installation
+      ansible.builtin.command:
+        cmd: ansible-playbook playbooks/deploy.yml -i /tmp/inventory.yml -vvv
+      changed_when: true

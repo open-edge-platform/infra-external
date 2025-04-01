@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+collections:
+  # Install a collection from Ansible Galaxy.
+- name: ansible.netcommon
+  version: 1.4.1
+- name: awx.awx
+  version: 22.3.0
+- name: community.general
+  version: 4.8.0

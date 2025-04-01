@@ -1,0 +1,56 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "city": "Santa Clara",
+    "cloudServices": [
+      {
+        "name": "SANTA-CLARA",
+        "priority": 1,
+        "role": "Edge Orchestrator",
+        "allocationStrategy": "",
+        "extra": null
+      }
+    ],
+    "cloudType": "Edge Manageability Framework",
+    "country": "US",
+    "dns": [
+      {
+        "name": "SANTA-CLARA-dns1",
+        "priority": 1,
+        "role": "DNS",
+        "allocationStrategy": "",
+        "extra": null
+      }
+    ],
+    "geo": "California",
+    "gpsCoordinates": "37.354107,-121.955238",
+    "id": "66d5a4a57bc832e5fbf72705",
+    "ipranges": [
+      {
+        "endAddress": "192.168.202.99/24",
+        "name": "SANTA-CLARA-OS-range1",
+        "startAddress": "192.168.202.6/24",
+        "allocationStrategy": "LOC-A allocated"
+      },
+      {
+        "endAddress": "192.168.201.99/24",
+        "name": "SANTA-CLARA-XCC-range1",
+        "startAddress": "192.168.201.6/24",
+        "allocationStrategy": "User allocated"
+      }
+    ],
+    "name": "SANTA-CLARA",
+    "ntp": [
+      {
+        "name": "SANTA-CLARA-ntp1",
+        "priority": 1,
+        "role": "NTP",
+        "allocationStrategy": "",
+        "extra": null
+      }
+    ],
+    "province": "Santa Clara",
+    "siteCode": "SANTA-CLARA-325"
+  }
+}

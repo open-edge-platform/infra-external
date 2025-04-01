@@ -1,0 +1,36 @@
+{
+  "statusCode": 0,
+  "message": "Created successfully",
+  "data": {
+    "count": 1,
+    "results": [
+      {
+        "id": "673267122ecca389dc063818",
+        "created_at": "2024-11-11T20:20:34.44Z",
+        "updated_at": "2024-11-11T20:20:34.44Z",
+        "mongouuid": "",
+        "name": "test-cloud-service",
+        "status": "active",
+        "isDeployedByUsers": true,
+        "role": "Edge Orchestrator",
+        "type": "Cloud Service",
+        "connectionCheck": false,
+        "port": 0,
+        "protocol": "",
+        "retries": 0,
+        "siteAssociation": [
+          "new-site"
+        ],
+        "platformType": "Edge Manageability Framework",
+        "serviceAddress": "kind.internal",
+        "credentials": [],
+        "childServices": null,
+        "parentService": "",
+        "softwareVersion": "",
+        "instances": null,
+        "description": "",
+        "roleReference": "671f9b4f3c99a3902980ff38"
+      }
+    ]
+  }
+}

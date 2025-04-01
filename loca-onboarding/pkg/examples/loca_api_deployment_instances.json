@@ -1,0 +1,36 @@
+{
+  "statusCode": 0,
+  "message": "OK",
+  "data": {
+    "count": 1,
+    "next": "",
+    "previous": "",
+    "results": [
+      {
+        "id": "658c483ef445a55d541460db",
+        "name": "test123456.santa-clara.us.customer.com",
+        "site": "SANTA-CLARA",
+        "flavor": "Edge Manageability Framework",
+        "numberOfNodes": 1,
+        "credentials": [
+          {
+            "subInstanceName": "intel001",
+            "credentials": [
+              {
+                "kind": "OS",
+                "username": "root",
+                "serviceRole": "Node",
+                "password": "********",
+                "approach": "static"
+              }
+            ]
+          }
+        ],
+        "status": "Failed",
+        "stage": "instance post-configuring",
+        "operation": "Deploy",
+        "operation_errors": null
+      }
+    ]
+  }
+}

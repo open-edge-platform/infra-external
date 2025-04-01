@@ -1,0 +1,607 @@
+{
+  "statusCode": 0,
+  "message": "ok",
+  "data": {
+    "created_at": "2024-12-19T07:47:53.863Z",
+    "updated_at": "2024-12-19T07:48:53.267Z",
+    "id": "658c483ef445a55d541460db",
+    "name": "Save Instance Plan And Deploy",
+    "uuid": "ed2f2415-cf24-4807-9f78-55448d9ee136",
+    "type": 4,
+    "targets": "intel002.cluster.onprem",
+    "action": 0,
+    "status": "running",
+    "executor": "Save Instance Plan And Deploy",
+    "created_by": "admin",
+    "params": {
+      "AWX_JOB_ID": 628,
+      "deviceProfileParams": {
+        "spec": {
+          "cloudNetworks": {
+            "BMC": {
+              "addressEnd": "192.168.201.99",
+              "addressStart": "192.168.201.6",
+              "flavorExtraIPs": [],
+              "gateway": "192.168.201.1",
+              "netmask": "24",
+              "prefix": 24,
+              "subnet": "192.168.201.0/24"
+            },
+            "Management": {
+              "addressEnd": "192.168.202.99",
+              "addressStart": "192.168.202.6",
+              "flavorExtraIPs": [],
+              "gateway": "192.168.202.1",
+              "netmask": "255.255.255.0",
+              "prefix": 24,
+              "subnet": "192.168.202.0/24"
+            }
+          },
+          "cloudServices": {
+            "Edge Orchestrator": [
+              {
+                "connectionCheck": false,
+                "name": "santa-clara",
+                "platformType": "Edge Manageability Framework",
+                "port": 0,
+                "serviceAddress": "cluster.onprem",
+                "serviceSettings": {
+                  "TinkerbellCA": "-----BEGIN CERTIFICATE----- MIIFtTCCA52gAwIBAgIQMaMXoiiHCFtt9to22r9XXTANBgkqhkiG9w0BAQsFADBT MQswCQYDVQQGEwJVUzEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKDAmBgNV BAMTH3RpbmtlcmJlbGwtbmdpbnguY2x1c3Rlci5vbnByZW0wHhcNMjQxMjE2MTYx NTEyWhcNMjUxMjE2MjExNTEyWjBTMQswCQYDVQQGEwJVUzEaMBgGA1UEChMRSW50 ZWwgQ29ycG9yYXRpb24xKDAmBgNVBAMTH3RpbmtlcmJlbGwtbmdpbnguY2x1c3Rl ci5vbnByZW0wggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQDPAQxAcht7 a9vTGQXOvcrL9OrU1FmV5o+PDCymqFMvIMTJbLtZarzXg9t27462FTDK7prr5pn4 35FjJ+SQH0oTT01UcS+YzQzuLgZd22CQn7mZINxVeu6V1QWtSFu52C3UhuemuYp0 1jhXwLndCZvhG9MiRxBMJhCwWLtnaq5c/ook3kHr5PCGDFzwtIbab9VCz+0WOs8s 0B8+byl3MO2wKG0dQ9/F+3Sd6UvwPPGCmDks5DcxphV8MkwRZu2rIYnEqxXqumg+ tYKCizAIi0cgTJg4vXvXEU/odPJ+m0mUcb+qJxa6r+M5IMBVQk0PdcoG5WDbaRVu nk6xZnYLmxn+DG6CZR5XKJMOOJSm5Qq23QyyqSPt4n8jjgk6yDkRp7l/qZYLGnU6 pB2px93XlIgox3fqitjFMMzhSbg6PZ9fw6JXknudpY4BjksO1U3AwtTyU5Xf9CtQ En5S3YNcfrB6vJXkj7YZzQc9yyvJzDYl3spx3A9ur2QhyNY5Ul1ek3yPNhW0Iq2J bJ/tJoNaSwAoUvJb/nHFThcNHdg0w61V5SwDXSDOzu8Di7AOjXQCKHqGpHXdyFit NeNyH8YoxgkK1rLjSk6qEFyD+cU94VQgxBhzkWHoojfjeveQMaGNx6CWB7mCftU+ dkqMXcmAYeUWlW5OG8PEmjKbZp3+22IC6QIDAQABo4GEMIGBMA4GA1UdDwEB/wQE AwIChDATBgNVHSUEDDAKBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud DgQWBBQrliYKi1M/eqqIrusMc0Km3ttFHDAqBgNVHREEIzAhgh90aW5rZXJiZWxs LW5naW54LmNsdXN0ZXIub25wcmVtMA0GCSqGSIb3DQEBCwUAA4ICAQAwDRx8vDlk Y5xuTBLpwN0Driug80iRwbxCinfo4oCStdTcJvOod3eHTpVb90Bhq5KUOnyAQumK fHzcNfg6Jz/9yctniArQP9imGpLhXk5lM8G8ltPKSEOp76XEEhsCkvLGDfggElYk 6lnCmP+acu+f6CT+Bwj3wfOJb8Kyq1SnEK0MWBrm1Ma9gaRI66XyLLOu8KqCc9fD e5vJs5OEGiWZ/dTV7wIlKO3i17IFwL5w38TA/6QB+mLQphDI1YqjjXZFM1qRNzII D4Oo4at7YwOT5sn43l2YWU0WKrN04fgUg35lRmJOjncOl4BKzFwlPSKOXwmtF0eM cMzD76/4W0Roa660gzoAEyRRpDrR6luSikjPWYn8KISDmShf6ABhZoWMDpjOcCv1 N1/1Aef8PMMpYXROTQp7Kva2lVVhP8HG+Dq05sZHwKLBgzetF1UHClGKlkxwrOYZ vRKmm17iE8ysBPIciI8UDs/UyOKETgAtoqMiM71FmvnYGxjxeyjvQmPQnbBxTJ5S tvzH5j4V9NMVDmLzEDch8Ayz+Sydq5AGT2IFgx8UfcrpBjM+EHXXNLc9iSnLRDry XcyMMwQePNe1cW41gK841fxhncUOHHlXw4pryDMsTkrCaFZgZ/Y28abKg6Ip3t3T 2O0rsbm+SZXj5qGQKv1DwzHej4XQYQ1vFQ== -----END CERTIFICATE----- "
+                },
+                "siteAssociation": [
+                  "santa-clara"
+                ],
+                "status": "active"
+              }
+            ]
+          },
+          "deviceProfile": {
+            "bmc": {},
+            "name": "Ubuntu-Default",
+            "uefi": {
+              "secureBoot": true
+            }
+          },
+          "devices": {
+            "auto": [
+              {
+                "bmcSettings": {
+                  "credentials": [
+                    {
+                      "approach": "",
+                      "kind": "BMC",
+                      "password": "$ANSIBLE_VAULT;1.1;AES256\n35323862386639326437366361386235633064626630326535343130613937376432643963356464\n3933613464323739613066303232316565353239353936390a326536383536646263666330376565\n35373230616561393430613463373935643062356533666366326335646361336266343730633437\n6437613162313936610a356662663734306664663463353632623331666363366466616463356561\n3164",
+                      "username": "USERID"
+                    }
+                  ],
+                  "network": {
+                    "ipv4Addr": "192.168.201.10",
+                    "kind": "default",
+                    "name": "BMC",
+                    "nic": "BMC"
+                  }
+                },
+                "cloudRole": "auto",
+                "coreNumber": 20,
+                "deviceFamily": "Lenovo",
+                "deviceRole": "server",
+                "deviceType": "ThinkEdge SE360 V2",
+                "diskConfigs": {},
+                "diskSpace": "894.0696716308594GiB",
+                "firmware": {
+                  "package": ""
+                },
+                "gpuCount": 1,
+                "hostDomain": "cluster.onprem",
+                "hostName": "intel002",
+                "machineType": "7DAM",
+                "nics": {
+                  "BMC": {
+                    "kind": "ethernet",
+                    "macAddress": "08:3a:88:ff:cf:2b"
+                  },
+                  "nic0": {
+                    "kind": "ethernet",
+                    "macAddress": "00:00:00:00:00:00"
+                  },
+                  "nic1": {
+                    "kind": "ethernet",
+                    "macAddress": "00:00:00:00:00:00"
+                  },
+                  "nic2": {
+                    "kind": "ethernet",
+                    "macAddress": "00:00:00:00:00:00"
+                  }
+                },
+                "osSettings": {
+                  "credentials": [
+                    {
+                      "approach": "static",
+                      "kind": "OS",
+                      "password": "$ANSIBLE_VAULT;1.1;AES256\n63613935376161653136376164373561383634366366303962323964633136643862386534616466\n6531633132316362306333363561393534656530363265610a306237323730373634613530623230\n65313863623066386637333137666564333938303732383632323731373066633136666365313132\n3033316434303335330a656331303038326366333062346335383935396261636266353334636130\n3532",
+                      "username": "root"
+                    }
+                  ],
+                  "networks": {
+                    "Management": {
+                      "ipv4Addr": "192.168.202.7",
+                      "kind": "default",
+                      "name": "Management",
+                      "netmask": 24,
+                      "nic": "nic0"
+                    }
+                  },
+                  "osImageProfile": "ubuntu-22.04.3-x86_64-default",
+                  "osVersion": "Ubuntu 22.04.3"
+                },
+                "serialNumber": "1234567890",
+                "settings": {
+                  "en_credentials": {
+                    "client_id": "",
+                    "client_secret": "",
+                    "oid": "6762f62bd1d25ae77723251f"
+                  }
+                },
+                "sideload": false,
+                "sockets": 40,
+                "source": "manual",
+                "uefiSetting": {},
+                "uuid": "7DC630BE85A211ED858FC6121E6A5661"
+              }
+            ]
+          },
+          "extraVars": {
+            "customer_id": "123",
+            "fde_enabled": "true",
+            "os_resource_id": "os-fb0e1ea1",
+            "post_script": "echo 'PermitRootLogin yes' \u003e\u003e /etc/ssh/sshd_config \u0026\u0026 systemctl restart sshd",
+            "pretty_name": "Ubuntu 22.04.3",
+            "product_keys": "abc"
+          },
+          "networkServices": {
+            "DNS": [
+              {
+                "connectionCheck": true,
+                "platformType": "",
+                "port": 53,
+                "protocol": "DNS",
+                "serviceAddress": "192.168.202.250",
+                "siteAssociation": [
+                  "santa-clara"
+                ],
+                "status": "active"
+              }
+            ],
+            "NTP": [
+              {
+                "connectionCheck": true,
+                "platformType": "",
+                "port": 123,
+                "protocol": "NTP",
+                "serviceAddress": "192.168.202.250",
+                "siteAssociation": [
+                  "santa-clara"
+                ],
+                "status": "active"
+              }
+            ]
+          },
+          "site": {
+            "city": "managed-by-inframanager",
+            "country": "managed-by-inframanager",
+            "geo": "managed-by-inframanager",
+            "gpsCoordinates": "0.0000000,0.0000000",
+            "name": "santa-clara",
+            "province": "managed-by-inframanager",
+            "sanityCheckStatus": "ready",
+            "sanityCheckSummary": {
+              "isOK": true,
+              "type": "Edge Manageability Framework"
+            },
+            "siteCode": "site-2a4caafe"
+          }
+        }
+      },
+      "id": "658c483ef445a55d541460db",
+      "metadata": {
+        "flavor": "Edge Manageability Framework",
+        "flavorVersion": "Ubuntu 22.04.3",
+        "id": "6763cfa9d1d25ae77723252e",
+        "name": "intel002.cluster.onprem"
+      },
+      "operation": "Deploy",
+      "os_deploy_data": {
+        "confluent_os_dns": [
+          "192.168.202.250"
+        ],
+        "confluent_os_gateway": "192.168.202.1",
+        "confluent_os_ntp": [
+          "192.168.202.250"
+        ],
+        "confluent_servers_info": [
+          {
+            "bmc_ipv4_addr": "192.168.201.10",
+            "bmc_pass": "$ANSIBLE_VAULT;1.1;AES256\n35323862386639326437366361386235633064626630326535343130613937376432643963356464\n3933613464323739613066303232316565353239353936390a326536383536646263666330376565\n35373230616561393430613463373935643062356533666366326335646361336266343730633437\n6437613162313936610a356662663734306664663463353632623331666363366466616463356561\n3164",
+            "bmc_user": "USERID",
+            "confluent_os_profile": "intel002.cluster.onprem",
+            "device_type": "ThinkEdge SE360 V2",
+            "domain": "cluster.onprem",
+            "fqdn": "cluster.onprem",
+            "hostname": "intel002",
+            "ip": "192.168.202.7",
+            "mac_address": "00:00:00:00:00:00",
+            "name": "santa-clara-intel002",
+            "netmask": "255.255.255.0",
+            "origin_confluent_os_profile": "ubuntu-22.04.3-x86_64-default",
+            "os_pass": "$ANSIBLE_VAULT;1.1;AES256\n63613935376161653136376164373561383634366366303962323964633136643862386534616466\n6531633132316362306333363561393534656530363265610a306237323730373634613530623230\n65313863623066386637333137666564333938303732383632323731373066633136666365313132\n3033316434303335330a656331303038326366333062346335383935396261636266353334636130\n3532",
+            "serial": "1234567890",
+            "sideload": false
+          }
+        ],
+        "device_profile": "{\"name\":\"Ubuntu-Default\",\"bmc\":{},\"uefi\":{\"secureBoot\":true}}",
+        "extra_vars": {
+          "customer_id": "123",
+          "fde_enabled": "true",
+          "os_resource_id": "os-fb0e1ea1",
+          "post_script": "echo 'PermitRootLogin yes' \u003e\u003e /etc/ssh/sshd_config \u0026\u0026 systemctl restart sshd",
+          "pretty_name": "Ubuntu 22.04.3",
+          "product_keys": "abc"
+        },
+        "site": "santa-clara"
+      },
+      "planningIds": [
+        "6763cf94d1d25ae77723252c"
+      ],
+      "spec": {
+        "cloudNetworks": {
+          "BMC": {
+            "addressEnd": "192.168.201.99",
+            "addressStart": "192.168.201.6",
+            "flavorExtraIPs": [],
+            "gateway": "192.168.201.1",
+            "netmask": "24",
+            "prefix": 24,
+            "subnet": "192.168.201.0/24"
+          },
+          "Management": {
+            "addressEnd": "192.168.202.99",
+            "addressStart": "192.168.202.6",
+            "flavorExtraIPs": [],
+            "gateway": "192.168.202.1",
+            "netmask": "255.255.255.0",
+            "prefix": 24,
+            "subnet": "192.168.202.0/24"
+          }
+        },
+        "cloudServices": {
+          "Edge Orchestrator": [
+            {
+              "connectionCheck": false,
+              "name": "santa-clara",
+              "platformType": "Edge Manageability Framework",
+              "port": 0,
+              "serviceAddress": "cluster.onprem",
+              "serviceSettings": {
+                "TinkerbellCA": "-----BEGIN CERTIFICATE----- MIIFtTCCA52gAwIBAgIQMaMXoiiHCFtt9to22r9XXTANBgkqhkiG9w0BAQsFADBT MQswCQYDVQQGEwJVUzEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKDAmBgNV BAMTH3RpbmtlcmJlbGwtbmdpbnguY2x1c3Rlci5vbnByZW0wHhcNMjQxMjE2MTYx NTEyWhcNMjUxMjE2MjExNTEyWjBTMQswCQYDVQQGEwJVUzEaMBgGA1UEChMRSW50 ZWwgQ29ycG9yYXRpb24xKDAmBgNVBAMTH3RpbmtlcmJlbGwtbmdpbnguY2x1c3Rl ci5vbnByZW0wggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQDPAQxAcht7 a9vTGQXOvcrL9OrU1FmV5o+PDCymqFMvIMTJbLtZarzXg9t27462FTDK7prr5pn4 35FjJ+SQH0oTT01UcS+YzQzuLgZd22CQn7mZINxVeu6V1QWtSFu52C3UhuemuYp0 1jhXwLndCZvhG9MiRxBMJhCwWLtnaq5c/ook3kHr5PCGDFzwtIbab9VCz+0WOs8s 0B8+byl3MO2wKG0dQ9/F+3Sd6UvwPPGCmDks5DcxphV8MkwRZu2rIYnEqxXqumg+ tYKCizAIi0cgTJg4vXvXEU/odPJ+m0mUcb+qJxa6r+M5IMBVQk0PdcoG5WDbaRVu nk6xZnYLmxn+DG6CZR5XKJMOOJSm5Qq23QyyqSPt4n8jjgk6yDkRp7l/qZYLGnU6 pB2px93XlIgox3fqitjFMMzhSbg6PZ9fw6JXknudpY4BjksO1U3AwtTyU5Xf9CtQ En5S3YNcfrB6vJXkj7YZzQc9yyvJzDYl3spx3A9ur2QhyNY5Ul1ek3yPNhW0Iq2J bJ/tJoNaSwAoUvJb/nHFThcNHdg0w61V5SwDXSDOzu8Di7AOjXQCKHqGpHXdyFit NeNyH8YoxgkK1rLjSk6qEFyD+cU94VQgxBhzkWHoojfjeveQMaGNx6CWB7mCftU+ dkqMXcmAYeUWlW5OG8PEmjKbZp3+22IC6QIDAQABo4GEMIGBMA4GA1UdDwEB/wQE AwIChDATBgNVHSUEDDAKBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud DgQWBBQrliYKi1M/eqqIrusMc0Km3ttFHDAqBgNVHREEIzAhgh90aW5rZXJiZWxs LW5naW54LmNsdXN0ZXIub25wcmVtMA0GCSqGSIb3DQEBCwUAA4ICAQAwDRx8vDlk Y5xuTBLpwN0Driug80iRwbxCinfo4oCStdTcJvOod3eHTpVb90Bhq5KUOnyAQumK fHzcNfg6Jz/9yctniArQP9imGpLhXk5lM8G8ltPKSEOp76XEEhsCkvLGDfggElYk 6lnCmP+acu+f6CT+Bwj3wfOJb8Kyq1SnEK0MWBrm1Ma9gaRI66XyLLOu8KqCc9fD e5vJs5OEGiWZ/dTV7wIlKO3i17IFwL5w38TA/6QB+mLQphDI1YqjjXZFM1qRNzII D4Oo4at7YwOT5sn43l2YWU0WKrN04fgUg35lRmJOjncOl4BKzFwlPSKOXwmtF0eM cMzD76/4W0Roa660gzoAEyRRpDrR6luSikjPWYn8KISDmShf6ABhZoWMDpjOcCv1 N1/1Aef8PMMpYXROTQp7Kva2lVVhP8HG+Dq05sZHwKLBgzetF1UHClGKlkxwrOYZ vRKmm17iE8ysBPIciI8UDs/UyOKETgAtoqMiM71FmvnYGxjxeyjvQmPQnbBxTJ5S tvzH5j4V9NMVDmLzEDch8Ayz+Sydq5AGT2IFgx8UfcrpBjM+EHXXNLc9iSnLRDry XcyMMwQePNe1cW41gK841fxhncUOHHlXw4pryDMsTkrCaFZgZ/Y28abKg6Ip3t3T 2O0rsbm+SZXj5qGQKv1DwzHej4XQYQ1vFQ== -----END CERTIFICATE----- "
+              },
+              "siteAssociation": [
+                "santa-clara"
+              ],
+              "status": "active"
+            }
+          ]
+        },
+        "deviceProfile": {
+          "bmc": {},
+          "name": "Ubuntu-Default",
+          "uefi": {
+            "secureBoot": true
+          }
+        },
+        "devices": {
+          "auto": [
+            {
+              "bmcSettings": {
+                "credentials": [
+                  {
+                    "approach": "",
+                    "kind": "BMC",
+                    "password": "$ANSIBLE_VAULT;1.1;AES256\n35323862386639326437366361386235633064626630326535343130613937376432643963356464\n3933613464323739613066303232316565353239353936390a326536383536646263666330376565\n35373230616561393430613463373935643062356533666366326335646361336266343730633437\n6437613162313936610a356662663734306664663463353632623331666363366466616463356561\n3164",
+                    "username": "USERID"
+                  }
+                ],
+                "network": {
+                  "ipv4Addr": "192.168.201.10",
+                  "kind": "default",
+                  "name": "BMC",
+                  "nic": "BMC"
+                }
+              },
+              "cloudRole": "auto",
+              "coreNumber": 20,
+              "deviceFamily": "Lenovo",
+              "deviceRole": "server",
+              "deviceType": "ThinkEdge SE360 V2",
+              "diskConfigs": {},
+              "diskSpace": "894.0696716308594GiB",
+              "firmware": {
+                "package": ""
+              },
+              "gpuCount": 1,
+              "hostDomain": "cluster.onprem",
+              "hostName": "intel002",
+              "machineType": "7DAM",
+              "nics": {
+                "BMC": {
+                  "kind": "ethernet",
+                  "macAddress": "08:3a:88:ff:cf:2b"
+                },
+                "nic0": {
+                  "kind": "ethernet",
+                  "macAddress": "00:00:00:00:00:00"
+                },
+                "nic1": {
+                  "kind": "ethernet",
+                  "macAddress": "00:00:00:00:00:00"
+                },
+                "nic2": {
+                  "kind": "ethernet",
+                  "macAddress": "00:00:00:00:00:00"
+                }
+              },
+              "osSettings": {
+                "credentials": [
+                  {
+                    "approach": "static",
+                    "kind": "OS",
+                    "password": "$ANSIBLE_VAULT;1.1;AES256\n63613935376161653136376164373561383634366366303962323964633136643862386534616466\n6531633132316362306333363561393534656530363265610a306237323730373634613530623230\n65313863623066386637333137666564333938303732383632323731373066633136666365313132\n3033316434303335330a656331303038326366333062346335383935396261636266353334636130\n3532",
+                    "username": "root"
+                  }
+                ],
+                "networks": {
+                  "Management": {
+                    "ipv4Addr": "192.168.202.7",
+                    "kind": "default",
+                    "name": "Management",
+                    "netmask": 24,
+                    "nic": "nic0"
+                  }
+                },
+                "osImageProfile": "ubuntu-22.04.3-x86_64-default",
+                "osVersion": "Ubuntu 22.04.3"
+              },
+              "serialNumber": "1234567890",
+              "settings": {
+                "en_credentials": {
+                  "client_id": "edgenode-7dc630be-85a2-11ed-858f-c6121e6a5661",
+                  "client_secret": "rZ7InrubTphjWxzYHeWBsCTvKhDNqmsS",
+                  "oid": "6762f62bd1d25ae77723251f"
+                }
+              },
+              "sideload": false,
+              "sockets": 40,
+              "source": "manual",
+              "uefiSetting": {},
+              "uuid": "7DC630BE85A211ED858FC6121E6A5661"
+            }
+          ]
+        },
+        "extraVars": {
+          "customer_id": "123",
+          "fde_enabled": "true",
+          "os_resource_id": "os-fb0e1ea1",
+          "post_script": "echo 'PermitRootLogin yes' \u003e\u003e /etc/ssh/sshd_config \u0026\u0026 systemctl restart sshd",
+          "pretty_name": "Ubuntu 22.04.3",
+          "product_keys": "abc"
+        },
+        "networkServices": {
+          "DNS": [
+            {
+              "connectionCheck": true,
+              "platformType": "",
+              "port": 53,
+              "protocol": "DNS",
+              "serviceAddress": "192.168.202.250",
+              "siteAssociation": [
+                "santa-clara"
+              ],
+              "status": "active"
+            }
+          ],
+          "NTP": [
+            {
+              "connectionCheck": true,
+              "platformType": "",
+              "port": 123,
+              "protocol": "NTP",
+              "serviceAddress": "192.168.202.250",
+              "siteAssociation": [
+                "santa-clara"
+              ],
+              "status": "active"
+            }
+          ]
+        },
+        "site": {
+          "city": "managed-by-inframanager",
+          "country": "managed-by-inframanager",
+          "geo": "managed-by-inframanager",
+          "gpsCoordinates": "0.0000000,0.0000000",
+          "name": "santa-clara",
+          "province": "managed-by-inframanager",
+          "sanityCheckStatus": "ready",
+          "sanityCheckSummary": {
+            "isOK": true,
+            "type": "Edge Manageability Framework"
+          },
+          "siteCode": "site-2a4caafe"
+        }
+      },
+      "supportOSDeploy": false,
+      "upgrade_firmware_data": {
+        "confluent_servers_info": [
+          {
+            "bmc_ipv4_addr": "192.168.201.10",
+            "bmc_pass": "$ANSIBLE_VAULT;1.1;AES256\n35323862386639326437366361386235633064626630326535343130613937376432643963356464\n3933613464323739613066303232316565353239353936390a326536383536646263666330376565\n35373230616561393430613463373935643062356533666366326335646361336266343730633437\n6437613162313936610a356662663734306664663463353632623331666363366466616463356561\n3164",
+            "bmc_user": "USERID",
+            "firmware_package": ""
+          }
+        ]
+      }
+    },
+    "job_id": 0,
+    "description": "",
+    "progress": "35",
+    "mode": 1,
+    "details": [
+      {
+        "description": "Onboard instances",
+        "elapsed": 52,
+        "failed": false,
+        "finished": "2024-12-19T07:47:53.972Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "onboard-instances",
+        "started": "2024-12-19T07:47:53.92Z",
+        "status": "successful"
+      },
+      {
+        "description": "Collect instance info",
+        "elapsed": 61,
+        "failed": false,
+        "finished": "2024-12-19T07:47:54.033Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "Instance-Collection",
+        "started": "2024-12-19T07:47:53.972Z",
+        "status": "successful"
+      },
+      {
+        "description": "Configure site DNS resolution",
+        "elapsed": 27,
+        "failed": false,
+        "finished": "2024-12-19T07:47:54.08Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "LOC_cloud_deploy_prepare",
+        "started": "2024-12-19T07:47:54.053Z",
+        "status": "successful"
+      },
+      {
+        "description": "Check whether the domain name of each server can be resolved",
+        "elapsed": 26,
+        "failed": false,
+        "finished": "2024-12-19T07:47:54.107Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "LOC_cloud_resolve_domains",
+        "started": "2024-12-19T07:47:54.081Z",
+        "status": "successful"
+      },
+      {
+        "description": "Upgrade firmware for each node",
+        "elapsed": 22048,
+        "failed": false,
+        "finished": "2024-12-19T07:48:16.156Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "LOC_upgrade_firmware",
+        "started": "2024-12-19T07:47:54.107Z",
+        "status": "successful"
+      },
+      {
+        "description": "Apply device profile to servers",
+        "elapsed": 22056,
+        "failed": false,
+        "finished": "2024-12-19T07:48:38.212Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "LOC_device_profile_apply",
+        "started": "2024-12-19T07:48:16.156Z",
+        "status": "successful"
+      },
+      {
+        "description": "Install OS on server nodes",
+        "elapsed": 15054,
+        "failed": false,
+        "finished": "0001-01-01T00:00:00Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "LOC_cloud_os_deploy",
+        "started": "2024-12-19T07:48:38.212Z",
+        "status": "running"
+      },
+      {
+        "description": "Execute pre cloud services deployment",
+        "elapsed": 0,
+        "failed": false,
+        "finished": "0001-01-01T00:00:00Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "LOC_pre_cloud_services_deploy",
+        "started": "0001-01-01T00:00:00Z",
+        "status": ""
+      },
+      {
+        "description": "Execute cloud flavor plugin deployment job",
+        "elapsed": 0,
+        "failed": false,
+        "finished": "0001-01-01T00:00:00Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "LOC_plugin_entrypoint",
+        "started": "0001-01-01T00:00:00Z",
+        "status": ""
+      },
+      {
+        "description": "Execute post script after flavor operated",
+        "elapsed": 0,
+        "failed": false,
+        "finished": "0001-01-01T00:00:00Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "LOC_post_script_after_flavor_operated",
+        "started": "0001-01-01T00:00:00Z",
+        "status": ""
+      },
+      {
+        "description": "Execute post cloud services deployment",
+        "elapsed": 0,
+        "failed": false,
+        "finished": "0001-01-01T00:00:00Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "LOC_post_cloud_services_deploy",
+        "started": "0001-01-01T00:00:00Z",
+        "status": ""
+      },
+      {
+        "description": "Notify App Orchestrator after cloud deployment",
+        "elapsed": 0,
+        "failed": false,
+        "finished": "0001-01-01T00:00:00Z",
+        "jobtype": "GO_JOB",
+        "launchtype": "GO_JOB",
+        "message": "",
+        "name": "LOC_app_orchestrator_notify",
+        "started": "0001-01-01T00:00:00Z",
+        "status": ""
+      }
+    ],
+    "stop_time": "",
+    "start_time": "2024-12-19T07:47:53.920016643Z",
+    "schedule_time": "",
+    "go_workflow_id": "6763cfa9d1d25ae77723252d"
+  }
+}

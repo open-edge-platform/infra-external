@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# lint yaml
+yamllint~=1.35.1
+
+# license check
+reuse~=5.0.2
+
+# lint ansible
+ansible-lint==6.22.2
+
+# ansible builder
+ansible-builder==3.1.0

@@ -1,0 +1,111 @@
+{
+  "statusCode": 0,
+  "message": "Template create success",
+  "data": {
+    "id": "67868aec72ac02b9577208ee",
+    "created_at": "2025-01-14T16:03:56.311Z",
+    "updated_at": "2025-01-14T16:03:56.311Z",
+    "name": "test",
+    "kind": "os",
+    "instanceInfo": {
+      "name": "intel{{#}}.{{site_code}}.{{province}}.{{country}}.customer.com",
+      "flavor": "Edge Manageability Framework",
+      "flavorOptions": {
+        "version": "Ubuntu 22.04.3",
+        "osVersion": "Ubuntu 22.04.3"
+      }
+    },
+    "networking": {
+      "dns": {
+        "domain": "{{site_code}}.{{province}}.{{country}}.customer.com",
+        "hostname": "intel{{#}}",
+        "hostFQDN": "intel{{#}}.{{site_code}}.{{province}}.{{country}}.customer.com"
+      }
+    },
+    "devices": [
+      {
+        "filters": {
+          "model": [
+            "ThinkEdge SE450"
+          ]
+        },
+        "numberOfDevices": 1,
+        "firmware": {
+          "name": "",
+          "type": ""
+        },
+        "osSettings": {
+          "credentials": [
+            {
+              "kind": "OS",
+              "username": "root",
+              "password": "********",
+              "approach": "static",
+              "credentialPolicy": {
+                "id": "67866bd472ac02b957720693",
+                "created_at": "2025-01-14T13:51:16.303Z",
+                "updated_at": "2025-01-14T13:51:16.303Z",
+                "name": "os-8e4327ee-SE450",
+                "kind": "OS",
+                "approach": "static",
+                "templates": [
+                  "678689e472ac02b9577208e1"
+                ]
+              }
+            }
+          ],
+          "vaultCredentials": null,
+          "vaultInternalSecretPath": null
+        }
+      }
+    ],
+    "extraVars": {
+      "encrypt_disk": false,
+      "os_resource_id": "sfsdf",
+      "post_script": "echo 'PermitRootLogin yes' \u003e\u003e /etc/ssh/sshd_config \u0026\u0026 systemctl restart sshd",
+      "pretty_name": "sdfsdf"
+    },
+    "extraVarsWithDisplayName": {
+      "encrypt_disk": {
+        "displayName": "Encrypt boot disk",
+        "value": false
+      },
+      "os_resource_id": {
+        "displayName": "OsResourceID of OS to deploy",
+        "value": "sfsdf"
+      },
+      "post_script": {
+        "displayName": "Post Script",
+        "value": "echo 'PermitRootLogin yes' \u003e\u003e /etc/ssh/sshd_config \u0026\u0026 systemctl restart sshd"
+      },
+      "pretty_name": {
+        "displayName": "Pretty name of OS",
+        "value": "sdfsdf"
+      }
+    },
+    "extraVarsVaultInternalSecretPath": null,
+    "status": "Valid",
+    "instances": null,
+    "description": "",
+    "deviceProfile": {
+      "id": "67867e4772ac02b957720811",
+      "created_at": "2025-01-14T15:09:59.449Z",
+      "updated_at": "2025-01-14T15:59:32.961Z",
+      "name": "intel-default-2",
+      "pattern": "",
+      "deviceModels": [
+        "ThinkEdge SE450"
+      ],
+      "bmc": {},
+      "uefi": {
+        "Onboard SATA Mode": "AHCI",
+        "Secure Boot Setting": "Disabled"
+      },
+      "flavor": "Edge Manageability Framework",
+      "template": [
+        "678689e472ac02b9577208e1"
+      ]
+    },
+    "alerts": null
+  }
+}
