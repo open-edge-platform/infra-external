@@ -6,16 +6,16 @@ module github.com/open-edge-platform/infra-external/loca-metadata
 go 1.24.1
 
 require (
-	github.com/open-edge-platform/infra-core/inventory/v2 v2.22.0
-	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.17.0
-	github.com/open-edge-platform/orch-library/go v0.5.28
+	github.com/open-edge-platform/infra-core/inventory/v2 v2.23.0
+	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.0
+	github.com/open-edge-platform/orch-library/go v0.5.29
 	github.com/prometheus/client_golang v1.21.1
 	github.com/stretchr/testify v1.10.0
 )
 
 require (
 	cel.dev/expr v0.22.0 // indirect
-	github.com/open-edge-platform/orch-library/go/dazl v0.5.1 // indirect
+	github.com/open-edge-platform/orch-library/go/dazl v0.5.2 // indirect
 	github.com/zclconf/go-cty-yaml v1.1.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect
 	golang.org/x/tools v0.31.0 // indirect
@@ -124,7 +124,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/yashtewari/glob-intersection v0.2.0 // indirect
 	github.com/zclconf/go-cty v1.16.2 // indirect
-	go.einride.tech/aip v0.68.1 // indirect
+	go.einride.tech/aip v0.69.0 // indirect
 	go.mongodb.org/mongo-driver v1.17.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho v0.60.0 // indirect
