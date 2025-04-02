@@ -8,7 +8,7 @@ go 1.24.1
 require (
 	github.com/open-edge-platform/infra-core/inventory/v2 v2.23.0
 	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.0
-	github.com/open-edge-platform/orch-library/go v0.5.29
+	github.com/open-edge-platform/orch-library/go v0.5.30
 	github.com/prometheus/client_golang v1.21.1
 	github.com/stretchr/testify v1.10.0
 )
@@ -147,7 +147,7 @@ require (
 	golang.org/x/time v0.11.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
-	google.golang.org/grpc v1.71.0 // indirect
+	google.golang.org/grpc v1.71.1 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
