@@ -2,7 +2,7 @@
 
 ## Overview
 
-The repository includes the vendor extensions of the Edge Infrastructure Manager of the Edge Manageability Framework.
+The repository includes the vendor extensions of the Edge Infrastructure Manager, part of the Edge Manageability Framework.
 
 ## Get Started
 
