@@ -4,7 +4,7 @@
 version = 1
 
 [[annotations]]
-path = ["**.md", "loca-metadata/**", "loca-onboarding/**", "loca-templates/**"]
+path = ["**.md", "loca-metadata/**", "loca-onboarding/**", "loca-templates/**", "amt-manager/**"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "(C) 2025 Intel Corporation"
 SPDX-License-Identifier = "Apache-2.0"
