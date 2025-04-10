@@ -24,3 +24,7 @@ loca-templates:
 loca-plugin:
   - changed-files:
       - any-glob-to-any-file: "loca-plugin/**"
+
+amt-manager:
+- changed-files:
+  - any-glob-to-any-file: "amt-manager/**"

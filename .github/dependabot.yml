@@ -15,6 +15,7 @@ updates:
       - "/loca-metadata"
       - "/loca-onboarding"
       - "/loca-templates"
+      - "/amt-manager"
     registries:
       - github
     schedule:
