@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-name: Post-Merge AMT maanger
+name: Post-Merge AMT manager
 
 on:
   push:

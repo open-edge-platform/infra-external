@@ -75,7 +75,7 @@ run:
 linters-settings:
   gofumpt:
     module-path: >
-      github.com/open-edge-platform/infra-external/loca-templates
+      github.com/open-edge-platform/infra-external/amt-manager
   depguard:
     rules:
       main:
@@ -85,49 +85,12 @@ linters-settings:
         allow:
           - $gostd
           - github.com/open-edge-platform
-          - github.com/deepmap/oapi-codegen
-          - github.com/oapi-codegen/echo-middleware
-          - github.com/getkin/kin-openapi
-          - github.com/golang-jwt/jwt/v5
-          - github.com/google/uuid
-          - github.com/labstack/echo/v4
-          - github.com/labstack/echo-contrib/echoprometheus
-          - github.com/modern-go/reflect2
-          - github.com/onosproject/onos-lib-go
-          - github.com/stretchr/testify
-          - github.com/viant/xunsafe
-          - github.com/grpc-ecosystem/go-grpc-middleware
-          - go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp
-          - golang.org/x/net
-          - google.golang.org/grpc
-          - google.golang.org/protobuf
-          - github.com/adhocore/gronx
-          - golang.org/x/exp/slices
-          - github.com/go-openapi/strfmt
-          - github.com/gorilla/websocket
-          - golang.org/x/exp/maps
-          - github.com/pkg/errors
-          - loca-templates-manager/
-          - github.com/go-openapi/runtime/client
-          - github.com/rs/zerolog
-          - github.com/prometheus/client_golang/prometheus
       test:
         files:
           - "$test"
         allow:
           - $gostd
           - github.com/open-edge-platform
-          - github.com/google/uuid
-          - github.com/mennanov/fmutils
-          - github.com/onosproject/onos-lib-go
-          - github.com/labstack/echo/v4
-          - github.com/grpc-ecosystem/go-grpc-middleware
-          - github.com/stretchr/testify/assert
-          - github.com/stretchr/testify/require
-          - github.com/go-openapi/strfmt
-          - github.com/gorilla/websocket
-          - github.com/golang-jwt/jwt/v5
-          - github.com/rs/zerolog
   cyclop:
     # SDL requirements recommend a maximum cyclomatic complexity of 10
     max-complexity: 10

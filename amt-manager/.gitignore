@@ -9,6 +9,3 @@
 *.dll
 *.so
 *.dylib
-
-# Do not track the auto-generated swagger doc
-api/openapi/edge-infra-manager-openapi-static-doc.html
