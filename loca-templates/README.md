@@ -10,12 +10,12 @@
 ## Overview
 
 This sub-repository contains the Lenovo® Open Cloud Automation (LOC-A) Templates Manager implementation for Edge
-Infrastructure Manager.  It ensures the syncronization of OS Profiles between LOC-A and the Edge Infrastructure
+Infrastructure Manager. It ensures the syncronization of OS Profiles between LOC-A and the Edge Infrastructure
 Manager.
 
 ## Features
 
-- Keep in sync LOC-A and the Edge Infrastructure Manager by adding and removing Instance templates in LOC-A
+- Keep LOC-A and the Edge Infrastructure Manager in sync by adding and removing Instance templates in LOC-A
 - Create/Delete OS credential policy
 - Download and Upload ISO images for the OS that need to be deployed
 - Flexible deployments that span from a standalone binary to container-based orchestrations

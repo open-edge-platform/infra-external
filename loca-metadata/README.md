@@ -10,12 +10,12 @@
 ## Overview
 
 This sub-repository contains the Lenovo® Open Cloud Automation (LOC-A) Metadata Manager implementation for Edge
-Infrastructure Manager, which ensure the synchronization of locations metadata between LOC-A and Edge Infrastructure
+Infrastructure Manager. It ensures the synchronization of locations metadata between LOC-A and Edge Infrastructure
 Manager.
 
 ## Features
 
-- Keep in sync LOC-A and Edge Infrastructure Manager by adding and removing sites information in LOC-A
+- Keep LOC-A and the Edge Infrastructure Manager in sync by adding and removing sites information in LOC-A
 - Create/Update/Delete Orchestrator Cloud Service in LOC-A
 - Flexible deployments that span from a standalone binary to container-based orchestrations
 
@@ -37,7 +37,7 @@ This code requires the following tools to be installed on your development machi
 - [Go\* programming language](https://go.dev) - check [$GOVERSION_REQ](../version.mk)
 - [golangci-lint](https://github.com/golangci/golangci-lint) - check [$GOLINTVERSION_REQ](../version.mk)
 - [go-junit-report](https://github.com/jstemmer/go-junit-report) - check [$GOJUNITREPORTVERSION_REQ](../version.mk)
-- [gocover-cobertura](github.com/boumenot/gocover-cobertura) - check [$GOCOBERTURAVERSION_REQ](../version.mk)
+- [gocover-cobertura](https://github.com/boumenot/gocover-cobertura) - check [$GOCOBERTURAVERSION_REQ](../version.mk)
 
 You can install Go dependencies by running `make go-dependency`.
 
@@ -54,7 +54,7 @@ The binary is installed in the [$OUT_DIR](../common.mk) folder.
 
 ### Usage
 
-> NOTE: This guide shows how to deploy LOC-A Metadata Manager for local development or testing. For production
+> NOTE: This guide shows how to deploy the LOC-A Metadata Manager for local development or testing. For production
 deployments use the [Edge Infrastructure Manager charts][inframanager-charts].
 
 ```bash
