@@ -10,7 +10,7 @@
 ## Overview
 
 This sub-repository contains the Lenovo® Open Cloud Automation (LOC-A) Metadata Manager implementation for Edge
-Infrastructure Manager. It ensures the synchronization of locations metadata between LOC-A and Edge Infrastructure
+Infrastructure Manager. It ensures the synchronization of locations metadata between LOC-A and the Edge Infrastructure
 Manager.
 
 ## Features

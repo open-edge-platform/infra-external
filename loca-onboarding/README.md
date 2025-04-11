@@ -10,7 +10,7 @@
 ## Overview
 
 This sub-repository contains the Lenovo® Open Cloud Automation (LOC-A) Onboarding Manager implementation for Edge
-Infrastructure Manager. It ensures the syncronization of Host and Instances between LOC-A and Edge Infrastructure
+Infrastructure Manager. It ensures the syncronization of Host and Instances between LOC-A and the Edge Infrastructure
 Manager.
 
 ## Features
