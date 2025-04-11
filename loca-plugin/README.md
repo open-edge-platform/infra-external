@@ -34,8 +34,7 @@ by accessing the LOC-A UI.
 
 ### Obtain the `plugin-tool` binary
 
-Find the `plugin-tool` binary in the package provided by Lenovo under the obtained license and copy it 
-in the current directory.
+Find the `plugin-tool` binary in the package provided by Lenovo under the obtained license and copy it in the current directory.
 
 ### Obtain the `decrypt.py` script
 
