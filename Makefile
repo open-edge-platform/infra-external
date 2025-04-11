@@ -6,83 +6,75 @@ SUBPROJECTS := loca-metadata loca-onboarding loca-templates
 .DEFAULT_GOAL := help
 .PHONY: all build clean clean-all help lint test
 
-all: build lint test
-	@# Help: Runs build, lint, test stages for all subprojects
-	
-build:
-	@# Help: Runs build stage in all subprojects
-	@echo "---MAKEFILE BUILD---"
-	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir build; done
-	@echo "---END MAKEFILE Build---"
+SHELL	:= bash -eu -o pipefail
 
-lint:
-	@# Help: Runs lint stage in all subprojects
-	@echo "---MAKEFILE LINT---"
-	@for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir lint; done
-	@echo "---END MAKEFILE LINT---"
+# Repo root directory, where base makefiles are located
+REPO_ROOT := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
-mdlint:
-	@echo "---MAKEFILE LINT README---"
-	@markdownlint --version
-	@markdownlint "*.md"
-	@echo "---END MAKEFILE LINT README---"
+#### Python venv Target ####
+VENV_DIR := venv_external
 
-test:
-	@# Help: Runs test stage in all subprojects
-	@echo "---MAKEFILE TEST---"
-	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir test; done
-	@echo "---END MAKEFILE TEST---"
-	
-clean:
-	@# Help: Runs clean stage in all subprojects
-	@echo "---MAKEFILE CLEAN---"
-	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir clean; done
-	@echo "---END MAKEFILE CLEAN---"
-
-clean-all:
-	@# Help: Runs clean-all stage in all subprojects
-	@echo "---MAKEFILE CLEAN-ALL---"
-	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir clean-all; done
-	@echo "---END MAKEFILE CLEAN-ALL---"
-
-lm-%:
-	@# Help: Runs loca-metadata subproject's tasks, e.g. lm-test
-	$(MAKE) -C loca-metadata $*
-
-lo-%:
-	@# Help: Runs loca-onboarding subproject's tasks, e.g. lo-test
-	$(MAKE) -C loca-onboarding $*
-
-lt-%:
-	@# Help: Runs loca-templates subproject's tasks, e.g. lt-test
-	$(MAKE) -C loca-templates $*
-
-# TODO: move to a common file shared with common.mk
-venv_infra: requirements.txt ## Create Python venv
+$(VENV_DIR): requirements.txt ## Create Python venv
 	python3 -m venv $@ ;\
   set +u; . ./$@/bin/activate; set -u ;\
   python -m pip install --upgrade pip ;\
   python -m pip install -r requirements.txt
 
-license: venv_infra ## Check licensing with the reuse tool
+#### common targets ####
+all: lint build test ## run lint, build, test for all subprojects
+
+dependency-check: $(VENV_DIR)
+
+lint: $(VENV_DIR) mdlint license ## lint common and all subprojects
+	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir lint; done
+
+MD_FILES := $(shell find . -type f \( -name '*.md' \) -print )
+mdlint: ## lint all markdown README.md files
+	markdownlint --version
+	markdownlint *.md
+
+license: $(VENV_DIR) ## Check licensing with the reuse tool
 	set +u; . ./$</bin/activate; set -u ;\
   reuse --version ;\
   reuse --root . lint
 
-help:
-	@printf "%-20s %s\n" "Target" "Description"
-	@printf "%-20s %s\n" "------" "-----------"
-	@grep -E '^[a-zA-Z0-9_%-]+:|^[[:space:]]+@# Help:' Makefile | \
-	awk '\
-		/^[a-zA-Z0-9_%-]+:/ { \
-			target = $$1; \
-			sub(":", "", target); \
-		} \
-		/^[[:space:]]+@# Help:/ { \
-			if (target != "") { \
-				help_line = $$0; \
-				sub("^[[:space:]]+@# Help: ", "", help_line); \
-				printf "%-20s %s\n", target, help_line; \
-				target = ""; \
-			} \
-		}'
+build: ## build in all subprojects
+	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir build; done
+
+docker-build: ## build all docker containers
+	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir $@; done
+
+docker-push: ## push all docker containers
+	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir $@; done
+
+docker-list: ## list all docker containers
+	@echo "images:"
+	@for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir $@; done
+
+test: ## test in all subprojects
+	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir test; done
+
+clean: ## clean in all subprojects
+	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir clean; done
+
+clean-all: ## clean-all in all subprojects, and delete virtualenv
+	for dir in $(SUBPROJECTS); do $(MAKE) -C $$dir clean-all; done
+	rm -rf $(VENV_DIR)
+
+lm-%: ## Runs loca-metadata subproject's tasks, e.g. lm-test
+	$(MAKE) -C loca-metadata $*
+
+lo-%: ## Runs loca-onboarding subproject's tasks, e.g. lo-test
+	$(MAKE) -C loca-onboarding $*
+
+lt-%: ## Runs loca-templates subproject's tasks, e.g. lt-test
+	$(MAKE) -C loca-templates $*
+
+#### Help Target ####
+help: ## print help for each target
+	@echo infra-external make targets
+	@echo "Target               Makefile:Line    Description"
+	@echo "-------------------- ---------------- -----------------------------------------"
+	@grep -H -n '^[[:alnum:]%_-]*:.* ##' $(MAKEFILE_LIST) \
+    | sort -t ":" -k 3 \
+    | awk 'BEGIN  {FS=":"}; {sub(".* ## ", "", $$4)}; {printf "%-20s %-16s %s\n", $$3, $$1 ":" $$2, $$4};'
