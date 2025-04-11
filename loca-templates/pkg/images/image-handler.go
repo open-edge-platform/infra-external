@@ -11,7 +11,6 @@ import (
 	"os"
 	"path"
 	"sync"
-	"time"
 
 	"google.golang.org/grpc/codes"
 
@@ -29,8 +28,7 @@ var (
 )
 
 const (
-	workdir                  = "/tmp/"
-	defaultOsDownloadTimeout = 10 * time.Minute
+	workdir = "/tmp/"
 )
 
 func HandleImage(locaClient *loca.LocaCli, operatingSystem *osv1.OperatingSystemResource) error {
@@ -70,7 +68,7 @@ func HandleImage(locaClient *loca.LocaCli, operatingSystem *osv1.OperatingSystem
 				MinVersion: tls.VersionTLS13,
 			},
 		},
-		Timeout: defaultOsDownloadTimeout,
+		Timeout: config.GetConfig().TemplateCreationTimeout,
 	}
 
 	file, downloadErr := downloadImageFromUbuntuServer(ctx, secureClient, operatingSystem.GetImageUrl(), dir)
