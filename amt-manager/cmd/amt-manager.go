@@ -18,6 +18,6 @@ func (id ID) String() string {
 	return "12345678"
 }
 
-func sampleReconcile(ctx context.Context, request controller.Request[ID]) controller.Directive[ID] {
+func SampleReconcile(_ context.Context, request controller.Request[ID]) controller.Directive[ID] {
 	return request.Ack()
 }
