@@ -11,7 +11,8 @@ import (
 )
 
 func main() {
-	time.Sleep(time.Hour * 24)
+	const oneDay = time.Hour * 24
+	time.Sleep(oneDay)
 }
 
 type ID string
