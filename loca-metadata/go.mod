@@ -6,10 +6,10 @@ module github.com/open-edge-platform/infra-external/loca-metadata
 go 1.24.1
 
 require (
-	github.com/open-edge-platform/infra-core/inventory/v2 v2.23.0
+	github.com/open-edge-platform/infra-core/inventory/v2 v2.23.1
 	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.0
-	github.com/open-edge-platform/orch-library/go v0.5.29
-	github.com/prometheus/client_golang v1.21.1
+	github.com/open-edge-platform/orch-library/go v0.5.31
+	github.com/prometheus/client_golang v1.22.0
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -88,7 +88,6 @@ require (
 	github.com/jackc/pgx/v5 v5.7.4 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/labstack/echo-contrib v0.17.3 // indirect
 	github.com/labstack/echo/v4 v4.13.3 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
@@ -147,7 +146,7 @@ require (
 	golang.org/x/time v0.11.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
-	google.golang.org/grpc v1.71.0 // indirect
+	google.golang.org/grpc v1.71.1 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
