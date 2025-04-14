@@ -1,3 +1,0 @@
-# AMT Manager
-
-TODO
