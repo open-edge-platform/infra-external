@@ -15,7 +15,7 @@ updates:
       - "/loca-metadata"
       - "/loca-onboarding"
       - "/loca-templates"
-      - "/dmt-manager"
+      - "/dm-manager"
     registries:
       - github
     schedule:

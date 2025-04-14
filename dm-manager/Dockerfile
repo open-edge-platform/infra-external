@@ -9,11 +9,11 @@ ARG REVISION
 ARG BUILD_DATE
 
 COPY common.mk version.mk /go/src/github.com/open-edge-platform/infra-external/
-COPY Makefile go.mod go.sum *.go *.mk /go/src/github.com/open-edge-platform/infra-external/dmt-manager/
-COPY cmd/ /go/src/github.com/open-edge-platform/infra-external/dmt-manager/cmd/
-COPY vendor/ /go/src/github.com/open-edge-platform/infra-external/dmt-manager/vendor/
-COPY pkg/ /go/src/github.com/open-edge-platform/infra-external/dmt-manager/pkg/
-WORKDIR /go/src/github.com/open-edge-platform/infra-external/dmt-manager/
+COPY Makefile go.mod go.sum *.go *.mk /go/src/github.com/open-edge-platform/infra-external/dm-manager/
+COPY cmd/ /go/src/github.com/open-edge-platform/infra-external/dm-manager/cmd/
+COPY vendor/ /go/src/github.com/open-edge-platform/infra-external/dm-manager/vendor/
+COPY pkg/ /go/src/github.com/open-edge-platform/infra-external/dm-manager/pkg/
+WORKDIR /go/src/github.com/open-edge-platform/infra-external/dm-manager/
 RUN LABEL_REPO_URL=${REPO_URL} LABEL_VERSION=${VERSION} LABEL_REVISION=${REVISION} LABEL_BUILD_DATE=${BUILD_DATE} make go-build
 
 
@@ -31,6 +31,6 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.revision=${REVISION} \
       org.opencontainers.image.created=${BUILD_DATE}
 
-COPY --from=build --chown=nobody:nobody /go/src/github.com/open-edge-platform/infra-external/dmt-manager/out/dmt-manager /usr/local/bin/dmt-manager
+COPY --from=build --chown=nobody:nobody /go/src/github.com/open-edge-platform/infra-external/dm-manager/out/dm-manager /usr/local/bin/dm-manager
 
-ENTRYPOINT  ["dmt-manager"]
+ENTRYPOINT  ["dm-manager"]
