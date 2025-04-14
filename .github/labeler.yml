@@ -25,6 +25,6 @@ loca-plugin:
   - changed-files:
       - any-glob-to-any-file: "loca-plugin/**"
 
-amt-manager:
+dm-manager:
 - changed-files:
-  - any-glob-to-any-file: "amt-manager/**"
+  - any-glob-to-any-file: "dm-manager/**"

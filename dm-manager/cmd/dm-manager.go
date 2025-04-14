@@ -5,11 +5,14 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
 func main() {
+	const oneDay = time.Hour * 24
+	time.Sleep(oneDay)
 }
 
 type ID string
