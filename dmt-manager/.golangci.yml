@@ -75,7 +75,7 @@ run:
 linters-settings:
   gofumpt:
     module-path: >
-      github.com/open-edge-platform/infra-external/amt-manager
+      github.com/open-edge-platform/infra-external/dmt-manager
   depguard:
     rules:
       main:

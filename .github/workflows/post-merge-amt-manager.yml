@@ -10,7 +10,7 @@ on:
       - main
       - release-*
     paths:
-      - "amt-manager/**"
+      - "dmt-manager/**"
 
 jobs:
   post-merge-pipeline:

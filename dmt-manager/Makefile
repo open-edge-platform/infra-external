@@ -17,7 +17,7 @@ GOJUNITREPORT      := true
 MOCKGEN            := true
 
 # Project variables
-PROJECT_NAME       := amt-manager
+PROJECT_NAME       := dmt-manager
 BINARY_NAME        := $(PROJECT_NAME)
 
 DB_CONTAINER_NAME  := $(PROJECT_NAME)-db
