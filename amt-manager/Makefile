@@ -1,4 +1,4 @@
-# Makefile for LOCA Templates Manager
+# Makefile for AMT Manager
 
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
@@ -17,8 +17,7 @@ GOJUNITREPORT      := true
 MOCKGEN            := true
 
 # Project variables
-PROJECT_NAME       := loca-templates-manager
-PROJECT_NICKNAME   := lt
+PROJECT_NAME       := amt-manager
 BINARY_NAME        := $(PROJECT_NAME)
 
 DB_CONTAINER_NAME  := $(PROJECT_NAME)-db
@@ -29,7 +28,6 @@ VERSION_MAJOR      := $(shell cut -c 1 VERSION)
 DOCKER_IMG_NAME    := $(PROJECT_NAME)
 DOCKER_VERSION     ?= $(shell git branch --show-current | sed 's/\//_/g')
 GIT_COMMIT         ?= $(shell git rev-parse HEAD)
-GIT_TAG_PREFIX     := loca-templates/v
 
 # Test variables
 # Set TEST_TARGET to '<testname1>' or '<testname1\|testname2>' to run specific tests or use regex '<testname.*>' - example:
@@ -38,8 +36,8 @@ TEST_TARGET      ?= .
 # Default TEST_PKG, overwrite to select particular test pakages
 TEST_PKG         ?= $(shell go list ./... | grep -v "pkg/api" | grep -v "cmd" | tr '\n' ,)
 TEST_COVER       := atomic ./...
-TEST_ARGS        := -globalLogLevel=info
-TEST_USE_DB      := true
+TEST_ARGS        := ""
+TEST_USE_DB      := false
 
 # Include shared makefile
 include ../common.mk
