@@ -7,8 +7,8 @@ go 1.24.1
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/open-edge-platform/infra-core/inventory/v2 v2.23.0
-	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.0
+	github.com/open-edge-platform/infra-core/inventory/v2 v2.23.2
+	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.1
 	github.com/prometheus/client_golang v1.21.1
 	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.10.0
