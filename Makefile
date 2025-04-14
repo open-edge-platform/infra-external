@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-SUBPROJECTS := loca-metadata loca-onboarding loca-templates amt-manager
+SUBPROJECTS := loca-metadata loca-onboarding loca-templates dmt-manager
 
 .DEFAULT_GOAL := help
 .PHONY: all build clean clean-all help lint test
