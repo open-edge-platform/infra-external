@@ -439,6 +439,7 @@ func PopulateInventoryWithInstanceAndOSResource(
 	osRes := PopulateInventoryWithOSResource(t, locaMocks, tenantID)
 
 	// creating Instance
+	//nolint:staticcheck // use deprecated function for now.
 	instance := dao.CreateInstanceWithArgs(t, tenantID, LocaInstanceID, osv1.SecurityFeature_SECURITY_FEATURE_NONE,
 		host, osRes, nil, nil, cleanup)
 

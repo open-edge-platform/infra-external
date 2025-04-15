@@ -34,7 +34,11 @@ by accessing the LOC-A UI.
 
 ### Obtain the `plugin-tool` binary
 
-Obtain the `plugin-tool` binary from Lenovo and save it in the current directory.
+Find the `plugin-tool` binary in the package provided by Lenovo under the obtained license and copy it in the current directory.
+
+### Obtain the `decrypt.py` script
+
+Locate the `decrypt.py` script in the Lenovo package and move it to the `edge-node/filter_plugins` directory.
 
 ### Dependencies
 
@@ -76,8 +80,8 @@ Run the `create-loca-plugin.sh` script to build and publish the Edge Infrastruct
 ./create-loca-plugin.sh
 ```
 
-> **Note:** Make sure to configure proxy on host and container tool of your choice, as build process runs inside
-> the container that requires access to internet
+> **Note:** Make sure to configure proxy on the host and set up a container tool of your choice, as the build process runs inside
+> a container that requires internet access.
 
 See the [documentation][user-guide-url] if you want to learn more about using Edge Orchestrator.
 
@@ -101,6 +105,6 @@ targets. The following is a list of makefile targets that support developer acti
 To learn more about internals and software architecture, see
 [Edge Infrastructure Manager developer documentation][inframanager-dev-guide-url].
 
-[user-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/get_started_guide/gsg_content.html
-[inframanager-dev-guide-url]: (https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/get_started_guide/gsg_content.html)
-[contributors-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/index.html
+[user-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/get_started_guide/index.html
+[inframanager-dev-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/infra_manager/index.html
+[contributors-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/contributor_guide/index.html

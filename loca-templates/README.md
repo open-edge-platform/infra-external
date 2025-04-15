@@ -10,12 +10,12 @@
 ## Overview
 
 This sub-repository contains the Lenovo® Open Cloud Automation (LOC-A) Templates Manager implementation for Edge
-Infrastructure Manager, which ensure the syncronization of OS Profiles between LOC-A and Edge Infrastructure
+Infrastructure Manager. It ensures the syncronization of OS Profiles between LOC-A and the Edge Infrastructure
 Manager.
 
 ## Features
 
-- Keep in sync LOC-A and Edge Infrastructure Manager by adding and removing Instance templates in LOC-A
+- Keep LOC-A and the Edge Infrastructure Manager in sync by adding and removing Instance templates in LOC-A
 - Create/Delete OS credential policy
 - Download and Upload ISO images for the OS that need to be deployed
 - Flexible deployments that span from a standalone binary to container-based orchestrations
@@ -55,7 +55,7 @@ The binary is installed in the [$OUT_DIR](../common.mk) folder.
 
 ### Usage
 
-> NOTE: This guide shows how to deploy LOC-A Templates Manager for local development or testing. For production
+> NOTE: This guide shows how to deploy the LOC-A Templates Manager for local development or testing. For production
 deployments use the [Edge Infrastructure Manager charts][inframanager-charts].
 
 ```bash
@@ -85,7 +85,7 @@ targets. The following is a list of makefile targets that support developer acti
 To learn more about internals and software architecture, see
 [Edge Infrastructure Manager developer documentation][inframanager-dev-guide-url].
 
-[user-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/get_started_guide/gsg_content.html
-[inframanager-dev-guide-url]: (https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/get_started_guide/gsg_content.html)
-[contributors-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/index.html
+[user-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/get_started_guide/index.html
+[inframanager-dev-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/infra_manager/index.html
+[contributors-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/contributor_guide/index.html
 [inframanager-charts]: https://github.com/open-edge-platform/infra-charts

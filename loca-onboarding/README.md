@@ -10,7 +10,7 @@
 ## Overview
 
 This sub-repository contains the Lenovo® Open Cloud Automation (LOC-A) Onboarding Manager implementation for Edge
-Infrastructure Manager, which ensure the syncronization of Host and Instances between LOC-A and Edge Infrastructure
+Infrastructure Manager. It ensures the syncronization of Host and Instances between LOC-A and the Edge Infrastructure
 Manager.
 
 ## Features
@@ -89,7 +89,7 @@ See the [docs](docs) for advanced development topics:
 To learn more about internals and software architecture, see
 [Edge Infrastructure Manager developer documentation][inframanager-dev-guide-url].
 
-[user-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/get_started_guide/gsg_content.html
-[inframanager-dev-guide-url]: (https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/get_started_guide/gsg_content.html)
-[contributors-guide-url]: https://literate-adventure-7vjeyem.pages.github.io/edge_orchestrator/user_guide_main/content/user_guide/index.html
+[user-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/get_started_guide/index.html
+[inframanager-dev-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/infra_manager/index.html
+[contributors-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/contributor_guide/index.html
 [inframanager-charts]: https://github.com/open-edge-platform/infra-charts
