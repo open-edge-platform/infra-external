@@ -37,7 +37,7 @@ For support, start with [Troubleshooting](https://docs.openedgeplatform.intel.co
 
 ## License
 
-Each component of the Edge Infrastructure external is licensed under [Apache 2.0][apache-license].
+Each component of the Edge Infrastructure core is licensed under [Apache 2.0][apache-license].
 
 Last Updated Date: April 7, 2025
 
