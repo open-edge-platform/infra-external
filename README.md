@@ -17,7 +17,7 @@ Automation instance templates based on the OS profiles deployed in Edge Infrastr
 - [***Edge Infrastructure LOC-A Plugin*](loca-plugin/): LOC-A plugin that provides the integration between
 Edge Infrastructure Manager and Lenovo® Open Cloud Automation.
 
-Read more about Edge Orchestrator in the TODO [User Guide][user-guide-url].
+Read more about Edge Orchestrator in the [User Guide](https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/index.html$0).
 
 ## Develop
 
