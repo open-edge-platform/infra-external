@@ -19,6 +19,10 @@ Read more about Edge Orchestrator in the [User Guide][user-guide-url].
 Navigate through the folders to get started, develop, and contribute to Edge Infrastructure
 Manager.
 
-Last Updated Date: March 13, 2025
+## License
+
+Infrastrcuture Core components are licensed under [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Last Updated Date: April 15, 2025
 
 [user-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/get_started_guide/index.html
