@@ -16,7 +16,8 @@ Edge Infrastructure Manager and Lenovo® Open Cloud Automation.
 Automation instance templates based on the OS profiles deployed in Edge Infrastructure Manager.
 - [***Edge Infrastructure LOC-A Plugin*](loca-plugin/): LOC-A plugin that provides the integration between
 Edge Infrastructure Manager and Lenovo® Open Cloud Automation.
-
+- [***Device Management Manager*](dm-manager): Device Management Manager that provides integration between Intel AMT/vPro on the servers and
+Management Presence Service.
 Read more about Edge Orchestrator in the [User Guide](https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/index.html$0).
 
 ## Develop
