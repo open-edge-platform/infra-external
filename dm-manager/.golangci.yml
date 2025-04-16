@@ -85,12 +85,15 @@ linters-settings:
         allow:
           - $gostd
           - github.com/open-edge-platform
+          - github.com/prometheus
       test:
         files:
           - "$test"
         allow:
           - $gostd
           - github.com/open-edge-platform
+          - github.com/prometheus
+          - github.com/stretchr/testify
   cyclop:
     # SDL requirements recommend a maximum cyclomatic complexity of 10
     max-complexity: 10
