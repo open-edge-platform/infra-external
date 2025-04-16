@@ -9,7 +9,10 @@
 
 ## Overview
 
-Device Management Manager is a component of the Edge Infrastructure Manager that provides integration between Intel AMT/vPro on the servers and Management Presence Service (MPS). It enables remote management capabilities for devices, allowing administrators to perform tasks such as power management and system configuration.
+Device Management Manager is a component of the Edge Infrastructure Manager that provides integration between
+Intel AMT/vPro on the servers and Management Presence Service (MPS).
+It enables remote management capabilities for devices, allowing administrators to perform tasks
+such as power management and system configuration.
 
 ## Features
 
@@ -71,7 +74,5 @@ targets. The following is a list of makefile targets that support developer acti
 To learn more about internals and software architecture, see
 [Edge Infrastructure Manager developer documentation][inframanager-dev-guide-url].
 
-[user-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/get_started_guide/index.html
 [inframanager-dev-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/infra_manager/index.html
 [contributors-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/contributor_guide/index.html
-[inframanager-charts]: https://github.com/open-edge-platform/infra-charts
