@@ -1,4 +1,4 @@
-# Edge Infrastructure LOC-A Onboarding Manager
+# Device Management Manager
 
 ## Table of Contents
 
@@ -9,19 +9,18 @@
 
 ## Overview
 
-This sub-repository contains the Lenovo® Open Cloud Automation (LOC-A) Onboarding Manager implementation for Edge
-Infrastructure Manager. It ensures the syncronization of Host and Instances between LOC-A and the Edge Infrastructure
-Manager.
+Device Management Manager is a component of the Edge Infrastructure Manager that provides integration between
+Intel AMT/vPro on the servers and Management Presence Service (MPS).
+It enables remote management capabilities for devices, allowing administrators to perform tasks
+such as power management and system configuration.
 
 ## Features
 
-- Import Hosts and Instances from LOC-A Inventory into Edge Infrastructure Manager
-- Offboard Hosts and Instances by translating User intents into command executed on LOC-A
-- Flexible deployments that span from a standalone binary to container-based orchestrations
+- Integration with Intel AMT/vPro for remote management of devices
 
 ## Get Started
 
-Instructions on how to install and set up the LOC-A Onboarding Manager on your development machine.
+Enter into the `dm-manager` folder and run `make build` to build the binary.
 
 ### Dependencies
 
@@ -55,17 +54,7 @@ The binary is installed in the [$OUT_DIR](../common.mk) folder.
 
 ### Usage
 
-> NOTE: This guide shows how to deploy LOC-A Onboarding Manager for local development or testing. For production
-deployments use the [Edge Infrastructure Manager charts][inframanager-charts].
-
-```bash
-make run
-
-# Or
-make go-run
-```
-
-See the [documentation][user-guide-url] if you want to learn more about using Edge Orchestrator.
+Change URL in binary to point to MPS server and the run it.
 
 ## Contribute
 
@@ -82,14 +71,8 @@ targets. The following is a list of makefile targets that support developer acti
 - `build` to build the project and generate executable files
 - `docker-build` to build the LOC-A Onboarding Manager Docker container
 
-See the [docs](docs) for advanced development topics:
-
-- [LOC-A Client](docs/loca_client.md)
-
 To learn more about internals and software architecture, see
 [Edge Infrastructure Manager developer documentation][inframanager-dev-guide-url].
 
-[user-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/user_guide/get_started_guide/index.html
 [inframanager-dev-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/infra_manager/index.html
 [contributors-guide-url]: https://docs.openedgeplatform.intel.com/edge-manage-docs/main/developer_guide/contributor_guide/index.html
-[inframanager-charts]: https://github.com/open-edge-platform/infra-charts
