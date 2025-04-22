@@ -119,9 +119,9 @@ jobs:
         run: |
           pre_merge_root_pipeline="${{ needs.pre-merge-root.result }}"
           pre_merge_pipeline="${{ needs.pre-merge-pipeline.result }}"
-          pre-merge-pipeline-loca-plugin_pipeline="${{ needs.pre-merge-pipeline-loca-plugin.result }}"
+          pre_merge_pipeline_loca_plugin_pipeline="${{ needs.pre-merge-pipeline-loca-plugin.result }}"
 
-          results=("pre_merge_root_pipeline" "pre_merge_pipeline" "pre-merge-pipeline-loca-plugin_pipeline")
+          results=("pre_merge_root_pipeline" "pre_merge_pipeline" "pre_merge_pipeline_loca_plugin_pipeline")
           status="OK"
           
           for result in "${results[@]}"; do
