@@ -10,8 +10,6 @@ updates:
       - "/loca-onboarding"
       - "/loca-templates"
       - "/dm-manager"
-    registries:
-      - github
     schedule:
       interval: daily
     open-pull-requests-limit: 3
