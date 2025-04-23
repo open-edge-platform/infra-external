@@ -80,8 +80,8 @@ Run the `create-loca-plugin.sh` script to build and publish the Edge Infrastruct
 ./create-loca-plugin.sh
 ```
 
-> **Note:** Make sure to configure proxy on the host and set up a container tool of your choice, as the build process runs inside
-> a container that requires internet access.
+> **Note:** Make sure to configure proxy on the host and set up a container tool of your choice, as the build process
+> runs inside a container that requires internet access.
 
 See the [documentation][user-guide-url] if you want to learn more about using Edge Orchestrator.
 
