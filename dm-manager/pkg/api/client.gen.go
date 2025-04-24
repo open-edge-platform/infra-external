@@ -176,12 +176,6 @@ type AuditLogResponse struct {
 // CiracertResponse defines model for CiracertResponse.
 type CiracertResponse = interface{}
 
-// CountDevicesResponse defines model for CountDevicesResponse.
-type CountDevicesResponse struct {
-	Data       *[]Device `json:"data,omitempty"`
-	TotalCount *int      `json:"totalCount,omitempty"`
-}
-
 // DeactivateResponse defines model for DeactivateResponse.
 type DeactivateResponse struct {
 	Status *string `json:"status,omitempty"`
@@ -3461,9 +3455,7 @@ func (r GetApiV1CiracertResponse) StatusCode() int {
 type GetApiV1DevicesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		union json.RawMessage
-	}
+	JSON200      *[]Device
 }
 
 // Status returns HTTPResponse.Status
@@ -4635,9 +4627,7 @@ func ParseGetApiV1DevicesResponse(rsp *http.Response) (*GetApiV1DevicesResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			union json.RawMessage
-		}
+		var dest []Device
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
