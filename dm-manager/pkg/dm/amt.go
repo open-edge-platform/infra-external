@@ -75,7 +75,21 @@ func (dmr *Reconciler) Reconcile(ctx context.Context) {
 	}
 
 	log.Info().Msgf("devices - %s", string(devicesRsp.Body))
-	log.Info().Msgf("devices - %v", devicesRsp.JSON200)
+
+	for _, device := range *devicesRsp.JSON200 {
+		resp, err := dmr.APIClient.PostApiV1AmtPowerActionGuidWithResponse(context.TODO(), *device.Guid,
+			api.PostApiV1AmtPowerActionGuidJSONRequestBody{
+				Action: api.PowerActionRequestActionN10, //reset
+			}, func(_ context.Context, req *http.Request) error {
+				req.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			})
+		if err != nil {
+			log.Err(err).Msgf("cannot reset %v device", *device.Guid)
+			return
+		}
+		log.Info().Msgf("reset %v device - %s", *device.Guid, string(resp.Body))
+	}
 }
 
 func login(ctx context.Context, client *api.ClientWithResponses) (string, error) {
