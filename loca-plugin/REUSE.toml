@@ -8,8 +8,6 @@ path = [
     "**/*.md",
     "**/*.json",
     "**/VERSION",
-    # decypt.py has a Lenovo license approved by OSPO
-    "edge-node/filter_plugins/decrypt.py",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "(C) 2025 Intel Corporation"
