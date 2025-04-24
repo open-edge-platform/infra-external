@@ -10,6 +10,8 @@ require (
 	github.com/open-edge-platform/infra-core/inventory/v2 v2.23.2
 	github.com/prometheus/client_golang v1.21.1
 	github.com/stretchr/testify v1.10.0
+	google.golang.org/grpc v1.71.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -56,6 +58,7 @@ require (
 	github.com/prometheus/procfs v0.16.0 // indirect
 	github.com/rs/zerolog v1.34.0 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/zclconf/go-cty v1.16.2 // indirect
@@ -83,7 +86,5 @@ require (
 	google.golang.org/genproto v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
-	google.golang.org/grpc v1.71.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

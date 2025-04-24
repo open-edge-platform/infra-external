@@ -27,7 +27,7 @@ func (id ID) String() string {
 }
 
 type Reconciler struct {
-	APIClient *api.ClientWithResponses
+	APIClient api.ClientWithResponsesInterface
 	TermChan  chan bool
 	ReadyChan chan bool
 	WaitGroup *sync.WaitGroup
@@ -79,7 +79,7 @@ func (dmr *Reconciler) Reconcile(ctx context.Context) {
 	for _, device := range *devicesRsp.JSON200 {
 		resp, err := dmr.APIClient.PostApiV1AmtPowerActionGuidWithResponse(context.TODO(), *device.Guid,
 			api.PostApiV1AmtPowerActionGuidJSONRequestBody{
-				Action: api.PowerActionRequestActionN10, //reset
+				Action: api.PowerActionRequestActionN10, // reset
 			}, func(_ context.Context, req *http.Request) error {
 				req.Header.Set("Authorization", "Bearer "+token)
 				return nil
@@ -92,7 +92,7 @@ func (dmr *Reconciler) Reconcile(ctx context.Context) {
 	}
 }
 
-func login(ctx context.Context, client *api.ClientWithResponses) (string, error) {
+func login(ctx context.Context, client api.ClientWithResponsesInterface) (string, error) {
 	mpsCredentials := getCredentials()
 	authResp, err := client.PostApiV1AuthorizeWithResponse(ctx, api.PostApiV1AuthorizeJSONRequestBody{
 		Username: mpsCredentials.Username,

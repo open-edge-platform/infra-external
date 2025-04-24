@@ -9,13 +9,26 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
 )
 
+func strPtr(s string) *string {
+	return &s
+}
+
 func TestDMReconciler_Start(t *testing.T) {
-	mockAPIClient := &api.ClientWithResponses{}
+	json200Struct := struct {
+		Token *string `json:"token,omitempty"`
+	}{Token: strPtr("1234567890")}
+	mockAPIClient := new(api.MockClientWithResponsesInterface)
+	mockAPIClient.On("PostApiV1AuthorizeWithResponse", mock.Anything, mock.Anything, mock.Anything).
+		Return(&api.PostApiV1AuthorizeResponse{JSON200: &json200Struct}, nil)
+	mockAPIClient.On("GetApiV1DevicesWithResponse", mock.Anything, mock.Anything, mock.Anything).
+		Return(&api.GetApiV1DevicesResponse{JSON200: &[]api.Device{}}, nil)
+
 	termChan := make(chan bool, 1)
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}

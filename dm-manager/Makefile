@@ -56,3 +56,4 @@ go-run: $(OUT_DIR) ## Run the resource manager
 
 generate:
 	oapi-codegen -generate client,types -o pkg/api/client.gen.go -package api pkg/api/swagger.json
+	mockery
