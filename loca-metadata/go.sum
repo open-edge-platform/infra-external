@@ -735,8 +735,8 @@ github.com/open-edge-platform/infra-core/inventory/v2 v2.23.2 h1:UhRxgwWeQfcPc+Z
 github.com/open-edge-platform/infra-core/inventory/v2 v2.23.2/go.mod h1:NC18hEm1VyzEBST5QmAfpMj38RBIy82O5Asrff7tdwM=
 github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.1 h1:DMgYiZJiTM5FY1qEijc7Li5po5uWUw9G+yzMEby95R8=
 github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.1/go.mod h1:wd36Czv7EztGRTNvV02SVWWVuna74CZwMKPeeCQbNrg=
-github.com/open-edge-platform/orch-library/go v0.5.29 h1:LfOaRcRYXpQdcyHrVwN4wC2l11wbdUnBLkc2P7vrZNY=
-github.com/open-edge-platform/orch-library/go v0.5.29/go.mod h1:Wm6A5AJx4DCIOi4u+y1IMJxgFZ4n27f5FLSqW0QPW9k=
+github.com/open-edge-platform/orch-library/go v0.5.31 h1:IIQ8IMLz1fpovZUUYs8UYSiJR615uPeeJB1b+e0D+Tk=
+github.com/open-edge-platform/orch-library/go v0.5.31/go.mod h1:ZjoTX4aTWIAbUzzOod+Pt/imyR2GLi1tpRPq/LgSEew=
 github.com/open-edge-platform/orch-library/go/dazl v0.5.2 h1:YajSGrup0GtzILvXOGL5slbZQMrge513ATBKtadQq38=
 github.com/open-edge-platform/orch-library/go/dazl v0.5.2/go.mod h1:UiO3TOEqEuRT81OtgPsqR9LpB1887i5nk2TelhJksMY=
 github.com/open-policy-agent/opa v1.3.0 h1:zVvQvQg+9+FuSRBt4LgKNzJwsWl/c85kD5jPozJTydY=
