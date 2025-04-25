@@ -69,13 +69,22 @@ func main() {
 		}
 	}
 
-	client, err := api.NewClientWithResponses(*mpsAddress, func(apiClient *api.Client) error {
+	authHandlerClient, err := api.NewClientWithResponses(*mpsAddress, func(apiClient *api.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
 		return nil
 	})
 	if err != nil {
-		log.Err(err).Msgf("cannot create client")
-		os.Exit(1)
+		log.Fatal().Err(err).Msgf("cannot create client")
+	}
+	authHandler := dm.MpsAuthHandler{APIClient: authHandlerClient}
+
+	client, err := api.NewClientWithResponses(*mpsAddress, func(apiClient *api.Client) error {
+		apiClient.Client = &http.Client{Transport: transport}
+		apiClient.RequestEditors = []api.RequestEditorFn{authHandler.MpsAuth}
+		return nil
+	})
+	if err != nil {
+		log.Fatal().Err(err).Msgf("cannot create client")
 	}
 
 	dmReconciler := &dm.Reconciler{
