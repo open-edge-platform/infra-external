@@ -14,12 +14,6 @@ import (
 
 var log = logging.GetLogger("DmReconciler")
 
-type ID string
-
-func (id ID) String() string {
-	return "12345678"
-}
-
 type Reconciler struct {
 	APIClient api.ClientWithResponsesInterface
 	TermChan  chan bool

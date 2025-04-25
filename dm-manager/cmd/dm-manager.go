@@ -42,7 +42,7 @@ var (
 	traceURL       = flag.String(tracing.TraceURL, "", tracing.TraceURLDescription)
 	metricsAddress = flag.String(metrics.MetricsAddress, metrics.MetricsAddressDefault, metrics.MetricsAddressDescription)
 	mpsAddress     = flag.String(mpsAddressFlag, "openamtstack-kong-proxy.orch-infra.svc.cluster.local/mps/login",
-		"Address of Management Present Service (MPS)")
+		"Address of Management Presence Service (MPS)")
 	insecure = flag.Bool("InsecureSkipVerify", false,
 		"Skip TLS verification for MPS. Does not recommended for production and should be used only for development.")
 )
