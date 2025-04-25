@@ -24,7 +24,7 @@ SHELL	:= bash -eu -o pipefail
 
 # GO variables
 GOARCH	:= $(shell go env GOARCH)
-GOCMD := GOPRIVATE="github.com/open-edge-platform/*" go
+GOCMD   := go
 
 #### Variables ####
 
@@ -128,8 +128,6 @@ docker-build: ## Build Docker image
 	@rm -rf vendor common.mk version.mk
 
 docker-push: ## Tag and push Docker image
-	# TODO: remove ecr create
-	aws ecr create-repository --region us-west-2 --repository-name $(DOCKER_REPOSITORY)/$(DOCKER_SECTION)/$(DOCKER_IMG_NAME) || true
 	docker tag $(DOCKER_IMG_NAME):$(VERSION) $(DOCKER_TAG_BRANCH)
 	docker tag $(DOCKER_IMG_NAME):$(VERSION) $(DOCKER_TAG)
 	docker push $(DOCKER_TAG)
