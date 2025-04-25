@@ -24,7 +24,7 @@ jobs:
       filtered_projects: ${{ steps.filter-changes.outputs.filtered_projects }}
       other_changed_projects: ${{ steps.filter-changes.outputs.other_changed_projects }}
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: "Verify Branch Name"
         uses: open-edge-platform/orch-ci/verify-branch-name@main
       - name: "Discover Changed Subfolders"
@@ -46,19 +46,19 @@ jobs:
     if: ${{ contains(needs.pre-checks.outputs.other_changed_projects, '.github') || contains(needs.pre-checks.outputs.other_changed_projects, '.reuse') || contains(needs.pre-checks.outputs.other_changed_projects, 'LICENSES') || contains(needs.pre-checks.outputs.other_changed_projects, '""')}}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-node@v4.3.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version: '18'
       - run: |
           npm install -g \
           "markdownlint-cli@${{ env.MARKDOWNLINT_CLI_VER }}"
-      - uses: actions/setup-python@v5.5.0
+      - uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
         id: setup_python
         with:
           python-version: '3.13'
       - name: Restore cached virtualenv
-        uses: actions/cache@v4.2.3
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           key: venv-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}-${{ hashFiles('requirements.txt') }}
           path: venv_infra
@@ -76,7 +76,6 @@ jobs:
         project_folder: ${{ fromJson(needs.pre-checks.outputs.filtered_projects) }}
     uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@main
     with:
-      run_security_scans: true
       run_version_check: true
       run_dep_version_check: true
       run_build: true
@@ -84,7 +83,6 @@ jobs:
       run_test: true
       run_validate_clean_folder: true
       run_docker_build: true
-      run_scan_containers: false
       run_artifact: false
       prefix_tag_separator: "/"
       project_folder: ${{ matrix.project_folder }}
@@ -97,7 +95,6 @@ jobs:
     if: ${{ contains(needs.pre-checks.outputs.other_changed_projects, 'loca-plugin') }}
     uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@main
     with:
-      run_security_scans: true
       run_version_check: true
       run_dep_version_check: false
       run_build: false
@@ -105,7 +102,6 @@ jobs:
       run_test: false
       run_validate_clean_folder: true
       run_docker_build: false
-      run_scan_containers: false
       run_artifact: false
       prefix_tag_separator: "/"
       project_folder: "loca-plugin"
@@ -117,15 +113,24 @@ jobs:
     steps:
       - name: Final Status Check
         run: |
-          pre_merge_pipeline_result="${{ needs.pre-merge-pipeline.result }}"
-          pre_merge_loca_plugin_result="${{ needs.pre-merge-pipeline-loca-plugin.result }}"
+          pre_merge_root_pipeline="${{ needs.pre-merge-root.result }}"
+          pre_merge_pipeline="${{ needs.pre-merge-pipeline.result }}"
+          pre_merge_pipeline_loca_plugin_pipeline="${{ needs.pre-merge-pipeline-loca-plugin.result }}"
 
-          echo "Pre-merge pipeline result: $pre_merge_pipeline_result"
-          echo "Pre-merge loca-plugin result: $pre_merge_loca_plugin_result"
-
-          if [ "$pre_merge_pipeline_result" == "success" ] || [ "$pre_merge_pipeline_result" == "skipped" ] || [ "$pre_merge_loca_plugin_result" == "success" ]; then
-            echo "At least one pre-merge check passed successfully."
+          results=("pre_merge_root_pipeline" "pre_merge_pipeline" "pre_merge_pipeline_loca_plugin_pipeline")
+          status="OK"
+          
+          for result in "${results[@]}"; do
+            pipeline_result=$(eval echo \$$result)
+            echo "${result} result: $pipeline_result"
+            if [[ "$pipeline_result" != "success" && "$pipeline_result" != "skipped" ]]; then
+              status="KO"
+            fi
+          done
+          
+          if [[ "$status" == "OK" ]]; then
+            echo "Pre-merge check passed successfully."
           else
-            echo "Both pre-merge checks failed or were skipped. PR can't get merged"
+            echo "All pre-merge checks failed or were skipped. PR can't get merged"
             exit 1
           fi
