@@ -32,6 +32,32 @@ func TestMpsAuthHandler_MpsAuth_shouldUseStoredToken(t *testing.T) {
 	assert.Equal(t, "Bearer "+token, httpReq.Header.Get("Authorization"))
 }
 
+func TestMpsAuthHandler_MpsAuth_shouldRefreshStaleToken(t *testing.T) {
+	token := "zxcv"
+	json200Struct := struct {
+		Token *string `json:"token,omitempty"`
+	}{Token: &token}
+	credentialsFile = mockCredentialsFile(t, "user", "pass")
+	defer os.Remove(credentialsFile)
+
+	mockAPIClient := new(api.MockClientWithResponsesInterface)
+	mockAPIClient.On("PostApiV1AuthorizeWithResponse", mock.Anything, mock.Anything).
+		Return(&api.PostApiV1AuthorizeResponse{JSON200: &json200Struct}, nil)
+
+	mah := &MpsAuthHandler{
+		APIClient: mockAPIClient,
+		token:     "old-token",
+		updatedAt: time.Date(2025, 1, 1, 1, 1, 1, 1, &time.Location{}),
+	}
+
+	httpReq, err := http.NewRequestWithContext(context.Background(), "http", "localhost", http.NoBody)
+	assert.NoError(t, err)
+
+	err = mah.MpsAuth(context.Background(), httpReq)
+	assert.NoError(t, err)
+	assert.Equal(t, "Bearer "+token, httpReq.Header.Get("Authorization"))
+}
+
 func TestMpsAuthHandler_getToken_shouldGetTokenFromMpsServer(t *testing.T) {
 	mockedUsername := "user"
 	mockedPassword := "pass"
