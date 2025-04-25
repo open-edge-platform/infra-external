@@ -16,7 +16,10 @@ import (
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api"
 )
 
-var tokenRefreshInterval = 23 * time.Hour // by-default token is valid for 24 hours
+var (
+	tokenRefreshInterval = 23 * time.Hour             // by-default token is valid for 24 hours.
+	credentialsFile      = "/etc/dm/credentials.yaml" //nolint:gosec // not a credential
+)
 
 type MpsAuthHandler struct {
 	APIClient api.ClientWithResponsesInterface
@@ -54,7 +57,7 @@ func (mah *MpsAuthHandler) getToken(ctx context.Context) error {
 
 // TODO: should read from Vault instead.
 func getCredentials() credentials {
-	file, err := os.Open("/etc/dm/credentials.yaml")
+	file, err := os.Open(credentialsFile)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Error opening credentials file")
 	}

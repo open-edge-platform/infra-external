@@ -185,6 +185,13 @@ issues:
     - Error return value of `.*Write` is not checked
     - Error return value of `.*Stop` is not checked
 
+  exclude-rules:
+    - path: pkg/dm/auth_test.go
+      linters:
+      # setting it as a separate package, loca_test, would not allow to
+      # test unexported functions, which are main pillars of this codebase.
+      - testpackage
+
 output:
   # Format:
   # colored-line-number|line-number|json|tab|checkstyle|code-climate|junit-xml|github-actions

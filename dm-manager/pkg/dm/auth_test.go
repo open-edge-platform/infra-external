@@ -1,0 +1,81 @@
+package dm
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"os"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api"
+)
+
+func TestMpsAuthHandler_MpsAuth_shouldUseStoredToken(t *testing.T) {
+	token := "zxcv"
+	mah := &MpsAuthHandler{
+		token:     token,
+		updatedAt: time.Now(),
+	}
+
+	httpReq, err := http.NewRequestWithContext(context.Background(), "http", "localhost", http.NoBody)
+	assert.NoError(t, err)
+
+	err = mah.MpsAuth(context.Background(), httpReq)
+	assert.NoError(t, err)
+	assert.Equal(t, "Bearer "+token, httpReq.Header.Get("Authorization"))
+}
+
+func TestMpsAuthHandler_getToken_shouldGetTokenFromMpsServer(t *testing.T) {
+	mockedUsername := "user"
+	mockedPassword := "pass"
+
+	credentialsFile = mockCredentialsFile(t, mockedUsername, mockedPassword)
+	defer os.Remove(credentialsFile)
+
+	token := "1234567890"
+	json200Struct := struct {
+		Token *string `json:"token,omitempty"`
+	}{Token: &token}
+	mockAPIClient := new(api.MockClientWithResponsesInterface)
+	mockAPIClient.On("PostApiV1AuthorizeWithResponse", mock.Anything,
+		api.PostApiV1AuthorizeJSONRequestBody{Username: mockedUsername, Password: mockedPassword}).
+		Return(&api.PostApiV1AuthorizeResponse{JSON200: &json200Struct}, nil)
+
+	mah := &MpsAuthHandler{
+		APIClient: mockAPIClient,
+	}
+	assert.Zero(t, mah.token)
+
+	err := mah.getToken(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, token, mah.token)
+}
+
+func Test_getCredentials_happyPath(t *testing.T) {
+	mockedUsername := "user"
+	mockedPassword := "pass"
+
+	credentialsFile = mockCredentialsFile(t, mockedUsername, mockedPassword)
+	defer os.Remove(credentialsFile)
+
+	creds := getCredentials()
+	assert.Equal(t, mockedUsername, creds.Username)
+	assert.Equal(t, mockedPassword, creds.Password)
+}
+
+func mockCredentialsFile(t *testing.T, username, password string) string {
+	t.Helper()
+	tmpCredentials, err := os.CreateTemp("/tmp", "config.yml")
+	assert.NoError(t, err)
+
+	_, err = fmt.Fprintf(tmpCredentials, `
+username: %v
+password: %v`, username, password)
+	assert.NoError(t, err)
+
+	return tmpCredentials.Name()
+}

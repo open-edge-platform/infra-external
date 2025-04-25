@@ -15,14 +15,11 @@ import (
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
 )
 
-func strPtr(s string) *string {
-	return &s
-}
-
 func TestDMReconciler_Start(t *testing.T) {
+	token := "1234567890"
 	json200Struct := struct {
 		Token *string `json:"token,omitempty"`
-	}{Token: strPtr("1234567890")}
+	}{Token: &token}
 	mockAPIClient := new(api.MockClientWithResponsesInterface)
 	mockAPIClient.On("PostApiV1AuthorizeWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&api.PostApiV1AuthorizeResponse{JSON200: &json200Struct}, nil)
