@@ -36,11 +36,11 @@ func (mah *MpsAuthHandler) getToken(ctx context.Context) error {
 		Password: mpsCredentials.Password,
 	})
 	if err != nil {
-		log.Err(err).Msgf("cannot auth to MPS", err)
+		log.Err(err).Msgf("cannot auth to MPS")
 		return errors.Errorfc(codes.Internal, "cannot auth to MPS- %v", err)
 	}
 	if authResp.JSON200 == nil {
-		log.Err(err).Msgf("received empty token from MPS", err)
+		log.Err(err).Msgf("received empty token from MPS")
 		return errors.Errorfc(codes.Internal, "received empty token from MPS - %v", err)
 	}
 
