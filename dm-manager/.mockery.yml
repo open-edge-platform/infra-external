@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+---
 template: testify
 packages:
      github.com/open-edge-platform/infra-external/dm-manager/pkg/api:
