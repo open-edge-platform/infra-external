@@ -188,9 +188,9 @@ issues:
   exclude-rules:
     - path: pkg/dm/auth_test.go
       linters:
-      # setting it as a separate package, loca_test, would not allow to
-      # test unexported functions, which are main pillars of this codebase.
-      - testpackage
+        # setting it as a separate package, loca_test, would not allow to
+        # test unexported functions, which are main pillars of this codebase.
+        - testpackage
 
 output:
   # Format:
