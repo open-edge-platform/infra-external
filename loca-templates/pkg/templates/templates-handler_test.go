@@ -282,7 +282,7 @@ func Test_prepareTemplate_ShouldSetVarsFromProvidedStructs(t *testing.T) {
 		SecurityFeature: osv1.SecurityFeature_SECURITY_FEATURE_SECURE_BOOT_AND_FULL_DISK_ENCRYPTION,
 	}
 
-	template := prepareTemplate(managerConfig, providerConfig, credentialPolicyID, serverModel, deviceProfileID, osResource)
+	template := prepareTemplate(managerConfig, providerConfig, credentialPolicyID, serverModel, deviceProfileID, loca_testing.Tenant1, osResource)
 
 	assert.Equal(t, loca_util.GetTemplateName(resID, serverModel), template.Name)
 	assert.Equal(t, osPassword, template.Devices[0].OsSettings.Credentials[0].Password)
@@ -584,7 +584,7 @@ func Test_createTemplate_happyPath(t *testing.T) {
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook)}
 
 	// Create template
-	createTemplate(wg, osResource, prov, serverModel)
+	createTemplate(wg, osResource, prov, loca_testing.Tenant1, serverModel)
 	assertHook.Assert(t)
 }
 
@@ -619,7 +619,7 @@ func Test_createTemplate_whenCannotCreateLocaClientShouldLogError(t *testing.T) 
 
 	testutils.MockTemplatesManagerConfig(t)
 
-	createTemplate(wg, osResource, prov, serverModel)
+	createTemplate(wg, osResource, prov, loca_testing.Tenant1, serverModel)
 	assertHook.Assert(t)
 }
 
@@ -646,7 +646,7 @@ func Test_createTemplate_whenProvidedWithNonMutableOsShouldLogError(t *testing.T
 
 	testutils.MockTemplatesManagerConfig(t)
 
-	createTemplate(wg, osResource, prov, serverModel)
+	createTemplate(wg, osResource, prov, loca_testing.Tenant1, serverModel)
 	assertHook.Assert(t)
 }
 
@@ -676,7 +676,7 @@ func Test_createTemplate_whenProvidedWithOsWithUnsupportedProviderKindShouldLogE
 
 	testutils.MockTemplatesManagerConfig(t)
 
-	createTemplate(wg, osResource, prov, serverModel)
+	createTemplate(wg, osResource, prov, loca_testing.Tenant1, serverModel)
 	assertHook.Assert(t)
 }
 
@@ -713,7 +713,7 @@ func Test_createTemplate_whenTemplateAlreadyExistsShouldDoNothing(t *testing.T) 
 
 	testutils.MockTemplatesManagerConfig(t)
 
-	createTemplate(wg, osResource, prov, serverModel)
+	createTemplate(wg, osResource, prov, loca_testing.Tenant1, serverModel)
 	assertHook.Assert(t)
 }
 

@@ -17,6 +17,7 @@ edge:
 all:
   vars:
     os_resource_id: "{{ instance.spec.extraVars.os_resource_id }}"
+    tenant_id: "{{ instance.spec.extraVars.tenant_id }}"
     dev_mode: false
     orchestrator:
       url: "{{ instance.spec.cloudServices.get('Edge Orchestrator')[0].serviceAddress }}"
