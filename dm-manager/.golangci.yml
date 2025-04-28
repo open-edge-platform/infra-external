@@ -85,12 +85,15 @@ linters-settings:
         allow:
           - $gostd
           - github.com/open-edge-platform
+          - github.com/prometheus
       test:
         files:
           - "$test"
         allow:
           - $gostd
           - github.com/open-edge-platform
+          - github.com/prometheus
+          - github.com/stretchr/testify
   cyclop:
     # SDL requirements recommend a maximum cyclomatic complexity of 10
     max-complexity: 10
@@ -181,6 +184,13 @@ issues:
     - Error return value of `.*Flush` is not checked
     - Error return value of `.*Write` is not checked
     - Error return value of `.*Stop` is not checked
+
+  exclude-rules:
+    - path: pkg/dm/auth_test.go
+      linters:
+        # setting it as a separate package, loca_test, would not allow to
+        # test unexported functions, which are main pillars of this codebase.
+        - testpackage
 
 output:
   # Format:
