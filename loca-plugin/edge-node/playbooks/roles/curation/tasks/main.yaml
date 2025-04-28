@@ -45,7 +45,7 @@
 
 - name: Store Tenant ID to edge node
   ansible.builtin.copy:
-    dest: "{{ curation_root_ca_cert_path }}/tenantId"
+    dest: "{{ curation_top_level_dir }}/tenantId"
     content: "TENANT_ID={{ tenant_id }}"
     mode: "644"
   become: true
