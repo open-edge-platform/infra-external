@@ -282,7 +282,8 @@ func Test_prepareTemplate_ShouldSetVarsFromProvidedStructs(t *testing.T) {
 		SecurityFeature: osv1.SecurityFeature_SECURITY_FEATURE_SECURE_BOOT_AND_FULL_DISK_ENCRYPTION,
 	}
 
-	template := prepareTemplate(managerConfig, providerConfig, credentialPolicyID, serverModel, deviceProfileID, loca_testing.Tenant1, osResource)
+	template := prepareTemplate(managerConfig, providerConfig, credentialPolicyID, serverModel, deviceProfileID,
+		loca_testing.Tenant1, osResource)
 
 	assert.Equal(t, loca_util.GetTemplateName(resID, serverModel), template.Name)
 	assert.Equal(t, osPassword, template.Devices[0].OsSettings.Credentials[0].Password)
