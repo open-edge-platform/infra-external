@@ -47,7 +47,7 @@
   ansible.builtin.copy:
     dest: "{{ curation_top_level_dir }}/tenantId"
     content: "TENANT_ID={{ tenant_id }}"
-    mode: "644"
+    mode: "640"
   become: true
 
 - name: Download installer
