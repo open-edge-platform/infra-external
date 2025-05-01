@@ -457,6 +457,13 @@
                         "optional": false
                     },
                     {
+                        "name": "tenant_id",
+                        "displayName": "Tenant Identifier",
+                        "paramType": "string",
+                        "format": "MultilineText",
+                        "optional": false
+                    },
+                    {
                         "name": "pretty_name",
                         "displayName": "Pretty name of OS",
                         "paramType": "string",
