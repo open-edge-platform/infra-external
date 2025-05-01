@@ -38,6 +38,7 @@ const (
 	postScript   = "post_script"
 	prettyName   = "pretty_name"
 	osResourceID = "os_resource_id"
+	tenantKey    = "tenant_id"
 
 	// There are two concurrent routines: event handling and periodic reconciliation. We set each operation to last at
 	// least 95% of the reconciliation period. The idea is to save some time for the next reconciliation cycle and prevent
@@ -148,7 +149,7 @@ func processProvider(ctx context.Context, wg *sync.WaitGroup, invClient client.T
 			return
 		}
 		wg.Add(1)
-		go createTemplate(wg, toAdd.os, locaProvider, toAdd.model)
+		go createTemplate(wg, toAdd.os, locaProvider, tenantID, toAdd.model)
 	}
 
 	toBeDeleted := findTemplatesToBeRemoved(operatingSystems, templates.Payload)
@@ -226,7 +227,7 @@ func processEvent(wg *sync.WaitGroup, invClient client.TenantAwareInventoryClien
 	defer cancel()
 
 	os := event.GetResource().GetOs()
-	locaProviders, _, err := getProvidersAndTenantID(ctx, invClient)
+	locaProviders, tenantID, err := getProvidersAndTenantID(ctx, invClient)
 	if err != nil {
 		return
 	}
@@ -249,7 +250,7 @@ func processEvent(wg *sync.WaitGroup, invClient client.TenantAwareInventoryClien
 				}
 
 				wg.Add(1)
-				go createTemplate(wg, os, locaProvider, serverModel)
+				go createTemplate(wg, os, locaProvider, tenantID, serverModel)
 			}
 		}
 		if event.EventKind == inventoryv1.SubscribeEventsResponse_EVENT_KIND_DELETED {
@@ -325,7 +326,7 @@ func deleteCredentialPolicies(ctx context.Context, template *model.DtoTemplate, 
 }
 
 func createTemplate(wg *sync.WaitGroup, osResource *osv1.OperatingSystemResource,
-	locaProvider *providerv1.ProviderResource, serverModel string,
+	locaProvider *providerv1.ProviderResource, tenantID, serverModel string,
 ) {
 	defer wg.Done()
 	if osResource.OsType != osv1.OsType_OS_TYPE_MUTABLE {
@@ -376,7 +377,7 @@ func createTemplate(wg *sync.WaitGroup, osResource *osv1.OperatingSystemResource
 	}
 
 	template := prepareTemplate(managerConfig, providerConfig,
-		credentialPolicyID, serverModel, deviceProfileID, osResource)
+		credentialPolicyID, serverModel, deviceProfileID, tenantID, osResource)
 	//nolint:errcheck // no need to check output
 	_, err = locaClient.LocaAPI.Deployment.PostAPIV1DeploymentTemplates(
 		&deployment.PostAPIV1DeploymentTemplatesParams{
@@ -408,7 +409,7 @@ func templateAlreadyExists(ctx context.Context, locaClient *locarm.LocaCli, name
 }
 
 func prepareTemplate(managerConfig *config.TemplatesManagerConfig,
-	providerConfig *providerconfiguration.LOCAProviderConfig, credentialPolicyID, serverModel, deviceProfileID string,
+	providerConfig *providerconfiguration.LOCAProviderConfig, credentialPolicyID, serverModel, deviceProfileID, tenantID string,
 	osResource *osv1.OperatingSystemResource,
 ) model.DtoCreateTemplateRequest {
 	return model.DtoCreateTemplateRequest{
@@ -443,6 +444,7 @@ func prepareTemplate(managerConfig *config.TemplatesManagerConfig,
 			postScript:   managerConfig.PostScript,
 			prettyName:   osResource.GetName(),
 			osResourceID: osResource.GetResourceId(),
+			tenantKey:    tenantID,
 		},
 		InstanceInfo: struct {
 			model.DtoTemplateInstanceInfo
