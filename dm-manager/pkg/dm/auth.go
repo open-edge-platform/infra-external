@@ -13,7 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 )
 
 var (
@@ -22,7 +22,7 @@ var (
 )
 
 type MpsAuthHandler struct {
-	APIClient api.ClientWithResponsesInterface
+	APIClient mps.ClientWithResponsesInterface
 	token     string
 	updatedAt time.Time
 }
@@ -34,7 +34,7 @@ type credentials struct {
 
 func (mah *MpsAuthHandler) getToken(ctx context.Context) error {
 	mpsCredentials := getCredentials()
-	authResp, err := mah.APIClient.PostApiV1AuthorizeWithResponse(ctx, api.PostApiV1AuthorizeJSONRequestBody{
+	authResp, err := mah.APIClient.PostApiV1AuthorizeWithResponse(ctx, mps.PostApiV1AuthorizeJSONRequestBody{
 		Username: mpsCredentials.Username,
 		Password: mpsCredentials.Password,
 	})

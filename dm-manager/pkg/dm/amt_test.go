@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
 )
 
@@ -20,11 +20,11 @@ func TestDMReconciler_Start(t *testing.T) {
 	json200Struct := struct {
 		Token *string `json:"token,omitempty"`
 	}{Token: &token}
-	mockAPIClient := new(api.MockClientWithResponsesInterface)
+	mockAPIClient := new(mps.MockClientWithResponsesInterface)
 	mockAPIClient.On("PostApiV1AuthorizeWithResponse", mock.Anything, mock.Anything, mock.Anything).
-		Return(&api.PostApiV1AuthorizeResponse{JSON200: &json200Struct}, nil)
+		Return(&mps.PostApiV1AuthorizeResponse{JSON200: &json200Struct}, nil)
 	mockAPIClient.On("GetApiV1DevicesWithResponse", mock.Anything, mock.Anything, mock.Anything).
-		Return(&api.GetApiV1DevicesResponse{JSON200: &[]api.Device{}}, nil)
+		Return(&mps.GetApiV1DevicesResponse{JSON200: &[]mps.Device{}}, nil)
 
 	termChan := make(chan bool, 1)
 	readyChan := make(chan bool, 1)

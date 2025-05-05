@@ -19,7 +19,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/metrics"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/oam"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/tracing"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
 )
 
@@ -69,7 +69,7 @@ func main() {
 		}
 	}
 
-	authHandlerClient, err := api.NewClientWithResponses(*mpsAddress, func(apiClient *api.Client) error {
+	authHandlerClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
 		return nil
 	})
@@ -78,9 +78,9 @@ func main() {
 	}
 	authHandler := dm.MpsAuthHandler{APIClient: authHandlerClient}
 
-	client, err := api.NewClientWithResponses(*mpsAddress, func(apiClient *api.Client) error {
+	client, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
-		apiClient.RequestEditors = []api.RequestEditorFn{authHandler.MpsAuth}
+		apiClient.RequestEditors = []mps.RequestEditorFn{authHandler.MpsAuth}
 		return nil
 	})
 	if err != nil {

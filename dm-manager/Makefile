@@ -55,5 +55,6 @@ go-run: $(OUT_DIR) ## Run the resource manager
 	$(GOCMD) run $(GOEXTRAFLAGS) ./cmd/$(BINARY_NAME).go
 
 generate:
-	oapi-codegen -generate client,types -o pkg/api/client.gen.go -package api pkg/api/swagger.json
+	oapi-codegen -generate client,types -o pkg/api/mps/client.gen.go -package mps pkg/api/mps/swagger.json
+	oapi-codegen -generate client,types -o pkg/api/rps/client.gen.go -package rps pkg/api/rps/swagger.json
 	mockery

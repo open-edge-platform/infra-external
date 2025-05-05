@@ -4,11 +4,19 @@
 ---
 template: testify
 packages:
-  github.com/open-edge-platform/infra-external/dm-manager/pkg/api:
+  github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps:
     config:
       dir: "{{.InterfaceDir}}"
       filename: "mocks.go"
-      pkgname: "api"
+      pkgname: "mps"
+      structname: "Mock{{.InterfaceName}}"
+    interfaces:
+      ClientWithResponsesInterface:
+  github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps:
+    config:
+      dir: "{{.InterfaceDir}}"
+      filename: "mocks.go"
+      pkgname: "rps"
       structname: "Mock{{.InterfaceName}}"
     interfaces:
       ClientWithResponsesInterface:
