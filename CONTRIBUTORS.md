@@ -10,6 +10,7 @@
 - [ikyrycho](https://github.com/ikyrycho)
 - [ipsita-npg](https://github.com/ipsita-npg)
 - [jkossak](https://github.com/jkossak)
+- [krishnajs](https://github.com/krishnajs)
 - [ktaube26](https://github.com/ktaube26)
 - [niket-intc](https://github.com/niket-intc)
 - [osinstom](https://github.com/osinstom)
