@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 )
 
 func TestMpsAuthHandler_MpsAuth_shouldUseStoredToken(t *testing.T) {
@@ -40,9 +40,9 @@ func TestMpsAuthHandler_MpsAuth_shouldRefreshStaleToken(t *testing.T) {
 	credentialsFile = mockCredentialsFile(t, "user", "pass")
 	defer os.Remove(credentialsFile)
 
-	mockAPIClient := new(api.MockClientWithResponsesInterface)
+	mockAPIClient := new(mps.MockClientWithResponsesInterface)
 	mockAPIClient.On("PostApiV1AuthorizeWithResponse", mock.Anything, mock.Anything).
-		Return(&api.PostApiV1AuthorizeResponse{JSON200: &json200Struct}, nil)
+		Return(&mps.PostApiV1AuthorizeResponse{JSON200: &json200Struct}, nil)
 
 	mah := &MpsAuthHandler{
 		APIClient: mockAPIClient,
@@ -69,10 +69,10 @@ func TestMpsAuthHandler_getToken_shouldGetTokenFromMpsServer(t *testing.T) {
 	json200Struct := struct {
 		Token *string `json:"token,omitempty"`
 	}{Token: &token}
-	mockAPIClient := new(api.MockClientWithResponsesInterface)
+	mockAPIClient := new(mps.MockClientWithResponsesInterface)
 	mockAPIClient.On("PostApiV1AuthorizeWithResponse", mock.Anything,
-		api.PostApiV1AuthorizeJSONRequestBody{Username: mockedUsername, Password: mockedPassword}).
-		Return(&api.PostApiV1AuthorizeResponse{JSON200: &json200Struct}, nil)
+		mps.PostApiV1AuthorizeJSONRequestBody{Username: mockedUsername, Password: mockedPassword}).
+		Return(&mps.PostApiV1AuthorizeResponse{JSON200: &json200Struct}, nil)
 
 	mah := &MpsAuthHandler{
 		APIClient: mockAPIClient,

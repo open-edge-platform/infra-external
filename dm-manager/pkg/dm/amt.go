@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 )
 
 var log = logging.GetLogger("DmReconciler")
 
 type Reconciler struct {
-	APIClient api.ClientWithResponsesInterface
+	APIClient mps.ClientWithResponsesInterface
 	TermChan  chan bool
 	ReadyChan chan bool
 	WaitGroup *sync.WaitGroup
@@ -47,7 +47,7 @@ func (dmr *Reconciler) Stop() {
 
 func (dmr *Reconciler) Reconcile(ctx context.Context) {
 	devicesRsp, err := dmr.APIClient.GetApiV1DevicesWithResponse(ctx,
-		&api.GetApiV1DevicesParams{})
+		&mps.GetApiV1DevicesParams{})
 	if err != nil {
 		log.Err(err).Msgf("cannot get devices")
 		return
@@ -57,8 +57,8 @@ func (dmr *Reconciler) Reconcile(ctx context.Context) {
 
 	for _, device := range *devicesRsp.JSON200 {
 		resp, err := dmr.APIClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, *device.Guid,
-			api.PostApiV1AmtPowerActionGuidJSONRequestBody{
-				Action: api.PowerActionRequestActionN10, // reset
+			mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
+				Action: mps.PowerActionRequestActionN10, // reset
 			})
 		if err != nil {
 			log.Err(err).Msgf("cannot reset %v device", *device.Guid)
