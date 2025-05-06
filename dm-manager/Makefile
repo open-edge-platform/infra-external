@@ -14,7 +14,8 @@ TOOL_VERSION_CHECK ?= 1
 # Tools versions
 GOLINT             := true
 GOJUNITREPORT      := true
-MOCKGEN            := true
+MOCKERY            := true
+OAPI_CODEGEN       := true
 
 # Project variables
 PROJECT_NAME       := dm-manager

@@ -13,7 +13,10 @@ MOCKGENVERSION_HAVE            := $(shell mockgen -version | sed s/.*"v"// | sed
 MOCKGENVERSION_REQ             := 1.6.0
 SWAGGERVERSION_HAVE            := $(shell swagger version | sed 's/.*version: v//' | sed 's/ .*//'| sed 's/commit.*//')
 SWAGGERVERSION_REQ             := 0.31.0
-
+MOCKERYVERSION_HAVE            := $(shell mockery version)
+MOCKERYVERSION_REQ             := v3.2.4
+OAPI_CODEGEN_HAVE              := $(shell oapi-codegen -version |sed '1d')
+OAPI_CODEGENVERSION_REQ       := v2.4.1
 # No version reported
 GOCOBERTURAVERSION_REQ         := 1.2.0
 POSTGRES_VERSION               := 16.4
@@ -39,7 +42,14 @@ ifeq ($(SWAGGER), true)
 	@(echo "$(SWAGGERVERSION_HAVE)" | grep "$(SWAGGERVERSION_REQ)" > /dev/null) || \
 	(echo  "\e[1;31mWARNING: You are not using the recommended version of swagger\nRecommended: $(SWAGGERVERSION_REQ)\nYours: $(SWAGGERVERSION_HAVE)\e[1;m" && exit 1)
 endif
-
+ifeq ($(MOCKERY), true)
+	@(echo "$(MOCKERY_HAVE)" | grep "$(MOCKERY_REQ)" > /dev/null) || \
+	(echo  "\e[1;31mWARNING: You are not using the recommended version of mockery\nRecommended: $(MOCKERY_REQ)\nYours: $(MOCKERY_HAVE)\e[1;m" && exit 1)
+endif
+ifeq ($(OAPI_CODEGEN), true)
+	@(echo "$(OAPI_CODEGEN_HAVE)" | grep "$(OAPI_CODEGEN_REQ)" > /dev/null) || \
+	(echo  "\e[1;31mWARNING: You are not using the recommended version of oapi-codegen\nRecommended: $(OAPI_CODEGEN_REQ)\nYours: $(OAPI_CODEGEN_HAVE)\e[1;m" && exit 1)
+endif
 
 go-dependency: ## install go dependency tooling
 ifeq ($(GOJUNITREPORT), true)
@@ -56,4 +66,10 @@ ifeq ($(GOCOBERTURA), true)
 endif
 ifeq ($(SWAGGER), true)
 	$(GOCMD) install github.com/go-swagger/go-swagger/cmd/swagger@v${SWAGGERVERSION_REQ}
+endif
+ifeq ($(MOCKERY), true)
+	$(GOCMD) install github.com/vektra/mockery/v3@${MOCKERYVERSION_REQ}
+endif
+ifeq ($(OAPI_CODEGEN), true)
+	$(GOCMD) install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@${OAPI_CODEGENVERSION_REQ}
 endif
