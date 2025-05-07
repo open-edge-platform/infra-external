@@ -65,3 +65,5 @@ generate:
 	oapi-codegen -generate client,types -o pkg/api/mps/client.gen.go -package mps pkg/api/mps/swagger.json
 	oapi-codegen -generate client,types -o pkg/api/rps/client.gen.go -package rps pkg/api/rps/swagger.json
 	mockery
+
+oasdiff-breaking: common-oasdiff-breaking: ## Check for breaking changes in openapi using oasdiff

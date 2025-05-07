@@ -203,7 +203,7 @@ mdlint: ## Lint MD files
 	markdownlint --version ;\
 	markdownlint "**/*.md" -c ../.markdownlint.yml
 
-oasdiff-breaking: # Check for breaking changes in openapi using oasdiff
+common-oasdiff-breaking: ## Check for breaking changes in openapi using oasdiff
 	rm -rf ${TEMP_BASE_OPENAPI_DIR}
 	mkdir -p ${TEMP_BASE_OPENAPI_DIR}
 	git archive origin/${BASE_BRANCH} ${OPENAPI_PATH} | tar -x -C ${TEMP_BASE_OPENAPI_DIR}
