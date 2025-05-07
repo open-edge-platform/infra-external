@@ -40,10 +40,15 @@ TEST_COVER       := atomic ./...
 TEST_ARGS        := ""
 TEST_USE_DB      := false
 
+# OpenAPI breaking check variables
+BASE_BRANCH           := main # temp TODO remove
+TEMP_BASE_OPENAPI_DIR := /tmp/dm-manager-main
+OPENAPI_PATH          := pkg/api/**/*.json
+
 # Include shared makefile
 include ../common.mk
 
-lint: common-lint ## Run all lint tools
+lint: oasdiff-breaking common-lint  ## Run all lint tools
 
 test: go-test ## Run all unit tests
 

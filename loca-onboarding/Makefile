@@ -41,10 +41,15 @@ TEST_USE_DB     := true
 
 PWD             := $(shell pwd)
 
+# OpenAPI breaking check variables
+BASE_BRANCH           := main # temp TODO remove
+TEMP_BASE_OPENAPI_DIR := /tmp/loca-onboarding-main
+OPENAPI_PATH          := pkg/api/loca/v3.3/loca-api-swagger.json
+
 # Include shared makefile
 include ../common.mk
 
-lint: generate common-lint ## Run all linters
+lint: oasdiff-breaking generate common-lint ## Run all linters
 
 test: go-test ## Run all tests
 
