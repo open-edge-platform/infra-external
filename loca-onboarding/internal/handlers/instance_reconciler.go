@@ -78,7 +78,32 @@ func (ir *InstanceReconciler) Reconcile(
 		return request.Ack()
 	}
 
+	if directive := ir.handleHostDeauthorized(ctx, instance, request, resourceID); directive != nil {
+		return directive
+	}
+
 	return ir.reconcileInstance(ctx, request, instance)
+}
+
+func (ir *InstanceReconciler) handleHostDeauthorized(ctx context.Context, instance *computev1.InstanceResource,
+	request rec_v2.Request[ReconcilerID], resourceID string,
+) rec_v2.Directive[ReconcilerID] {
+	if instance.GetHost().GetCurrentState() == computev1.HostState_HOST_STATE_UNTRUSTED ||
+		instance.GetHost().GetDesiredState() == computev1.HostState_HOST_STATE_UNTRUSTED {
+		// If the host associated with the instance is deauthorized, deauthorize the instance as well
+		if instance.GetCurrentState() != computev1.InstanceState_INSTANCE_STATE_UNTRUSTED ||
+			instance.GetDesiredState() != computev1.InstanceState_INSTANCE_STATE_UNTRUSTED {
+			// Update the instance DesiredState to Untrusted and the provisioning statuses to failed,
+			// then reconcile the instance
+			zlogInst.Info().Msgf("Host associated with Instance (%s) has been deauthorized. "+
+				"Forcing reconciliation to update Instance status.", resourceID)
+			instance.DesiredState = computev1.InstanceState_INSTANCE_STATE_UNTRUSTED
+			instance.ProvisioningStatus = "Provisioning Failed"
+			instance.ProvisioningStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_ERROR
+			return ir.reconcileInstance(ctx, request, instance)
+		}
+	}
+	return nil
 }
 
 func (ir *InstanceReconciler) reconcileInstance(
