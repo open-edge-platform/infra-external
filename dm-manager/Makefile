@@ -49,7 +49,7 @@ OPENAPI_PATH          := pkg/api/**/*.json
 # Include shared makefile
 include ../common.mk
 
-lint: oasdiff-breaking common-lint  ## Run all lint tools
+lint: oasdiff-breaking common-lint ## Run all lint tools
 
 test: go-test ## Run all unit tests
 
@@ -66,4 +66,4 @@ generate:
 	oapi-codegen -generate client,types -o pkg/api/rps/client.gen.go -package rps pkg/api/rps/swagger.json
 	mockery
 
-oasdiff-breaking: common-oasdiff-breaking: ## Check for breaking changes in openapi using oasdiff
+oasdiff-breaking: common-oasdiff-breaking ## Check for breaking changes in openapi using oasdiff

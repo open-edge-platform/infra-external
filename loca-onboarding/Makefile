@@ -109,4 +109,4 @@ oapi-docs: ## Generate docs
 	docker run --rm -v $(PWD)/pkg/api/loca/v3.3/:/local \
 		redocly/cli build-docs  /local/loca-api-swagger.json  --output=/local/loca-api-doc.html
 
-oasdiff-breaking: common-oasdiff-breaking: ## Check for breaking changes in openapi using oasdiff
+oasdiff-breaking: common-oasdiff-breaking ## Check for breaking changes in openapi using oasdiff
