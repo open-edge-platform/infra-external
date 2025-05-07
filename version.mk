@@ -18,7 +18,7 @@ MOCKERYVERSION_REQ             := v3.2.4
 OAPI_CODEGEN_HAVE              := $(shell oapi-codegen -version |sed '1d')
 OAPI_CODEGENVERSION_REQ        := v2.4.1
 OASDIFF_HAVE                   := $(shell oasdiff --version | sed -n 's/^oasdiff version //p')
-OASDIFF_REQ                    := main
+OASDIFF_REQ                    := 1.11.4
 # No version reported
 GOCOBERTURAVERSION_REQ         := 1.2.0
 POSTGRES_VERSION               := 16.4
