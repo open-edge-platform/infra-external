@@ -16,6 +16,7 @@ GOLINT             := true
 GOJUNITREPORT      := true
 GOCOBERTURA        := true
 SWAGGER            := true
+OASDIFF            := true
 
 # Project variables
 PROJECT_NAME       := locamgr

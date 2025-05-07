@@ -16,6 +16,7 @@ GOLINT             := true
 GOJUNITREPORT      := true
 MOCKERY            := true
 OAPI_CODEGEN       := true
+OASDIFF            := true
 
 # Project variables
 PROJECT_NAME       := dm-manager
