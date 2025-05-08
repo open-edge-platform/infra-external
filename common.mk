@@ -44,7 +44,6 @@ SRC         := $(shell find . -type f -name '*.go' ! -name '*_test.go')
 DEPS        := go.mod go.sum
 BASE_BRANCH := main
 
-
 # Docker variables
 DOCKER_ENV              := DOCKER_BUILDKIT=1
 OCI_REGISTRY            ?= 080137407410.dkr.ecr.us-west-2.amazonaws.com
