@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-FROM golang:1.24.1-bookworm as build
+FROM golang:1.24.1-bookworm@sha256:fa1a01d362a7b9df68b021d59a124d28cae6d99ebd1a876e3557c4dd092f1b1d as build
 
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
@@ -31,7 +31,7 @@ RUN CGO_ENABLED=0 \
   make ${MAKE_TARGET}
 
 # From: https://github.com/GoogleContainerTools/distroless
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:c0f429e16b13e583da7e5a6ec20dd656d325d88e6819cafe0adb0828976529dc
 
 # Run as non-privileged user
 USER nobody
