@@ -42,7 +42,7 @@ GOPATH      := $(shell go env GOPATH)
 RBAC        := "$(OUT_DIR)/rego/authz.rego"
 SRC         := $(shell find . -type f -name '*.go' ! -name '*_test.go')
 DEPS        := go.mod go.sum
-BASE_BRANCH := main # temp TODO remove
+BASE_BRANCH := main
 
 
 # Docker variables
