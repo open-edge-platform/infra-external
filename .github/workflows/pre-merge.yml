@@ -26,10 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: "Verify Branch Name"
-        uses: open-edge-platform/orch-ci/verify-branch-name@main
+        uses: open-edge-platform/orch-ci/verify-branch-name@791c0c74ac05e6d972fa6de8c979e854336e9a41 # v0.1.10
       - name: "Discover Changed Subfolders"
         id: discover-changes
-        uses: open-edge-platform/orch-ci/discover-changed-subfolders@main
+        uses: open-edge-platform/orch-ci/discover-changed-subfolders@791c0c74ac05e6d972fa6de8c979e854336e9a41 # v0.1.10
       - name: "Filter Out Unwanted Changed Subfolders"
         id: filter-changes
         run: |
@@ -134,3 +134,6 @@ jobs:
             echo "All pre-merge checks failed or were skipped. PR can't get merged"
             exit 1
           fi
+
+permissions:
+  contents: read
