@@ -42,7 +42,6 @@ TEST_ARGS        := ""
 TEST_USE_DB      := false
 
 # OpenAPI breaking check variables
-BASE_BRANCH           := main # temp TODO remove
 TEMP_BASE_OPENAPI_DIR := /tmp/dm-manager-main
 OPENAPI_PATH          := pkg/api/**/*.json
 
