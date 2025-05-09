@@ -16,6 +16,7 @@ GOLINT             := true
 GOJUNITREPORT      := true
 MOCKERY            := true
 OAPI_CODEGEN       := true
+OASDIFF            := true
 
 # Project variables
 PROJECT_NAME       := dm-manager
@@ -40,10 +41,14 @@ TEST_COVER       := atomic ./...
 TEST_ARGS        := ""
 TEST_USE_DB      := false
 
+# OpenAPI breaking check variables
+TEMP_BASE_OPENAPI_DIR := /tmp/dm-manager-main
+OPENAPI_PATH          := pkg/api/**/*.json
+
 # Include shared makefile
 include ../common.mk
 
-lint: common-lint ## Run all lint tools
+lint: oasdiff-breaking common-lint ## Run all lint tools
 
 test: go-test ## Run all unit tests
 
@@ -59,3 +64,5 @@ generate:
 	oapi-codegen -generate client,types -o pkg/api/mps/client.gen.go -package mps pkg/api/mps/swagger.json
 	oapi-codegen -generate client,types -o pkg/api/rps/client.gen.go -package rps pkg/api/rps/swagger.json
 	mockery
+
+oasdiff-breaking: common-oasdiff-breaking ## Check for breaking changes in openapi using oasdiff
