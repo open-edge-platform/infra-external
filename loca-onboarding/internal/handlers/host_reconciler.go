@@ -121,9 +121,26 @@ func (hr *HostReconciler) invalidateHost(
 		// this error is unlikely, but in such case, set timestamp = 0
 		host.OnboardingStatusTimestamp = 0
 	}
+	host.OnboardingStatus = loca_status.HostStatusUnknown.Status
+	host.OnboardingStatusIndicator = loca_status.HostStatusUnknown.StatusIndicator
+	host.OnboardingStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+	if err != nil {
+		zlog.InfraSec().InfraErr(err).Msgf("Failed to parse current time")
+		host.OnboardingStatusTimestamp = 0
+	}
+	host.RegistrationStatus = loca_status.HostStatusUnknown.Status
+	host.RegistrationStatusIndicator = loca_status.HostStatusUnknown.StatusIndicator
+	host.RegistrationStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+	if err != nil {
+		zlog.InfraSec().InfraErr(err).Msgf("Failed to parse current time")
+		host.RegistrationStatusTimestamp = 0
+	}
 	err = inventory.UpdateInvResourceFields(ctx, hr.invClient, host.GetTenantId(), host, []string{
 		computev1.HostResourceFieldCurrentState, computev1.HostResourceFieldHostStatus,
 		computev1.HostResourceFieldHostStatusIndicator, computev1.HostResourceFieldHostStatusTimestamp,
+		computev1.HostResourceFieldOnboardingStatus, computev1.HostResourceFieldOnboardingStatusIndicator,
+		computev1.HostResourceFieldOnboardingStatusTimestamp, computev1.HostResourceFieldRegistrationStatus,
+		computev1.HostResourceFieldRegistrationStatusIndicator, computev1.HostResourceFieldRegistrationStatusTimestamp,
 	})
 	if directive := HandleInventoryError(err, request); directive != nil {
 		return directive

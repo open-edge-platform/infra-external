@@ -552,10 +552,10 @@ func TestInvalidateHostInEvent(t *testing.T) {
 	// read Hosts from Inventory and make sure there is exactly one Host
 	// verifying that Host's Current state is UNTRUSTED, Desired State is UNTRUSTED,
 	// Host Status is changed to 'Host is invalidated'/IDLE, Onboarding Status and
-	// its Indicator remain the same.
+	// its Indicator are set to unknown and unspecified.
 	loca_testing.AssertHost(t, loca_testing.Tenant1, lenovo.GetApiEndpoint(), loca_testing.LocaDeviceSN, uuID,
 		computev1.HostState_HOST_STATE_UNTRUSTED, computev1.HostState_HOST_STATE_UNTRUSTED,
-		loca_status.DeviceStatusStaged.Status, loca_status.DeviceStatusStaged.StatusIndicator,
+		loca_status.HostStatusUnknown.Status, loca_status.HostStatusUnknown.StatusIndicator,
 		loca_status.HostStatusInvalidated.Status, loca_status.HostStatusInvalidated.StatusIndicator)
 }
 
