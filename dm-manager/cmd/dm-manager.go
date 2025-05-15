@@ -106,7 +106,9 @@ func main() {
 }
 
 func prepareClients(transport *http.Transport) (
-	*mps.ClientWithResponses, *rps.ClientWithResponses, invClient.TenantAwareInventoryClient, chan *invClient.WatchEvents) {
+	mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses,
+	invTenantClient invClient.TenantAwareInventoryClient, eventsWatcher chan *invClient.WatchEvents,
+) {
 	authHandlerClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
 		return nil
@@ -116,7 +118,7 @@ func prepareClients(transport *http.Transport) (
 	}
 	authHandler := dm.DmtAuthHandler{MpsClient: authHandlerClient}
 
-	mpsClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
+	mpsClient, err = mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
 		apiClient.RequestEditors = []mps.RequestEditorFn{authHandler.DmtAuth}
 		return nil
@@ -125,7 +127,7 @@ func prepareClients(transport *http.Transport) (
 		log.Fatal().Err(err).Msgf("cannot create client")
 	}
 
-	rpsClient, err := rps.NewClientWithResponses(*rpsAddress, func(apiClient *rps.Client) error {
+	rpsClient, err = rps.NewClientWithResponses(*rpsAddress, func(apiClient *rps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
 		apiClient.RequestEditors = []rps.RequestEditorFn{authHandler.DmtAuth} // TODO: check if this works
 		return nil
@@ -134,8 +136,8 @@ func prepareClients(transport *http.Transport) (
 		log.Fatal().Err(err).Msgf("cannot create client")
 	}
 
-	eventsWatcher := make(chan *invClient.WatchEvents, eventsWatcherBufSize)
-	invTenantClient, err := invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
+	eventsWatcher = make(chan *invClient.WatchEvents, eventsWatcherBufSize)
+	invTenantClient, err = invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
 		Name:                      "DM manager",
 		Address:                   *inventoryAddress,
 		EnableRegisterRetry:       false,
@@ -158,7 +160,7 @@ func prepareClients(transport *http.Transport) (
 	if err != nil {
 		log.Fatal().Err(err).Msgf("cannot create inventory client")
 	}
-	return mpsClient, rpsClient, invTenantClient, eventsWatcher
+	return
 }
 
 func setupOamServer(enableTracing bool, oamservaddr string) {
