@@ -10,12 +10,14 @@ import (
 
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 )
 
 var log = logging.GetLogger("DmReconciler")
 
 type Reconciler struct {
-	APIClient mps.ClientWithResponsesInterface
+	MpsClient mps.ClientWithResponsesInterface
+	RpsClient rps.ClientWithResponsesInterface
 	TermChan  chan bool
 	ReadyChan chan bool
 	WaitGroup *sync.WaitGroup
@@ -46,7 +48,7 @@ func (dmr *Reconciler) Stop() {
 }
 
 func (dmr *Reconciler) Reconcile(ctx context.Context) {
-	devicesRsp, err := dmr.APIClient.GetApiV1DevicesWithResponse(ctx,
+	devicesRsp, err := dmr.MpsClient.GetApiV1DevicesWithResponse(ctx,
 		&mps.GetApiV1DevicesParams{})
 	if err != nil {
 		log.Err(err).Msgf("cannot get devices")
@@ -56,7 +58,7 @@ func (dmr *Reconciler) Reconcile(ctx context.Context) {
 	log.Info().Msgf("devices - %s", string(devicesRsp.Body))
 
 	for _, device := range *devicesRsp.JSON200 {
-		resp, err := dmr.APIClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, *device.Guid,
+		resp, err := dmr.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, *device.Guid,
 			mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
 				Action: mps.PowerActionRequestActionN10, // reset
 			})

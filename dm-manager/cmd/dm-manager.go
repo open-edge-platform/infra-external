@@ -88,7 +88,7 @@ func main() {
 	}
 
 	dmReconciler := &dm.Reconciler{
-		APIClient: client,
+		MpsClient: client,
 		TermChan:  termChan,
 		ReadyChan: readyChan,
 		WaitGroup: wg,

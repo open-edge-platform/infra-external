@@ -31,7 +31,7 @@ func TestDMReconciler_Start(t *testing.T) {
 	wg := &sync.WaitGroup{}
 
 	dmr := &dm.Reconciler{
-		APIClient: mockAPIClient,
+		MpsClient: mockAPIClient,
 		TermChan:  termChan,
 		ReadyChan: readyChan,
 		WaitGroup: wg,
