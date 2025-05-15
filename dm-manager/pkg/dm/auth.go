@@ -21,8 +21,8 @@ var (
 	credentialsFile      = "/etc/dm/credentials.yaml" //nolint:gosec // not a credential
 )
 
-type MpsAuthHandler struct {
-	APIClient mps.ClientWithResponsesInterface
+type DmtAuthHandler struct {
+	MpsClient mps.ClientWithResponsesInterface
 	token     string
 	updatedAt time.Time
 }
@@ -32,11 +32,11 @@ type credentials struct {
 	Password string `yaml:"password"`
 }
 
-func (mah *MpsAuthHandler) getToken(ctx context.Context) error {
-	mpsCredentials := getCredentials()
-	authResp, err := mah.APIClient.PostApiV1AuthorizeWithResponse(ctx, mps.PostApiV1AuthorizeJSONRequestBody{
-		Username: mpsCredentials.Username,
-		Password: mpsCredentials.Password,
+func (dah *DmtAuthHandler) getToken(ctx context.Context) error {
+	dmtCredentials := getCredentials()
+	authResp, err := dah.MpsClient.PostApiV1AuthorizeWithResponse(ctx, mps.PostApiV1AuthorizeJSONRequestBody{
+		Username: dmtCredentials.Username,
+		Password: dmtCredentials.Password,
 	})
 	if err != nil {
 		log.Err(err).Msgf("cannot auth to MPS")
@@ -47,8 +47,8 @@ func (mah *MpsAuthHandler) getToken(ctx context.Context) error {
 		return errors.Errorfc(codes.Internal, "received empty token from MPS - %v", err)
 	}
 
-	mah.token = *authResp.JSON200.Token
-	mah.updatedAt = time.Now()
+	dah.token = *authResp.JSON200.Token
+	dah.updatedAt = time.Now()
 
 	log.Info().Msgf("MPS token is refreshed")
 
@@ -62,29 +62,29 @@ func getCredentials() credentials {
 		log.Fatal().Err(err).Msgf("Error opening credentials file")
 	}
 
-	var mpsCredentials credentials
+	var dmtCredentials credentials
 	decoder := yaml.NewDecoder(file)
-	if err := decoder.Decode(&mpsCredentials); err != nil {
+	if err := decoder.Decode(&dmtCredentials); err != nil {
 		file.Close()
 		log.Fatal().Err(err).Msgf("Error parsing credentials file")
 	}
 	file.Close()
 
-	if mpsCredentials.Username == "" || mpsCredentials.Password == "" {
+	if dmtCredentials.Username == "" || dmtCredentials.Password == "" {
 		log.Fatal().Msgf("Username or Password is empty")
 	}
 
-	return mpsCredentials
+	return dmtCredentials
 }
 
-func (mah *MpsAuthHandler) MpsAuth(ctx context.Context, req *http.Request) error {
-	if time.Now().After(mah.updatedAt.Add(tokenRefreshInterval)) || mah.token == "" {
-		err := mah.getToken(ctx)
+func (dah *DmtAuthHandler) DmtAuth(ctx context.Context, req *http.Request) error {
+	if time.Now().After(dah.updatedAt.Add(tokenRefreshInterval)) || dah.token == "" {
+		err := dah.getToken(ctx)
 		if err != nil {
 			return err
 		}
 	}
 
-	req.Header.Set("Authorization", "Bearer "+mah.token)
+	req.Header.Set("Authorization", "Bearer "+dah.token)
 	return nil
 }

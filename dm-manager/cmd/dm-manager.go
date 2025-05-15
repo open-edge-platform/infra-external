@@ -13,6 +13,8 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	invClient "github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
@@ -22,12 +24,13 @@ import (
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
-	mpsAddressFlag = "mpsAddress"
-	dmName         = "dm-manager"
+	mpsAddressFlag       = "mpsAddress"
+	rpsAddressFlag       = "rpsAddress"
+	dmName               = "dm-manager"
+	eventsWatcherBufSize = 10
 )
 
 var (
@@ -45,8 +48,10 @@ var (
 	enableMetrics  = flag.Bool(metrics.EnableMetrics, false, metrics.EnableMetricsDescription)
 	traceURL       = flag.String(tracing.TraceURL, "", tracing.TraceURLDescription)
 	metricsAddress = flag.String(metrics.MetricsAddress, metrics.MetricsAddressDefault, metrics.MetricsAddressDescription)
-	mpsAddress     = flag.String(mpsAddressFlag, "openamtstack-kong-proxy.orch-infra.svc.cluster.local/mps/login",
+	mpsAddress     = flag.String(mpsAddressFlag, "mps-webport-node",
 		"Address of Management Presence Service (MPS)")
+	rpsAddress = flag.String(rpsAddressFlag, "rps-webport-node",
+		"Address of Remote Provisioning Service (RPS)")
 	insecure = flag.Bool("InsecureSkipVerify", false,
 		"Skip TLS verification for MPS/RPS. Does not recommended for production and should be used only for development.")
 	insecureGrpc = flag.Bool(invClient.InsecureGrpc, true, invClient.InsecureGrpcDescription)
@@ -77,11 +82,12 @@ func main() {
 		}
 	}
 
-	mpsClient, rpsClient, invTenantClient := prepareClients(transport)
+	mpsClient, rpsClient, invTenantClient, eventsWatcher := prepareClients(transport)
 	dmReconciler := &dm.Reconciler{
 		MpsClient:       mpsClient,
 		RpsClient:       rpsClient,
 		InventoryClient: invTenantClient,
+		EventsWatcher:   eventsWatcher,
 		TermChan:        termChan,
 		ReadyChan:       readyChan,
 		WaitGroup:       wg,
@@ -99,7 +105,8 @@ func main() {
 	log.Info().Msgf("Device Management Manager successfully stopped")
 }
 
-func prepareClients(transport *http.Transport) (*mps.ClientWithResponses, *rps.ClientWithResponses, invClient.TenantAwareInventoryClient) {
+func prepareClients(transport *http.Transport) (
+	*mps.ClientWithResponses, *rps.ClientWithResponses, invClient.TenantAwareInventoryClient, chan *invClient.WatchEvents) {
 	authHandlerClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
 		return nil
@@ -107,29 +114,29 @@ func prepareClients(transport *http.Transport) (*mps.ClientWithResponses, *rps.C
 	if err != nil {
 		log.Fatal().Err(err).Msgf("cannot create client")
 	}
-	authHandler := dm.MpsAuthHandler{APIClient: authHandlerClient}
+	authHandler := dm.DmtAuthHandler{MpsClient: authHandlerClient}
 
 	mpsClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
-		apiClient.RequestEditors = []mps.RequestEditorFn{authHandler.MpsAuth}
+		apiClient.RequestEditors = []mps.RequestEditorFn{authHandler.DmtAuth}
 		return nil
 	})
 	if err != nil {
 		log.Fatal().Err(err).Msgf("cannot create client")
 	}
 
-	rpsClient, err := rps.NewClientWithResponses(*mpsAddress, func(apiClient *rps.Client) error {
+	rpsClient, err := rps.NewClientWithResponses(*rpsAddress, func(apiClient *rps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
-		apiClient.RequestEditors = []rps.RequestEditorFn{authHandler.MpsAuth}
+		apiClient.RequestEditors = []rps.RequestEditorFn{authHandler.DmtAuth} // TODO: check if this works
 		return nil
 	})
 	if err != nil {
 		log.Fatal().Err(err).Msgf("cannot create client")
 	}
 
-	eventsWatcher := make(chan *invClient.WatchEvents)
+	eventsWatcher := make(chan *invClient.WatchEvents, eventsWatcherBufSize)
 	invTenantClient, err := invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
-		Name:                      "DM templates manager",
+		Name:                      "DM manager",
 		Address:                   *inventoryAddress,
 		EnableRegisterRetry:       false,
 		AbortOnUnknownClientError: true,
@@ -140,15 +147,18 @@ func prepareClients(transport *http.Transport) (*mps.ClientWithResponses, *rps.C
 			Insecure: *insecureGrpc,
 		},
 		Events:     eventsWatcher,
-		ClientKind: inventoryv1.ClientKind_CLIENT_KIND_RESOURCE_MANAGER,
+		ClientKind: inventoryv1.ClientKind_CLIENT_KIND_TENANT_CONTROLLER,
 		ResourceKinds: []inventoryv1.ResourceKind{
-			inventoryv1.ResourceKind_RESOURCE_KIND_HOST,
+			inventoryv1.ResourceKind_RESOURCE_KIND_TENANT,
 		},
 		Wg:            wg,
 		EnableTracing: *enableTracing,
 		EnableMetrics: *enableMetrics,
 	})
-	return mpsClient, rpsClient, invTenantClient
+	if err != nil {
+		log.Fatal().Err(err).Msgf("cannot create inventory client")
+	}
+	return mpsClient, rpsClient, invTenantClient, eventsWatcher
 }
 
 func setupOamServer(enableTracing bool, oamservaddr string) {
