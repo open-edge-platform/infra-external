@@ -32,6 +32,9 @@ var (
 		"tenantGetterInvTimeout", defaultTimeoutGetTenant, "Timeout for calls to inventory for tenant getter")
 	singletonTGetter *tenantGetter
 	once             sync.Once
+
+	// eventsWatcherBufSize is the buffer size for the events channel.
+	eventsWatcherBufSize = 10
 )
 
 type tenantGetter struct {
@@ -108,7 +111,7 @@ func newTenantGetterWithClient(
 }
 
 func newTenantGetter(wg *sync.WaitGroup, inventoryAddress string, enableTracing bool) (*tenantGetter, error) {
-	eventsWatcher := make(chan *client.WatchEvents)
+	eventsWatcher := make(chan *client.WatchEvents, eventsWatcherBufSize)
 	invClient, err := client.NewTenantAwareInventoryClient(context.Background(),
 		client.InventoryClientConfig{
 			Name:                      "TenantGetter",
