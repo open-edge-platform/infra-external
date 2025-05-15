@@ -13,14 +13,16 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/prometheus/client_golang/prometheus"
-
+	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
+	invClient "github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/metrics"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/oam"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/tracing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
@@ -36,6 +38,8 @@ var (
 	termChan  = make(chan bool, 1)
 	readyChan = make(chan bool, 1)
 
+	inventoryAddress = flag.String(invClient.InventoryAddress,
+		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
 	oamservaddr    = flag.String(oam.OamServerAddress, "", oam.OamServerAddressDescription)
 	enableTracing  = flag.Bool(tracing.EnableTracing, false, tracing.EnableTracingDescription)
 	enableMetrics  = flag.Bool(metrics.EnableMetrics, false, metrics.EnableMetricsDescription)
@@ -44,7 +48,11 @@ var (
 	mpsAddress     = flag.String(mpsAddressFlag, "openamtstack-kong-proxy.orch-infra.svc.cluster.local/mps/login",
 		"Address of Management Presence Service (MPS)")
 	insecure = flag.Bool("InsecureSkipVerify", false,
-		"Skip TLS verification for MPS. Does not recommended for production and should be used only for development.")
+		"Skip TLS verification for MPS/RPS. Does not recommended for production and should be used only for development.")
+	insecureGrpc = flag.Bool(invClient.InsecureGrpc, true, invClient.InsecureGrpcDescription)
+	caCertPath   = flag.String(invClient.CaCertPath, "", invClient.CaCertPathDescription)
+	tlsCertPath  = flag.String(invClient.TLSCertPath, "", invClient.TLSCertPathDescription)
+	tlsKeyPath   = flag.String(invClient.TLSKeyPath, "", invClient.TLSKeyPathDescription)
 )
 
 func main() {
@@ -69,29 +77,14 @@ func main() {
 		}
 	}
 
-	authHandlerClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
-		apiClient.Client = &http.Client{Transport: transport}
-		return nil
-	})
-	if err != nil {
-		log.Fatal().Err(err).Msgf("cannot create client")
-	}
-	authHandler := dm.MpsAuthHandler{APIClient: authHandlerClient}
-
-	client, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
-		apiClient.Client = &http.Client{Transport: transport}
-		apiClient.RequestEditors = []mps.RequestEditorFn{authHandler.MpsAuth}
-		return nil
-	})
-	if err != nil {
-		log.Fatal().Err(err).Msgf("cannot create client")
-	}
-
+	mpsClient, rpsClient, invTenantClient := prepareClients(transport)
 	dmReconciler := &dm.Reconciler{
-		MpsClient: client,
-		TermChan:  termChan,
-		ReadyChan: readyChan,
-		WaitGroup: wg,
+		MpsClient:       mpsClient,
+		RpsClient:       rpsClient,
+		InventoryClient: invTenantClient,
+		TermChan:        termChan,
+		ReadyChan:       readyChan,
+		WaitGroup:       wg,
 	}
 	wg.Add(1)
 	go dmReconciler.Start()
@@ -104,6 +97,58 @@ func main() {
 	dmReconciler.Stop()
 	wg.Wait()
 	log.Info().Msgf("Device Management Manager successfully stopped")
+}
+
+func prepareClients(transport *http.Transport) (*mps.ClientWithResponses, *rps.ClientWithResponses, invClient.TenantAwareInventoryClient) {
+	authHandlerClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
+		apiClient.Client = &http.Client{Transport: transport}
+		return nil
+	})
+	if err != nil {
+		log.Fatal().Err(err).Msgf("cannot create client")
+	}
+	authHandler := dm.MpsAuthHandler{APIClient: authHandlerClient}
+
+	mpsClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
+		apiClient.Client = &http.Client{Transport: transport}
+		apiClient.RequestEditors = []mps.RequestEditorFn{authHandler.MpsAuth}
+		return nil
+	})
+	if err != nil {
+		log.Fatal().Err(err).Msgf("cannot create client")
+	}
+
+	rpsClient, err := rps.NewClientWithResponses(*mpsAddress, func(apiClient *rps.Client) error {
+		apiClient.Client = &http.Client{Transport: transport}
+		apiClient.RequestEditors = []rps.RequestEditorFn{authHandler.MpsAuth}
+		return nil
+	})
+	if err != nil {
+		log.Fatal().Err(err).Msgf("cannot create client")
+	}
+
+	eventsWatcher := make(chan *invClient.WatchEvents)
+	invTenantClient, err := invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
+		Name:                      "DM templates manager",
+		Address:                   *inventoryAddress,
+		EnableRegisterRetry:       false,
+		AbortOnUnknownClientError: true,
+		SecurityCfg: &invClient.SecurityConfig{
+			CaPath:   *caCertPath,
+			CertPath: *tlsCertPath,
+			KeyPath:  *tlsKeyPath,
+			Insecure: *insecureGrpc,
+		},
+		Events:     eventsWatcher,
+		ClientKind: inventoryv1.ClientKind_CLIENT_KIND_RESOURCE_MANAGER,
+		ResourceKinds: []inventoryv1.ResourceKind{
+			inventoryv1.ResourceKind_RESOURCE_KIND_HOST,
+		},
+		Wg:            wg,
+		EnableTracing: *enableTracing,
+		EnableMetrics: *enableMetrics,
+	})
+	return mpsClient, rpsClient, invTenantClient
 }
 
 func setupOamServer(enableTracing bool, oamservaddr string) {

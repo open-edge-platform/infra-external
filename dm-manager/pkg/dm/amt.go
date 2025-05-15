@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
@@ -16,11 +17,12 @@ import (
 var log = logging.GetLogger("DmReconciler")
 
 type Reconciler struct {
-	MpsClient mps.ClientWithResponsesInterface
-	RpsClient rps.ClientWithResponsesInterface
-	TermChan  chan bool
-	ReadyChan chan bool
-	WaitGroup *sync.WaitGroup
+	MpsClient       mps.ClientWithResponsesInterface
+	RpsClient       rps.ClientWithResponsesInterface
+	InventoryClient client.TenantAwareInventoryClient
+	TermChan        chan bool
+	ReadyChan       chan bool
+	WaitGroup       *sync.WaitGroup
 }
 
 func (dmr *Reconciler) Start() {
