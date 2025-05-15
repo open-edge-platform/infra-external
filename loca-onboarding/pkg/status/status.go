@@ -59,6 +59,8 @@ var (
 	InstanceStatusInstalledFailed = inv_status.New(util.StageInstalledDescription,
 		statusv1.StatusIndication_STATUS_INDICATION_ERROR)
 	HostStatusInvalidated     = inv_status.New("Host is invalidated", statusv1.StatusIndication_STATUS_INDICATION_IDLE)
+	HostStatusUnknown         = inv_status.New("Unknown", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+	InstanceStatusUnknown     = inv_status.New("Unknown", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 	InstanceStatusInvalidated = inv_status.New("Instance is invalidated", statusv1.StatusIndication_STATUS_INDICATION_IDLE)
 	DeviceStatusDoesNotExist  = inv_status.New("Device does not exist in LOC-A",
 		statusv1.StatusIndication_STATUS_INDICATION_ERROR)

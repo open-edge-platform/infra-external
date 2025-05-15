@@ -117,7 +117,7 @@ func TestInvalidateHost(t *testing.T) {
 	// Host status should be updated - invalidated status is expected
 	loca_testing.AssertHost(t, loca_testing.Tenant1, lenovoProvider.GetApiEndpoint(), host.GetSerialNumber(), host.GetUuid(),
 		computev1.HostState_HOST_STATE_UNTRUSTED, computev1.HostState_HOST_STATE_UNTRUSTED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		loca_status.HostStatusUnknown.Status, loca_status.HostStatusUnknown.StatusIndicator,
 		loca_status.HostStatusInvalidated.Status, loca_status.HostStatusInvalidated.StatusIndicator)
 }
 
