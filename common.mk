@@ -35,13 +35,14 @@ CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
 
 # Path variables
-OUT_DIR	   := out
-APIPKG_DIR := pkg/api
-BIN_DIR    := $(OUT_DIR)/bin
-GOPATH     := $(shell go env GOPATH)
-RBAC       := "$(OUT_DIR)/rego/authz.rego"
-SRC        := $(shell find . -type f -name '*.go' ! -name '*_test.go')
-DEPS       := go.mod go.sum
+OUT_DIR	    := out
+APIPKG_DIR  := pkg/api
+BIN_DIR     := $(OUT_DIR)/bin
+GOPATH      := $(shell go env GOPATH)
+RBAC        := "$(OUT_DIR)/rego/authz.rego"
+SRC         := $(shell find . -type f -name '*.go' ! -name '*_test.go')
+DEPS        := go.mod go.sum
+BASE_BRANCH := main
 
 # Docker variables
 DOCKER_ENV              := DOCKER_BUILDKIT=1
@@ -202,6 +203,12 @@ go-lint: $(OUT_DIR) ## Run go lint
 mdlint: ## Lint MD files
 	markdownlint --version ;\
 	markdownlint "**/*.md" -c ../.markdownlint.yml
+
+common-oasdiff-breaking: ## Check for breaking changes in openapi using oasdiff
+	rm -rf ${TEMP_BASE_OPENAPI_DIR}
+	mkdir -p ${TEMP_BASE_OPENAPI_DIR}
+	git archive origin/${BASE_BRANCH} ${OPENAPI_PATH} | tar -x -C ${TEMP_BASE_OPENAPI_DIR}
+	oasdiff breaking --composed "${TEMP_BASE_OPENAPI_DIR}/${OPENAPI_PATH}"  "${OPENAPI_PATH}" --fail-on ERR
 
 go-test: $(OUT_DIR) $(GO_TEST_DEPS) ## Run go test and calculate code coverage
 ifeq ($(TEST_USE_DB), true)
