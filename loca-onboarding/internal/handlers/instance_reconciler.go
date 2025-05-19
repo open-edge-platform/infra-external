@@ -87,24 +87,25 @@ func (ir *InstanceReconciler) Reconcile(
 
 func checkStatusIdle(instance *computev1.InstanceResource,
 ) bool {
+	idleCheck := true
 	// Check if all statuses in instance are idle
 	if instance.GetInstanceStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE &&
 		instance.GetInstanceStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED {
-		return false
+		idleCheck = false
 	}
 	if instance.GetProvisioningStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE &&
 		instance.GetProvisioningStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED {
-		return false
+		idleCheck = false
 	}
 	if instance.GetUpdateStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE &&
 		instance.GetUpdateStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED {
-		return false
+		idleCheck = false
 	}
 	if instance.GetTrustedAttestationStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE &&
 		instance.GetTrustedAttestationStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED {
-		return false
+		idleCheck = false
 	}
-	return true
+	return idleCheck
 }
 
 func (ir *InstanceReconciler) handleHostDeauthorized(ctx context.Context, instance *computev1.InstanceResource,
