@@ -10,7 +10,7 @@ require (
 	github.com/open-edge-platform/infra-core/inventory/v2 v2.24.0
 	github.com/prometheus/client_golang v1.22.0
 	github.com/stretchr/testify v1.10.0
-	google.golang.org/grpc v1.72.0
+	google.golang.org/grpc v1.72.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
