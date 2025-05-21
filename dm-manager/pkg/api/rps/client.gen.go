@@ -117,7 +117,7 @@ type CIRAConfigPOST struct {
 	CommonName          string  `json:"commonName"`
 	ConfigName          string  `json:"configName"`
 	MpsPort             int32   `json:"mpsPort"`
-	MpsRootCertificate  []byte  `json:"mpsRootCertificate"`
+	MpsRootCertificate  string  `json:"mpsRootCertificate"`
 	MpsServerAddress    string  `json:"mpsServerAddress"`
 	Password            *string `json:"password,omitempty"`
 	ProxyDetails        string  `json:"proxyDetails"`

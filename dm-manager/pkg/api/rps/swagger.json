@@ -1625,8 +1625,7 @@
             "format": "int32"
           },
           "mpsRootCertificate": {
-            "type": "string",
-            "format": "byte"
+            "type": "string"
           },
           "proxyDetails": {
             "type": "string"

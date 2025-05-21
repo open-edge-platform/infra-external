@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -27,10 +28,14 @@ import (
 )
 
 const (
-	mpsAddressFlag       = "mpsAddress"
-	rpsAddressFlag       = "rpsAddress"
-	dmName               = "dm-manager"
-	eventsWatcherBufSize = 10
+	mpsAddressFlag           = "mpsAddress"
+	rpsAddressFlag           = "rpsAddress"
+	clusterDomainAddressFlag = "clusterDomain"
+	reconcilePeriodFlag      = "reconcilePeriod"
+	requestTimeoutFlag       = "requestTimeout"
+	dmName                   = "dm-manager"
+	eventsWatcherBufSize     = 10
+	defaultRequestTimeout    = 10 * time.Second
 )
 
 var (
@@ -43,14 +48,19 @@ var (
 
 	inventoryAddress = flag.String(invClient.InventoryAddress,
 		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
+	clusterDomain   = flag.String(clusterDomainAddressFlag, "cluster.onprem", "cluster domain address")
+	reconcilePeriod = flag.Duration(reconcilePeriodFlag, time.Minute, "How often perform full reconciliation for every tenant")
+
+	requestTimeout = flag.Duration(requestTimeoutFlag, defaultRequestTimeout,
+		"Timeout duration for requests that are performed by DM manager")
 	oamservaddr    = flag.String(oam.OamServerAddress, "", oam.OamServerAddressDescription)
 	enableTracing  = flag.Bool(tracing.EnableTracing, false, tracing.EnableTracingDescription)
 	enableMetrics  = flag.Bool(metrics.EnableMetrics, false, metrics.EnableMetricsDescription)
 	traceURL       = flag.String(tracing.TraceURL, "", tracing.TraceURLDescription)
 	metricsAddress = flag.String(metrics.MetricsAddress, metrics.MetricsAddressDefault, metrics.MetricsAddressDescription)
-	mpsAddress     = flag.String(mpsAddressFlag, "mps-webport-node",
+	mpsAddress     = flag.String(mpsAddressFlag, "http://mps.orch-infra.svc:3000",
 		"Address of Management Presence Service (MPS)")
-	rpsAddress = flag.String(rpsAddressFlag, "rps-webport-node",
+	rpsAddress = flag.String(rpsAddressFlag, "http://rps.orch-infra.svc:8081",
 		"Address of Remote Provisioning Service (RPS)")
 	insecure = flag.Bool("InsecureSkipVerify", false,
 		"Skip TLS verification for MPS/RPS. Does not recommended for production and should be used only for development.")
@@ -91,6 +101,12 @@ func main() {
 		TermChan:        termChan,
 		ReadyChan:       readyChan,
 		WaitGroup:       wg,
+		Config: &dm.ReconcilerConfig{
+			ClusterDomain:   *clusterDomain,
+			AmtPassword:     "password", // TODO: read from secret or vault
+			ReconcilePeriod: *reconcilePeriod,
+			RequestTimeout:  *requestTimeout,
+		},
 	}
 	wg.Add(1)
 	go dmReconciler.Start()
@@ -109,18 +125,10 @@ func prepareClients(transport *http.Transport) (
 	mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses,
 	invTenantClient invClient.TenantAwareInventoryClient, eventsWatcher chan *invClient.WatchEvents,
 ) {
-	authHandlerClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
-		apiClient.Client = &http.Client{Transport: transport}
-		return nil
-	})
-	if err != nil {
-		log.Fatal().Err(err).Msgf("cannot create client")
-	}
-	authHandler := dm.DmtAuthHandler{MpsClient: authHandlerClient}
+	log.Info().Msgf("MPS address: %s", *mpsAddress)
 
-	mpsClient, err = mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
+	mpsClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
-		apiClient.RequestEditors = []mps.RequestEditorFn{authHandler.DmtAuth}
 		return nil
 	})
 	if err != nil {
@@ -129,7 +137,6 @@ func prepareClients(transport *http.Transport) (
 
 	rpsClient, err = rps.NewClientWithResponses(*rpsAddress, func(apiClient *rps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
-		apiClient.RequestEditors = []rps.RequestEditorFn{authHandler.DmtAuth} // TODO: check if this works
 		return nil
 	})
 	if err != nil {
@@ -160,7 +167,7 @@ func prepareClients(transport *http.Transport) (
 	if err != nil {
 		log.Fatal().Err(err).Msgf("cannot create inventory client")
 	}
-	return
+	return mpsClient, rpsClient, invTenantClient, eventsWatcher
 }
 
 func setupOamServer(enableTracing bool, oamservaddr string) {

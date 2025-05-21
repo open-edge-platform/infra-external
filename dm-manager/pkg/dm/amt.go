@@ -5,6 +5,8 @@ package dm
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,6 +26,13 @@ const (
 
 var log = logging.GetLogger("DmReconciler")
 
+type ReconcilerConfig struct {
+	ClusterDomain string
+	AmtPassword   string
+
+	RequestTimeout  time.Duration
+	ReconcilePeriod time.Duration
+}
 type Reconciler struct {
 	MpsClient       mps.ClientWithResponsesInterface
 	RpsClient       rps.ClientWithResponsesInterface
@@ -32,20 +41,21 @@ type Reconciler struct {
 	TermChan        chan bool
 	ReadyChan       chan bool
 	WaitGroup       *sync.WaitGroup
+	Config          *ReconcilerConfig
 }
 
 func (dmr *Reconciler) Start() {
-	ticker := time.NewTicker(time.Minute)
+	ticker := time.NewTicker(dmr.Config.ReconcilePeriod)
 	if dmr.ReadyChan != nil {
 		dmr.ReadyChan <- true
 	}
 	log.Info().Msgf("Starting periodic reconciliation")
-	dmr.Reconcile(context.Background())
+	dmr.Reconcile()
 	for {
 		select {
 		case <-ticker.C:
 			log.Info().Msgf("Running periodic reconciliation")
-			dmr.Reconcile(context.Background())
+			dmr.Reconcile()
 		case <-dmr.TermChan:
 			log.Info().Msgf("Stopping periodic reconciliation")
 			ticker.Stop()
@@ -54,90 +64,149 @@ func (dmr *Reconciler) Start() {
 		case event := <-dmr.EventsWatcher:
 			if event.Event.GetEventKind() == inventoryv1.SubscribeEventsResponse_EVENT_KIND_CREATED {
 				log.Info().Msgf("Received create event: %v", event.Event.GetResource().GetTenant().GetResourceId())
-				dmr.handleTenantCreation(context.Background(), event.Event.GetResource().GetTenant())
+				dmr.handleTenantCreation(event.Event.GetResource().GetTenant())
 			}
 
 			if event.Event.GetEventKind() == inventoryv1.SubscribeEventsResponse_EVENT_KIND_DELETED {
 				log.Info().Msgf("Received delete event: %v", event.Event.GetResource().GetTenant().GetResourceId())
-				dmr.handleTenantCreation(context.Background(), event.Event.GetResource().GetTenant())
+				dmr.handleTenantRemoval(event.Event.GetResource().GetTenant())
 			}
 		}
 	}
 }
 
-func (dmr *Reconciler) handleTenantCreation(
-	ctx context.Context,
+func convertCertToCertBlob(cert []byte) string {
+	certString := string(cert)
+	certString = strings.ReplaceAll(certString, "-----BEGIN CERTIFICATE-----", "")
+	certString = strings.ReplaceAll(certString, "-----END CERTIFICATE-----", "")
+	certString = strings.ReplaceAll(certString, "\r", "")
+	certString = strings.ReplaceAll(certString, "\n", "")
+	return certString
+}
+
+func (dmr *Reconciler) handleTenantRemoval(
 	tenant *tenantv1.Tenant,
 ) {
-	clusterDomain := "cluster.onprem"
-	password := "password"
+	log.Info().Msgf("Handling tenant removal: %v", tenant.GetTenantId())
+	ctx, cancel := context.WithTimeout(context.Background(), dmr.Config.RequestTimeout)
+	defer cancel()
 
-	log.Info().Msgf("Handling tenant creation: %v", tenant.GetResourceId())
+	profileResp, err := dmr.RpsClient.RemoveProfileWithResponse(ctx, tenant.GetTenantId())
+	if err != nil {
+		log.Err(err).Msgf("cannot remove profile for %v tenant", tenant.GetTenantId())
+	}
+
+	log.Info().Msgf("profile removal response: %v", string(profileResp.Body))
+
+	ciraResp, err := dmr.RpsClient.RemoveCIRAConfigWithResponse(ctx, tenant.GetTenantId())
+	if err != nil {
+		log.Err(err).Msgf("cannot remove CIRA config for %v tenant", tenant.GetTenantId())
+	}
+	log.Info().Msgf("cira removal response: %v", string(ciraResp.Body))
+
+	log.Info().Msgf("Finished tenant removal: %v", tenant.GetTenantId())
+}
+
+func (dmr *Reconciler) handleTenantCreation(
+	tenant *tenantv1.Tenant,
+) {
+	log.Info().Msgf("Handling tenant creation: %v", tenant.GetTenantId())
+	ctx, cancel := context.WithTimeout(context.Background(), dmr.Config.RequestTimeout)
+	defer cancel()
+
 	cert, err := dmr.MpsClient.GetApiV1CiracertWithResponse(ctx)
 	if err != nil {
 		log.Err(err).Msgf("cannot get CIRA cert")
 		return
 	}
 
-	_, err = dmr.RpsClient.CreateCIRAConfigWithResponse(ctx, rps.CreateCIRAConfigJSONRequestBody{
-		AuthMethod:          passwordAuth, // password auth
-		ServerAddressFormat: fqdnServerFormat,
-		CommonName:          "mps-node." + clusterDomain,
-		MpsServerAddress:    "mps-node." + clusterDomain,
-		MpsPort:             mpsPort,
-		ConfigName:          tenant.GetTenantId(),
-		MpsRootCertificate:  cert.Body,
-		ProxyDetails:        "", // TODO: pass proxy from config
-		Username:            "admin",
-		Password:            &password,
-	})
+	ciraConfig, err := dmr.RpsClient.GetCIRAConfigWithResponse(ctx, tenant.GetTenantId())
 	if err != nil {
-		log.Err(err).Msgf("cannot create CIRA config for %v tenant", tenant.GetTenantId())
+		log.Err(err).Msgf("cannot get CIRA config for %v tenant", tenant.GetTenantId())
 		return
 	}
 
-	_, err = dmr.RpsClient.CreateProfileWithResponse(ctx, rps.CreateProfileJSONRequestBody{
-		Activation:                 "ccmactivate",
-		AmtPassword:                &password,
-		CiraConfigName:             Ptr(tenant.GetTenantId()),
-		DhcpEnabled:                true,
-		GenerateRandomMEBxPassword: false,
-		GenerateRandomPassword:     false,
-		IpSyncEnabled:              Ptr(true),
-		KvmEnabled:                 Ptr(true),
-		MebxPassword:               Ptr(password),
-		ProfileName:                tenant.GetTenantId(),
-		SolEnabled:                 Ptr(true),
-	})
+	if ciraConfig.JSON404 != nil {
+		log.Info().Msgf("CIRA config not found for %v tenant, creating it", tenant.GetTenantId())
+		postCiraConfig, postErr := dmr.RpsClient.CreateCIRAConfigWithResponse(ctx, rps.CreateCIRAConfigJSONRequestBody{
+			AuthMethod:          passwordAuth, // password auth
+			ServerAddressFormat: fqdnServerFormat,
+			CommonName:          "mps-node." + dmr.Config.ClusterDomain,
+			MpsServerAddress:    "mps-node." + dmr.Config.ClusterDomain,
+			MpsPort:             mpsPort,
+			ConfigName:          tenant.GetTenantId(),
+			MpsRootCertificate:  convertCertToCertBlob(cert.Body),
+			ProxyDetails:        "", // TODO: pass proxy from config
+			Username:            "admin",
+			Password:            &dmr.Config.AmtPassword,
+		})
+		if postErr != nil {
+			log.Err(err).Msgf("cannot create CIRA config for %v tenant", tenant.GetTenantId())
+			return
+		}
+
+		if postCiraConfig.JSON201 != nil {
+			log.Info().Msgf("created CIRA config for %v", tenant.GetTenantId())
+		} else {
+			log.Err(fmt.Errorf("%v", string(postCiraConfig.Body))).Msgf("cannot create CIRA config for %v", tenant.GetTenantId())
+			return
+		}
+	}
+
+	profile, err := dmr.RpsClient.GetProfileWithResponse(ctx, tenant.GetTenantId())
 	if err != nil {
-		log.Err(err).Msgf("cannot create profile for %v tenant", tenant.GetTenantId())
+		log.Err(err).Msgf("cannot get profile for %v tenant", tenant.GetTenantId())
 		return
 	}
+	if profile.JSON404 != nil {
+		log.Info().Msgf("profile not found for %v tenant, creating it", tenant.GetTenantId())
+
+		profilePostResponse, err := dmr.RpsClient.CreateProfileWithResponse(ctx, rps.CreateProfileJSONRequestBody{
+			Activation:                 "ccmactivate",
+			AmtPassword:                &dmr.Config.AmtPassword,
+			CiraConfigName:             Ptr(tenant.GetTenantId()),
+			DhcpEnabled:                true,
+			GenerateRandomMEBxPassword: false,
+			GenerateRandomPassword:     false,
+			IpSyncEnabled:              Ptr(false),
+			KvmEnabled:                 Ptr(true),
+			MebxPassword:               Ptr(dmr.Config.AmtPassword),
+			ProfileName:                tenant.GetTenantId(),
+			SolEnabled:                 Ptr(true),
+			TlsMode:                    nil,
+			TlsSigningAuthority:        "SelfSigned",
+		})
+		if err != nil {
+			log.Err(err).Msgf("cannot create profile for %v tenant", tenant.GetTenantId())
+			return
+		}
+		if profilePostResponse.JSON201 != nil {
+			log.Info().Msgf("created profile for %v", tenant.GetTenantId())
+		} else {
+			log.Err(fmt.Errorf("%v", string(profilePostResponse.Body))).Msgf("cannot create profile for %v", tenant.GetTenantId())
+			return
+		}
+	}
+
+	log.Info().Msgf("creation for %v tenant is done", tenant.GetTenantId())
 }
 
 func (dmr *Reconciler) Stop() {
 }
 
-func (dmr *Reconciler) Reconcile(ctx context.Context) {
-	devicesRsp, err := dmr.MpsClient.GetApiV1DevicesWithResponse(ctx,
-		&mps.GetApiV1DevicesParams{})
+func (dmr *Reconciler) Reconcile() {
+	ctx, cancel := context.WithTimeout(context.Background(), dmr.Config.RequestTimeout)
+	defer cancel()
+	tenants, err := dmr.InventoryClient.ListAll(ctx, &inventoryv1.ResourceFilter{
+		Resource: &inventoryv1.Resource{Resource: &inventoryv1.Resource_Tenant{}},
+	})
 	if err != nil {
-		log.Err(err).Msgf("cannot get devices")
+		log.Err(err).Msgf("cannot list tenants")
 		return
 	}
 
-	log.Info().Msgf("devices - %s", string(devicesRsp.Body))
-
-	for _, device := range *devicesRsp.JSON200 {
-		resp, err := dmr.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, *device.Guid,
-			mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
-				Action: mps.PowerActionRequestActionN10, // reset
-			})
-		if err != nil {
-			log.Err(err).Msgf("cannot reset %v device", *device.Guid)
-			return
-		}
-		log.Info().Msgf("reset %v device - %s", *device.Guid, string(resp.Body))
+	for _, tenant := range tenants {
+		dmr.handleTenantCreation(tenant.GetTenant())
 	}
 }
 
