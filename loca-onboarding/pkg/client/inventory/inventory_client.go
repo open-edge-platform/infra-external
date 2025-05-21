@@ -628,6 +628,24 @@ func UpdateInstanceStatus(
 	})
 }
 
+// UpdateInstanceStatuses updates only all statuses in the instance, including provisioning, update and attestation.
+// It takes computev1.InstanceResource as an argument, but ignores all fields other than status, status indicator,
+// status timestamp and status_detail. It overwrites status, status indicator, status timestamp and status_detail with
+// provided values in computev1.InstanceResource. The function requires ResourceId to be set in computev1.InstanceResource.
+func UpdateInstanceStatuses(
+	ctx context.Context, c client.TenantAwareInventoryClient, tenantID string, instance *computev1.InstanceResource,
+) error {
+	return UpdateInvResourceFields(ctx, c, tenantID, instance, []string{
+		computev1.InstanceResourceFieldInstanceStatus, computev1.InstanceResourceFieldInstanceStatusIndicator,
+		computev1.InstanceResourceFieldInstanceStatusTimestamp, computev1.InstanceResourceFieldProvisioningStatus,
+		computev1.InstanceResourceFieldProvisioningStatusIndicator, computev1.InstanceResourceFieldProvisioningStatusTimestamp,
+		computev1.InstanceResourceFieldUpdateStatus, computev1.InstanceResourceFieldUpdateStatusIndicator,
+		computev1.InstanceResourceFieldUpdateStatusTimestamp, computev1.InstanceResourceFieldUpdateStatusDetail,
+		computev1.InstanceResourceFieldTrustedAttestationStatus, computev1.InstanceResourceFieldTrustedAttestationStatusIndicator,
+		computev1.InstanceResourceFieldTrustedAttestationStatusTimestamp, computev1.InstanceResourceFieldInstanceStatusDetail,
+	})
+}
+
 // UpdateInvResourceFields updates selected fields of a resource in Inventory.
 // The resource object can contain any fields, but only the selected fields will be overwritten in Inventory
 // (also if they are empty), so take care to always fill expected values for fields that will be updated.

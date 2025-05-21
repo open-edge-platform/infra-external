@@ -73,16 +73,25 @@ func (ir *InstanceReconciler) Reconcile(
 		return request.Ack()
 	}
 
+	if directive := ir.handleHostDeauthorized(ctx, instance, request, resourceID); directive != nil {
+		return directive
+	}
+
 	if instance.GetDesiredState() == instance.GetCurrentState() {
 		zlogInst.Debug().Msgf("Instance (%s) reconciliation skipped", resourceID)
 		return request.Ack()
 	}
 
-	if directive := ir.handleHostDeauthorized(ctx, instance, request, resourceID); directive != nil {
-		return directive
-	}
-
 	return ir.reconcileInstance(ctx, request, instance)
+}
+
+func checkStatusUnknown(instance *computev1.InstanceResource,
+) bool {
+	// Check if instance status has already been set to unknown
+	if instance.GetInstanceStatus() != "Unknown" {
+		return false
+	}
+	return true
 }
 
 func checkStatusIdle(instance *computev1.InstanceResource,
@@ -108,28 +117,98 @@ func checkStatusIdle(instance *computev1.InstanceResource,
 	return idleCheck
 }
 
+func checkInstancePresentInLoca(
+	ctx context.Context, instance *computev1.InstanceResource,
+) (bool, string) {
+	// check if Instance is present in LOC-A:
+	// - if yes, return true so that the instance can be deleted from LOC-A
+	// - if no, skip deleting the instance and update instance statuses
+	locaClient, err := loca.InitialiseLOCAClient(
+		instance.GetHost().GetProvider().GetApiEndpoint(),
+		instance.GetHost().GetProvider().GetApiCredentials(),
+	)
+	if err != nil {
+		zlogInst.InfraSec().InfraErr(err).Msgf("Failed to initialize LOC-A client for endpoint: %s",
+			instance.GetHost().GetProvider().GetApiEndpoint())
+		return false, ""
+	}
+
+	locaInstance, err := locaClient.LocaAPI.Deployment.GetAPIV1DeploymentInstancesID(
+		&deployment.GetAPIV1DeploymentInstancesIDParams{Context: ctx, ID: instance.GetName()}, locaClient.AuthWriter)
+	if err != nil && !strings.Contains(strings.ToLower(err.Error()), "not found") {
+		// handle only remaining errors; "not found" is expected if the instance has already been deleted
+		zlogInst.InfraSec().InfraErr(err).Msgf("Couldn't retrieve from LOC-A (%s/%s) Instance by its ID (%s)",
+			instance.GetHost().GetProvider().GetName(), instance.GetHost().GetProvider().GetApiEndpoint(), instance.GetName())
+		return false, ""
+	}
+	if locaInstance == nil {
+		return false, ""
+	}
+	return true, locaInstance.Payload.Data.ID
+}
+
+func setInstanceStatusUnknown(
+	instance *computev1.InstanceResource,
+) {
+	var err error
+	instance.InstanceStatus = loca_status.InstanceStatusUnknown.Status
+	instance.InstanceStatusIndicator = loca_status.InstanceStatusUnknown.StatusIndicator
+	instance.InstanceStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+	if err != nil {
+		instance.InstanceStatusTimestamp = 0
+	}
+	instance.InstanceStatusDetail = ""
+	instance.ProvisioningStatus = loca_status.InstanceStatusUnknown.Status
+	instance.ProvisioningStatusIndicator = loca_status.InstanceStatusUnknown.StatusIndicator
+	instance.ProvisioningStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+	if err != nil {
+		instance.ProvisioningStatusTimestamp = 0
+	}
+	instance.UpdateStatus = loca_status.InstanceStatusUnknown.Status
+	instance.UpdateStatusIndicator = loca_status.InstanceStatusUnknown.StatusIndicator
+	instance.UpdateStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+	if err != nil {
+		instance.UpdateStatusTimestamp = 0
+	}
+	instance.UpdateStatusDetail = ""
+	instance.TrustedAttestationStatus = loca_status.InstanceStatusUnknown.Status
+	instance.TrustedAttestationStatusIndicator = loca_status.InstanceStatusUnknown.StatusIndicator
+	instance.TrustedAttestationStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+	if err != nil {
+		instance.TrustedAttestationStatusTimestamp = 0
+	}
+}
+
 func (ir *InstanceReconciler) handleHostDeauthorized(ctx context.Context, instance *computev1.InstanceResource,
 	request rec_v2.Request[ReconcilerID], resourceID string,
 ) rec_v2.Directive[ReconcilerID] {
-	if instance.GetHost().GetCurrentState() == computev1.HostState_HOST_STATE_UNTRUSTED ||
-		instance.GetHost().GetDesiredState() == computev1.HostState_HOST_STATE_UNTRUSTED {
-		// Check that all statuses and indicators have been updated
-		if !checkStatusIdle(instance) {
-			zlogInst.Info().Msgf("Host associated with Instance (%s) has been deauthorized. "+
-				"Forcing reconciliation to update Instance status.", resourceID)
-			instance.InstanceStatus = loca_status.InstanceStatusUnknown.Status
-			instance.InstanceStatusIndicator = loca_status.InstanceStatusUnknown.StatusIndicator
-			instance.InstanceStatusDetail = ""
-			instance.ProvisioningStatus = loca_status.InstanceStatusUnknown.Status
-			instance.ProvisioningStatusIndicator = loca_status.InstanceStatusUnknown.StatusIndicator
-			instance.UpdateStatus = loca_status.InstanceStatusUnknown.Status
-			instance.UpdateStatusIndicator = loca_status.InstanceStatusUnknown.StatusIndicator
-			instance.UpdateStatusDetail = ""
-			instance.TrustedAttestationStatus = loca_status.InstanceStatusUnknown.Status
-			instance.TrustedAttestationStatusIndicator = loca_status.InstanceStatusUnknown.StatusIndicator
-			return ir.reconcileInstance(ctx, request, instance)
+	if (instance.GetHost().GetCurrentState() == computev1.HostState_HOST_STATE_UNTRUSTED ||
+		instance.GetHost().GetDesiredState() == computev1.HostState_HOST_STATE_UNTRUSTED) &&
+		instance.GetDesiredState() == computev1.InstanceState_INSTANCE_STATE_RUNNING {
+		if !checkStatusUnknown(instance) {
+			var err error
+			// Check that all statuses and indicators have been updated
+			if !checkStatusIdle(instance) {
+				zlogInst.Info().Msgf("Host associated with Instance (%s) has been deauthorized. "+
+					"Forcing reconciliation to update Instance status.", resourceID)
+				setInstanceStatusUnknown(instance)
+			}
+			// Check if instance is still present in LOC-A, if true remove it
+			instanceInLoca, locaInstanceID := checkInstancePresentInLoca(ctx, instance)
+			if instanceInLoca {
+				// Instance still exists in LOC-A, so remove it
+				zlogInst.Info().Msgf("Host associated with Instance (%s) has been deauthorized. "+
+					"Deleting instance from LOC-A.", resourceID)
+				if err = ir.removeInstanceFromLoca(ctx, instance, locaInstanceID); err != nil {
+					zlog.InfraSec().InfraErr(err).Msgf("Failed to delete instance %s from LOC-A", instance.GetName())
+					return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
+				}
+			}
+			err = inventory.UpdateInstanceStatuses(ctx, ir.invClient, instance.GetTenantId(), instance)
+			if err != nil {
+				zlogInst.InfraSec().InfraErr(err).Msgf("Failed to update Instance Statuses to Unknown")
+			}
 		}
-		zlogInst.Debug().Msgf("Instance (%s) reconciliation skipped - host has been deauthorized.", resourceID)
 		return request.Ack()
 	}
 	return nil
@@ -341,4 +420,62 @@ func (ir *InstanceReconciler) deleteInstanceFromLoca(
 	zlogInst.Debug().Msgf("Remove Instance task (%s) is created in LOC-A, waiting on its completion",
 		resp.Payload.Data.TaskUUID)
 	return request.Requeue()
+}
+
+func (ir *InstanceReconciler) removeInstanceFromLoca(
+	ctx context.Context, instance *computev1.InstanceResource, instanceID string,
+) error {
+	locaClient, err := loca.InitialiseLOCAClient(
+		instance.GetHost().GetProvider().GetApiEndpoint(),
+		instance.GetHost().GetProvider().GetApiCredentials(),
+	)
+	if err != nil {
+		zlogInst.InfraSec().InfraErr(err).Msgf("Failed to initialize LOC-A client for endpoint: %s",
+			instance.GetHost().GetProvider().GetApiEndpoint())
+		return err
+	}
+
+	// verify if a removal task for the Instance is already in progress in LOC-A
+	taskRunning, errTracker := loca.DefaultTaskTracker.TaskIsRunningFor(locaClient, instance.GetResourceId())
+	if errTracker != nil {
+		zlogInst.InfraSec().InfraErr(errTracker).Msgf("Failed to check if a task is running for Instance (%s)",
+			instance.GetResourceId())
+		err = errors.Errorfc(codes.FailedPrecondition, "Failed to check if a task is running for Instance (%s)",
+			instance.GetResourceId())
+		return err
+	}
+	if taskRunning {
+		// Instance remove task is created, waiting on its delete
+		zlogInst.Debug().Msgf("Remove Instance (%s) task is already running, waiting on its completion",
+			instance.GetResourceId())
+		return nil
+	}
+
+	// Instance is present in LOC-A, attempting to remove it first
+	resp, respErr := locaClient.LocaAPI.Deployment.PostAPIV1DeploymentInstancesRemove(
+		&deployment.PostAPIV1DeploymentInstancesRemoveParams{
+			Context: ctx,
+			Body:    &model.ModelsRemoveInstancesRequest{Ids: []string{instanceID}},
+		}, locaClient.AuthWriter)
+	if respErr != nil {
+		// Failed to remove Instance
+		zlogInst.InfraErr(respErr).Msgf("Failed to remove Instance (%s) from LOC-A (%s/%s)",
+			instance.GetResourceId(), instance.GetHost().GetProvider().GetName(),
+			instance.GetHost().GetProvider().GetApiEndpoint())
+		return err
+	}
+
+	// Tracking the remove instance task
+	errTracker = loca.DefaultTaskTracker.TrackTask(instance.GetResourceId(), resp.Payload.Data.TaskUUID)
+	if errTracker != nil {
+		zlogInst.InfraSec().InfraErr(errTracker).Msgf("Failed to track task (%s) for Instance (%s)",
+			resp.Payload.Data.TaskUUID, instance.GetResourceId())
+		err = errors.Errorfc(codes.FailedPrecondition, "Failed to track task (%s) for Instance (%s)",
+			resp.Payload.Data.TaskUUID, instance.GetResourceId())
+		return err
+	}
+
+	zlogInst.Debug().Msgf("Remove Instance task (%s) is created in LOC-A, waiting on its completion",
+		resp.Payload.Data.TaskUUID)
+	return nil
 }
