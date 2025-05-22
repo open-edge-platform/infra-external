@@ -29,6 +29,8 @@ jobs:
       other_changed_projects: ${{ steps.filter-changes.outputs.other_changed_projects }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: "Verify Branch Name"
         uses: open-edge-platform/orch-ci/verify-branch-name@791c0c74ac05e6d972fa6de8c979e854336e9a41 # v0.1.10
       - name: "Discover Changed Subfolders"
@@ -36,9 +38,10 @@ jobs:
         uses: open-edge-platform/orch-ci/discover-changed-subfolders@791c0c74ac05e6d972fa6de8c979e854336e9a41 # v0.1.10
       - name: "Filter Out Unwanted Changed Subfolders"
         id: filter-changes
+        env:
+          changed_projects: ${{ steps.discover-changes.outputs.changed_projects }}
         run: |
           folders_to_remove='[".github",".reuse","LICENSES","loca-plugin",""]'
-          changed_projects='${{ steps.discover-changes.outputs.changed_projects }}'
 
           filtered_projects=$(echo "$changed_projects" | jq -cr --argjson folders_to_remove "$folders_to_remove" 'map(select(. as $item | $folders_to_remove | index($item) | not))')
           other_changed_projects=$(echo "$changed_projects" | jq -cr --argjson filtered_projects "$filtered_projects" 'map(select(. as $item | $filtered_projects | index($item) | not))')
@@ -53,6 +56,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
         with:
           node-version: '18'
@@ -95,7 +100,9 @@ jobs:
       prefix_tag_separator: "/"
       project_folder: ${{ matrix.project_folder }}
       trivy_image_skip:  "postgres:16.4"
-    secrets: inherit
+    secrets:
+      NO_AUTH_ECR_PUSH_USERNAME: ${{ secrets.NO_AUTH_ECR_PUSH_USERNAME }}
+      NO_AUTH_ECR_PUSH_PASSWD: ${{ secrets.NO_AUTH_ECR_PUSH_PASSWD }}
 
   # Custom pre-merge pipeline for loca-plugin
   pre-merge-pipeline-loca-plugin:
@@ -115,7 +122,9 @@ jobs:
       run_artifact: false
       prefix_tag_separator: "/"
       project_folder: "loca-plugin"
-    secrets: inherit
+    secrets:
+      NO_AUTH_ECR_PUSH_USERNAME: ${{ secrets.NO_AUTH_ECR_PUSH_USERNAME }}
+      NO_AUTH_ECR_PUSH_PASSWD: ${{ secrets.NO_AUTH_ECR_PUSH_PASSWD }}
   final-check:
     permissions:
       contents: read
@@ -124,11 +133,11 @@ jobs:
     needs: [pre-merge-root, pre-merge-pipeline, pre-merge-pipeline-loca-plugin]
     steps:
       - name: Final Status Check
+        env:
+          pre_merge_root_pipeline: ${{ needs.pre-merge-root.result }}
+          pre_merge_pipeline: ${{ needs.pre-merge-pipeline.result }}
+          pre_merge_pipeline_loca_plugin_pipeline: ${{ needs.pre-merge-pipeline-loca-plugin.result }}
         run: |
-          pre_merge_root_pipeline="${{ needs.pre-merge-root.result }}"
-          pre_merge_pipeline="${{ needs.pre-merge-pipeline.result }}"
-          pre_merge_pipeline_loca_plugin_pipeline="${{ needs.pre-merge-pipeline-loca-plugin.result }}"
-
           results=("pre_merge_root_pipeline" "pre_merge_pipeline" "pre_merge_pipeline_loca_plugin_pipeline")
           status="OK"
           
