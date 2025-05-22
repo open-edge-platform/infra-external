@@ -50,8 +50,7 @@ var (
 		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
 	clusterDomain   = flag.String(clusterDomainAddressFlag, "cluster.onprem", "cluster domain address")
 	reconcilePeriod = flag.Duration(reconcilePeriodFlag, time.Minute, "How often perform full reconciliation for every tenant")
-
-	requestTimeout = flag.Duration(requestTimeoutFlag, defaultRequestTimeout,
+	requestTimeout  = flag.Duration(requestTimeoutFlag, defaultRequestTimeout,
 		"Timeout duration for requests that are performed by DM manager")
 	oamservaddr    = flag.String(oam.OamServerAddress, "", oam.OamServerAddressDescription)
 	enableTracing  = flag.Bool(tracing.EnableTracing, false, tracing.EnableTracingDescription)
@@ -103,7 +102,7 @@ func main() {
 		WaitGroup:       wg,
 		Config: &dm.ReconcilerConfig{
 			ClusterDomain:   *clusterDomain,
-			AmtPassword:     "password", // TODO: read from secret or vault
+			AmtPassword:     "P@ssw0rd", // TODO: read from secret or vault
 			ReconcilePeriod: *reconcilePeriod,
 			RequestTimeout:  *requestTimeout,
 		},

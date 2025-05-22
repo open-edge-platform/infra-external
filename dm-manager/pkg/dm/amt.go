@@ -96,13 +96,13 @@ func (dmr *Reconciler) handleTenantRemoval(
 		log.Err(err).Msgf("cannot remove profile for %v tenant", tenant.GetTenantId())
 	}
 
-	log.Info().Msgf("profile removal response: %v", string(profileResp.Body))
+	log.Debug().Msgf("profile removal response: %v", string(profileResp.Body))
 
 	ciraResp, err := dmr.RpsClient.RemoveCIRAConfigWithResponse(ctx, tenant.GetTenantId())
 	if err != nil {
 		log.Err(err).Msgf("cannot remove CIRA config for %v tenant", tenant.GetTenantId())
 	}
-	log.Info().Msgf("cira removal response: %v", string(ciraResp.Body))
+	log.Debug().Msgf("cira removal response: %v", string(ciraResp.Body))
 
 	log.Info().Msgf("Finished tenant removal: %v", tenant.GetTenantId())
 }
@@ -162,7 +162,7 @@ func (dmr *Reconciler) handleTenantCreation(
 		log.Info().Msgf("profile not found for %v tenant, creating it", tenant.GetTenantId())
 
 		profilePostResponse, err := dmr.RpsClient.CreateProfileWithResponse(ctx, rps.CreateProfileJSONRequestBody{
-			Activation:                 "ccmactivate",
+			Activation:                 "acmactivate",
 			AmtPassword:                &dmr.Config.AmtPassword,
 			CiraConfigName:             Ptr(tenant.GetTenantId()),
 			DhcpEnabled:                true,
