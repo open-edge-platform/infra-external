@@ -38,9 +38,10 @@ jobs:
         uses: open-edge-platform/orch-ci/discover-changed-subfolders@791c0c74ac05e6d972fa6de8c979e854336e9a41 # v0.1.10
       - name: "Filter Out Unwanted Changed Subfolders"
         id: filter-changes
+        env:
+          changed_projects: ${{ steps.discover-changes.outputs.changed_projects }}
         run: |
           folders_to_remove='[".github",".reuse","LICENSES","loca-plugin",""]'
-          changed_projects='${{ steps.discover-changes.outputs.changed_projects }}'
 
           filtered_projects=$(echo "$changed_projects" | jq -cr --argjson folders_to_remove "$folders_to_remove" 'map(select(. as $item | $folders_to_remove | index($item) | not))')
           other_changed_projects=$(echo "$changed_projects" | jq -cr --argjson filtered_projects "$filtered_projects" 'map(select(. as $item | $filtered_projects | index($item) | not))')
@@ -121,7 +122,9 @@ jobs:
       run_artifact: false
       prefix_tag_separator: "/"
       project_folder: "loca-plugin"
-    secrets: inherit
+    secrets:
+      NO_AUTH_ECR_PUSH_USERNAME: ${{ secrets.NO_AUTH_ECR_PUSH_USERNAME }}
+      NO_AUTH_ECR_PUSH_PASSWD: ${{ secrets.NO_AUTH_ECR_PUSH_PASSWD }}
   final-check:
     permissions:
       contents: read
@@ -130,11 +133,11 @@ jobs:
     needs: [pre-merge-root, pre-merge-pipeline, pre-merge-pipeline-loca-plugin]
     steps:
       - name: Final Status Check
+        env:
+          pre_merge_root_pipeline: ${{ needs.pre-merge-root.result }}
+          pre_merge_pipeline: ${{ needs.pre-merge-pipeline.result }}
+          pre_merge_pipeline_loca_plugin_pipeline: ${{ needs.pre-merge-pipeline-loca-plugin.result }}
         run: |
-          pre_merge_root_pipeline="${{ needs.pre-merge-root.result }}"
-          pre_merge_pipeline="${{ needs.pre-merge-pipeline.result }}"
-          pre_merge_pipeline_loca_plugin_pipeline="${{ needs.pre-merge-pipeline-loca-plugin.result }}"
-
           results=("pre_merge_root_pipeline" "pre_merge_pipeline" "pre_merge_pipeline_loca_plugin_pipeline")
           status="OK"
           
