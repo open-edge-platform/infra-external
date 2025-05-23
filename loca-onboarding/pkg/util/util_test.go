@@ -22,6 +22,7 @@ import (
 	locationv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/location/v1"
 	statusv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/status/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
+	inv_status "github.com/open-edge-platform/infra-core/inventory/v2/pkg/status"
 	inv_testing "github.com/open-edge-platform/infra-core/inventory/v2/pkg/testing"
 	inv_utils "github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/api/loca/v3.3/model"
@@ -944,7 +945,7 @@ func Test_CheckIfInstanceIsAssociated(t *testing.T) {
 		host.GetDesiredState(), host.GetCurrentState(), util.StatusWaitingOnInstanceRemoval,
 		statusv1.StatusIndication_STATUS_INDICATION_ERROR,
 		// Host Status and Status Indicator are not set in this unit test
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// removing Instance
 	dao.HardDeleteInstance(t, loca_testing.Tenant1, instance.GetResourceId())
