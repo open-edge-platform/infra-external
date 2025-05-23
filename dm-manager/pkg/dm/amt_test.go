@@ -5,7 +5,6 @@ package dm
 
 import (
 	"fmt"
-	tenantv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/tenant/v1"
 	"os"
 	"sync"
 	"testing"
@@ -15,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	tenantv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/tenant/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_testing "github.com/open-edge-platform/infra-core/inventory/v2/pkg/testing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
@@ -345,13 +345,13 @@ func TestReconciler_ReconcileRemove_shouldRemoveExcessiveConfigs(t *testing.T) {
 		},
 	}
 
-	tenantId := inv_testing.CreateTenant(t, inv_testing.TenantDesiredState(tenantv1.TenantState_TENANT_STATE_CREATED)).TenantId
+	tenantID := inv_testing.CreateTenant(t, inv_testing.TenantDesiredState(tenantv1.TenantState_TENANT_STATE_CREATED)).TenantId
 
 	rpsMock.On("GetAllProfilesWithResponse", mock.Anything, mock.Anything).Return(&rps.GetAllProfilesResponse{
-		JSON200: &[]rps.ProfileResponse{{ProfileName: "willBeRemoved"}, {ProfileName: tenantId}},
+		JSON200: &[]rps.ProfileResponse{{ProfileName: "willBeRemoved"}, {ProfileName: tenantID}},
 	}, nil)
 	rpsMock.On("GetAllCIRAConfigsWithResponse", mock.Anything, mock.Anything).Return(&rps.GetAllCIRAConfigsResponse{
-		JSON200: &[]rps.CIRAConfigResponse{{ConfigName: "deleteMe"}, {CommonName: tenantId}},
+		JSON200: &[]rps.CIRAConfigResponse{{ConfigName: "deleteMe"}, {CommonName: tenantID}},
 	}, nil)
 
 	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
