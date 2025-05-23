@@ -247,7 +247,7 @@ func (dmr *Reconciler) ReconcileRemove() {
 		}
 
 		for _, ciraConfigName := range findExtraElements(presentCiraConfigs, tenants) {
-			log.Info().Msgf("%v cira config doesn't has matching tenant - removing it", ciraConfigName)
+			log.Info().Msgf("%v CIRA config doesn't has matching tenant - removing it", ciraConfigName)
 			dmr.handleTenantRemoval(ciraConfigName)
 		}
 	}

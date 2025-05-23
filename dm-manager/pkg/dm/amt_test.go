@@ -5,6 +5,7 @@ package dm
 
 import (
 	"fmt"
+	tenantv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/tenant/v1"
 	"os"
 	"sync"
 	"testing"
@@ -317,4 +318,47 @@ func Test_findExtraElements_whenRightHasExtraElementThenItShouldBeIgnored(t *tes
 	diff := findExtraElements(left, right)
 
 	assert.Len(t, diff, 0)
+}
+
+func TestReconciler_ReconcileRemove_shouldRemoveExcessiveConfigs(t *testing.T) {
+	mpsMock := new(mps.MockClientWithResponsesInterface)
+	rpsMock := new(rps.MockClientWithResponsesInterface)
+	profileHook := util.NewTestAssertHook("willBeRemoved profile doesn't has matching tenant ")
+	CIRAHook := util.NewTestAssertHook("deleteMe CIRA config doesn't has matching tenant")
+	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(profileHook, CIRAHook)}
+
+	termChan := make(chan bool, 1)
+	readyChan := make(chan bool, 1)
+	wg := &sync.WaitGroup{}
+	tmpDir := t.TempDir()
+	inv_testing.StartTestingEnvironment(tmpDir, "", tmpDir)
+	cli := inv_testing.TestClients[inv_testing.APIClient].GetTenantAwareInventoryClient()
+	dmr := &Reconciler{
+		InventoryClient: cli,
+		TermChan:        termChan,
+		ReadyChan:       readyChan,
+		RpsClient:       rpsMock,
+		MpsClient:       mpsMock,
+		WaitGroup:       wg,
+		Config: &ReconcilerConfig{
+			RequestTimeout: time.Minute,
+		},
+	}
+
+	tenantId := inv_testing.CreateTenant(t, inv_testing.TenantDesiredState(tenantv1.TenantState_TENANT_STATE_CREATED)).TenantId
+
+	rpsMock.On("GetAllProfilesWithResponse", mock.Anything, mock.Anything).Return(&rps.GetAllProfilesResponse{
+		JSON200: &[]rps.ProfileResponse{{ProfileName: "willBeRemoved"}, {ProfileName: tenantId}},
+	}, nil)
+	rpsMock.On("GetAllCIRAConfigsWithResponse", mock.Anything, mock.Anything).Return(&rps.GetAllCIRAConfigsResponse{
+		JSON200: &[]rps.CIRAConfigResponse{{ConfigName: "deleteMe"}, {CommonName: tenantId}},
+	}, nil)
+
+	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
+	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveCIRAConfigResponse{}, nil)
+
+	dmr.ReconcileRemove()
+
+	profileHook.Assert(t)
+	CIRAHook.Assert(t)
 }
