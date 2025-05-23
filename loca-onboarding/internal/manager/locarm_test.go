@@ -25,6 +25,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/auth"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/flags"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
+	inv_status "github.com/open-edge-platform/infra-core/inventory/v2/pkg/status"
 	inv_testing "github.com/open-edge-platform/infra-core/inventory/v2/pkg/testing"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/api/loca/v3.3/model"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/client/inventory"
@@ -146,7 +147,7 @@ func Test_NoHostDiscoveryUpdateHost(t *testing.T) {
 		computev1.HostState_HOST_STATE_ONBOARDED, computev1.HostState_HOST_STATE_ONBOARDED,
 		loca_status.DeviceStatusStaged.Status, loca_status.DeviceStatusStaged.StatusIndicator,
 		// Host Status and Host Status Indicator remain unset
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 }
 
 // Discover, register and update new Host. Host discovery is enabled.
@@ -197,7 +198,7 @@ func Test_RegisterNewHost(t *testing.T) {
 		computev1.HostState_HOST_STATE_UNSPECIFIED, computev1.HostState_HOST_STATE_ONBOARDED,
 		loca_status.DeviceStatusStaged.Status, loca_status.DeviceStatusStaged.StatusIndicator,
 		// Host Status and Status Indicator are not set
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 }
 
 // This TC verifies the case when Inventory contains Host with inconsistent UUID,
@@ -416,7 +417,7 @@ func Test_DiscoverInstance(t *testing.T) {
 		loca_status.InstanceStatusInstancePostconfiguredFailed.Status,
 		loca_status.InstanceStatusInstancePostconfiguredFailed.StatusIndicator,
 		// Instance Status remains untouched
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultInstanceStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 }
 
 // This TC verifies that the Host is being invalidated during the main control loop tick phase (not in event).
@@ -834,8 +835,8 @@ func TestProvisionInstanceInSynchronizationPhase(t *testing.T) {
 	// should correspond to UNSPECIFIED values.
 	loca_testing.AssertInstance(t, loca_testing.Tenant1, lenovo.GetApiEndpoint(), loca_testing.LocaInstanceID,
 		computev1.InstanceState_INSTANCE_STATE_RUNNING, computev1.InstanceState_INSTANCE_STATE_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultProvisioningStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultInstanceStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 }
 
 // This TC verifies the case when the LOC-A fails to remove the Instance.
@@ -1164,7 +1165,7 @@ func Test_ProvisioningCycle(t *testing.T) {
 		// Onboarding Status and Onboarding Status Indicator are set by the main control loop
 		loca_status.DeviceStatusStaged.Status, loca_status.DeviceStatusStaged.StatusIndicator,
 		// Host Status and Host Status Indicator are unset - Node Agent is not running
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 	// Reading the Instance from Inventory and making sure it corresponds to the 'Failed' status at
 	// `instance postconfigured` stage reported by the LOC-A.
 	loca_testing.AssertInstance(t, loca_testing.Tenant1, lenovo.GetApiEndpoint(), loca_testing.LocaInstanceID,
@@ -1173,7 +1174,7 @@ func Test_ProvisioningCycle(t *testing.T) {
 		loca_status.InstanceStatusInstancePostconfiguredFailed.Status,
 		loca_status.InstanceStatusInstancePostconfiguredFailed.StatusIndicator,
 		// Instance Status and Instance Status Indicator are unset - Node Agent is not running
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultInstanceStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	ctx, cancel := context.WithTimeout(context.Background(), loca_testing.TestTimeout5S)
 	defer cancel()
@@ -1206,14 +1207,14 @@ func Test_ProvisioningCycle(t *testing.T) {
 	loca_testing.AssertHost(t, loca_testing.Tenant1, lenovo.GetApiEndpoint(), loca_testing.LocaDeviceSN, uuID,
 		computev1.HostState_HOST_STATE_UNSPECIFIED, computev1.HostState_HOST_STATE_ONBOARDED,
 		loca_status.DeviceStatusActive.Status, loca_status.DeviceStatusActive.StatusIndicator,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 	// Read the Instance and ensure that the Current State, Provisioning Status and Provisioning Status Indicator
 	// have been updated to correspond to the 'Finished successfully' status at stage 'installed' reported by LOC-A.
 	// Instance Status and Instance Status Indicator are not set - Node Agent is not yet running.
 	loca_testing.AssertInstance(t, loca_testing.Tenant1, lenovo.GetApiEndpoint(), loca_testing.LocaInstanceID,
 		computev1.InstanceState_INSTANCE_STATE_UNSPECIFIED, computev1.InstanceState_INSTANCE_STATE_RUNNING,
 		loca_status.InstanceStatusInstalled.Status, loca_status.InstanceStatusInstalled.StatusIndicator,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultInstanceStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// simulating that the Node Agent kicks - it updates Host Status and Instance Status to be running
 	loca_testing.SimulateNodeAgentAction(t, loca_testing.Tenant1, hostsInv[0].GetResourceId(), instancesInv[0].GetResourceId())
@@ -1432,7 +1433,7 @@ func Test_MultipleLOCAProvisioning(t *testing.T) {
 	loca_testing.AssertHost(t, loca_testing.Tenant1, locaProvider1.GetApiEndpoint(), loca_testing.LocaDeviceSN, uuID,
 		computev1.HostState_HOST_STATE_UNSPECIFIED, computev1.HostState_HOST_STATE_ONBOARDED,
 		loca_status.DeviceStatusStaged.Status, loca_status.DeviceStatusStaged.StatusIndicator,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// Checking if, for the first LOC-A instance, the Instance's Current State, Provisioning Status,
 	// and Provisioning Status Indicator are updated and correspond to 'Deploy' operation which 'Failed'
@@ -1442,7 +1443,7 @@ func Test_MultipleLOCAProvisioning(t *testing.T) {
 		computev1.InstanceState_INSTANCE_STATE_UNSPECIFIED, computev1.InstanceState_INSTANCE_STATE_UNSPECIFIED,
 		loca_status.InstanceStatusInstancePostconfiguredFailed.Status,
 		loca_status.InstanceStatusInstancePostconfiguredFailed.StatusIndicator,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultInstanceStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// Checking if, for the second LOC-A instance, the Host Current State, Onboarding Status,
 	// and Onboarding Status Indicator are updated and correspond to 'active' status.
@@ -1497,8 +1498,8 @@ func TestTopDownOnboarding(t *testing.T) {
 	// (as set by Inventory testing helper function). Host Status and Host Status Indicator are not set.
 	loca_testing.AssertHost(t, loca_testing.Tenant1, lenovo.GetApiEndpoint(), loca_testing.LocaDeviceSN, uuID,
 		computev1.HostState_HOST_STATE_ONBOARDED, computev1.HostState_HOST_STATE_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// Read Instances from Inventory and make sure there is exactly one Instance.
 	// Verifying that the Instance's Current State is UNSPECIFIED, Desired State is RUNNING,
@@ -1506,8 +1507,8 @@ func TestTopDownOnboarding(t *testing.T) {
 	// (as set by Inventory testing helper function). Instance Status and Instance Status Indicator are not set.
 	loca_testing.AssertInstance(t, loca_testing.Tenant1, lenovo.GetApiEndpoint(), loca_testing.LocaInstanceID,
 		computev1.InstanceState_INSTANCE_STATE_RUNNING, computev1.InstanceState_INSTANCE_STATE_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultProvisioningStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultInstanceStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// starting LOC-A manager
 	lrm, err := NewLOCAManager(
@@ -1791,7 +1792,7 @@ func TestRemoveHostInSynchronizationPhaseFail(t *testing.T) {
 	loca_testing.AssertHost(t, loca_testing.Tenant1, lenovo.GetApiEndpoint(), host.GetSerialNumber(), host.GetUuid(),
 		computev1.HostState_HOST_STATE_DELETED, computev1.HostState_HOST_STATE_ONBOARDED,
 		loca_status.DeviceStatusActive.Status, loca_status.DeviceStatusActive.StatusIndicator,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// starting LOC-A manager
 	lrm, err := NewLOCAManager(
@@ -1817,7 +1818,7 @@ func TestRemoveHostInSynchronizationPhaseFail(t *testing.T) {
 	loca_testing.AssertHost(t, loca_testing.Tenant1, lenovo.GetApiEndpoint(), host.GetSerialNumber(), host.GetUuid(),
 		computev1.HostState_HOST_STATE_DELETED, computev1.HostState_HOST_STATE_ONBOARDED,
 		util.StatusFailedToRemoveHostFromLOCA, statusv1.StatusIndication_STATUS_INDICATION_ERROR,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 }
 
 // This TC verifies the case when LOC-A RM removes the Host from LOC-A.
@@ -1856,7 +1857,7 @@ func TestRemoveHostInSynchronizationPhase(t *testing.T) {
 	loca_testing.AssertHost(t, loca_testing.Tenant1, lenovo.GetApiEndpoint(), host.GetSerialNumber(), host.GetUuid(),
 		computev1.HostState_HOST_STATE_DELETED, computev1.HostState_HOST_STATE_ONBOARDED,
 		loca_status.DeviceStatusActive.Status, loca_status.DeviceStatusActive.StatusIndicator,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// starting LOC-A manager
 	lrm, err := NewLOCAManager(

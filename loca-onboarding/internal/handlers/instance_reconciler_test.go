@@ -20,6 +20,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/auth"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/flags"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
+	inv_status "github.com/open-edge-platform/infra-core/inventory/v2/pkg/status"
 	inv_testing "github.com/open-edge-platform/infra-core/inventory/v2/pkg/testing"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/api/loca/v3.3/model"
 	loca_status "github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/status"
@@ -167,8 +168,8 @@ func TestInstanceNoProviderReconcile(t *testing.T) {
 		computev1.InstanceState_INSTANCE_STATE_RUNNING, // Desired state set by the testing helper function
 		computev1.InstanceState_INSTANCE_STATE_UNSPECIFIED,
 		// Default values for Provisioning and Instance Statuses
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultProvisioningStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultInstanceStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	err := locaInstanceReconciler.Reconcile(NewReconcilerID(instance.GetTenantId(), instance.GetResourceId()))
 	require.NoError(t, err, "Reconciliation failed")
@@ -180,8 +181,8 @@ func TestInstanceNoProviderReconcile(t *testing.T) {
 		computev1.InstanceState_INSTANCE_STATE_RUNNING, // Desired state set by the testing helper function
 		computev1.InstanceState_INSTANCE_STATE_UNSPECIFIED,
 		// Both statuses should stay untouched - Instance shouldn't be reconciled
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultProvisioningStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultInstanceStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 }
 
 // This TC verifies that the reconciliation is skipped when the Desired state of the Instance is equal to Current state.
@@ -432,8 +433,8 @@ func TestProvisionInstanceInLOCA(t *testing.T) {
 	// should correspond to UNSPECIFIED values.
 	loca_testing.AssertInstance(t, loca_testing.Tenant1, lenovoProvider.GetApiEndpoint(), loca_testing.LocaInstanceID,
 		computev1.InstanceState_INSTANCE_STATE_RUNNING, computev1.InstanceState_INSTANCE_STATE_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultProvisioningStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultInstanceStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 }
 
 func TestInstanceReconciler_onboardInstance_whenUnableToCreateClientShouldReturnError(t *testing.T) {
