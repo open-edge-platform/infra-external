@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	tenantv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/tenant/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_testing "github.com/open-edge-platform/infra-core/inventory/v2/pkg/testing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
@@ -91,8 +90,6 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 	CIRAHook := util.NewTestAssertHook("created CIRA config")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook, profileHook, CIRAHook)}
 
-	tenant := &tenantv1.Tenant{ResourceId: "mock-tenant", TenantId: "mock-tenant"}
-
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
 	}, nil)
@@ -116,7 +113,7 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 		JSON201: &rps.ProfileResponse{},
 	}, nil)
 
-	dmr.handleTenantCreation(tenant)
+	dmr.handleTenantCreation("mock-tenant")
 
 	assertHook.Assert(t)
 	CIRAHook.Assert(t)
@@ -134,13 +131,11 @@ func TestReconciler_handleTenantCreation_whenCannotGetCertShouldReturnError(t *t
 	assertHook := util.NewTestAssertHook("cannot get CIRA cert")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook)}
 
-	tenant := &tenantv1.Tenant{ResourceId: "mock-tenant", TenantId: "mock-tenant"}
-
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
 	}, fmt.Errorf("mocked error"))
 
-	dmr.handleTenantCreation(tenant)
+	dmr.handleTenantCreation("mock-tenant")
 
 	assertHook.Assert(t)
 }
@@ -156,8 +151,6 @@ func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnErro
 	assertHook := util.NewTestAssertHook("cannot get CIRA config ")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook)}
 
-	tenant := &tenantv1.Tenant{ResourceId: "mock-tenant", TenantId: "mock-tenant"}
-
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
 	}, nil)
@@ -165,7 +158,7 @@ func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnErro
 		JSON404: &rps.APIResponse{},
 	}, fmt.Errorf("mocked error"))
 
-	dmr.handleTenantCreation(tenant)
+	dmr.handleTenantCreation("mock-tenant")
 
 	assertHook.Assert(t)
 }
@@ -181,8 +174,6 @@ func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnE
 	assertHook := util.NewTestAssertHook("cannot create CIRA config ")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook)}
 
-	tenant := &tenantv1.Tenant{ResourceId: "mock-tenant", TenantId: "mock-tenant"}
-
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
 	}, nil)
@@ -193,7 +184,7 @@ func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnE
 		JSON201: &rps.CIRAConfigResponse{},
 	}, fmt.Errorf("mocked error"))
 
-	dmr.handleTenantCreation(tenant)
+	dmr.handleTenantCreation("mock-tenant")
 
 	assertHook.Assert(t)
 }
@@ -209,8 +200,6 @@ func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t
 	assertHook := util.NewTestAssertHook("cannot get profile")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook)}
 
-	tenant := &tenantv1.Tenant{ResourceId: "mock-tenant", TenantId: "mock-tenant"}
-
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
 	}, nil)
@@ -225,7 +214,7 @@ func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t
 		JSON404: &rps.APIResponse{},
 	}, fmt.Errorf("mocked error"))
 
-	dmr.handleTenantCreation(tenant)
+	dmr.handleTenantCreation("mock-tenant")
 
 	assertHook.Assert(t)
 }
@@ -240,8 +229,6 @@ func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnErro
 
 	assertHook := util.NewTestAssertHook("cannot create profile")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook)}
-
-	tenant := &tenantv1.Tenant{ResourceId: "mock-tenant", TenantId: "mock-tenant"}
 
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
@@ -260,7 +247,7 @@ func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnErro
 		JSON201: &rps.ProfileResponse{},
 	}, fmt.Errorf("mocked error"))
 
-	dmr.handleTenantCreation(tenant)
+	dmr.handleTenantCreation("mock-tenant")
 
 	assertHook.Assert(t)
 }
@@ -275,14 +262,13 @@ func TestReconciler_handleTenantRemoval(t *testing.T) {
 			RequestTimeout: 10 * time.Second,
 		},
 	}
-	tenant := &tenantv1.Tenant{ResourceId: "mock-tenant", TenantId: "mock-tenant"}
 
 	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
 	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveCIRAConfigResponse{}, nil)
 	assertHook := util.NewTestAssertHook("Finished tenant removal")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook)}
 
-	dmr.handleTenantRemoval(tenant)
+	dmr.handleTenantRemoval("mock-tenant")
 
 	assertHook.Assert(t)
 }
@@ -297,7 +283,6 @@ func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
 			RequestTimeout: 10 * time.Second,
 		},
 	}
-	tenant := &tenantv1.Tenant{ResourceId: "mock-tenant", TenantId: "mock-tenant"}
 
 	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything).
 		Return(&rps.RemoveProfileResponse{}, fmt.Errorf("mock error"))
@@ -308,9 +293,28 @@ func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
 	CIRAHook := util.NewTestAssertHook("cannot remove CIRA")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook, profileHook, CIRAHook)}
 
-	dmr.handleTenantRemoval(tenant)
+	dmr.handleTenantRemoval("mock-tenant")
 
 	assertHook.Assert(t)
 	CIRAHook.Assert(t)
 	profileHook.Assert(t)
+}
+
+func Test_findExtraElements_whenLeftHasExtraElementThenItShouldBeDetected(t *testing.T) {
+	left := []string{"a", "b", "c"}
+	right := []string{"a", "b"}
+
+	diff := findExtraElements(left, right)
+
+	assert.Len(t, diff, 1)
+	assert.Equal(t, diff[0], "c")
+}
+
+func Test_findExtraElements_whenRightHasExtraElementThenItShouldBeIgnored(t *testing.T) {
+	left := []string{"a", "b"}
+	right := []string{"a", "b", "c"}
+
+	diff := findExtraElements(left, right)
+
+	assert.Len(t, diff, 0)
 }
