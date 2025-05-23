@@ -24,6 +24,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/auth"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/flags"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
+	inv_status "github.com/open-edge-platform/infra-core/inventory/v2/pkg/status"
 	inv_testing "github.com/open-edge-platform/infra-core/inventory/v2/pkg/testing"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/client/loca"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/secrets"
@@ -102,9 +103,9 @@ func TestInvalidateHost(t *testing.T) {
 		computev1.HostState_HOST_STATE_ONBOARDED, // Desired state set by the testing helper function
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
 		// Onboarding status is not set - main control loop is not running
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
 		// Host Status and Status Indicator are not yet set
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// setting the Desired state of the Host to be UNTRUSTED
 	loca_testing.InvalidateHost(t, loca_testing.Tenant1, host.GetResourceId())
@@ -117,7 +118,7 @@ func TestInvalidateHost(t *testing.T) {
 	// Host status should be updated - invalidated status is expected
 	loca_testing.AssertHost(t, loca_testing.Tenant1, lenovoProvider.GetApiEndpoint(), host.GetSerialNumber(), host.GetUuid(),
 		computev1.HostState_HOST_STATE_UNTRUSTED, computev1.HostState_HOST_STATE_UNTRUSTED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
 		loca_status.HostStatusInvalidated.Status, loca_status.HostStatusInvalidated.StatusIndicator)
 }
 
@@ -162,9 +163,9 @@ func TestHostReconcile(t *testing.T) {
 		computev1.HostState_HOST_STATE_ONBOARDED, // Desired state set by the testing helper function
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
 		// Onboarding status and Status Indicator are not set - main control loop is not running
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
 		// Host Status and Status Indicator are not set - irrelevant for this test
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 	dao.DeleteResource(t, loca_testing.Tenant1, host.GetResourceId())
 
 	err = locaHostReconciler.Reconcile(NewReconcilerID(host.GetTenantId(), host.GetResourceId()))
@@ -199,9 +200,9 @@ func TestHostNoProviderReconcile(t *testing.T) {
 		computev1.HostState_HOST_STATE_ONBOARDED, // Desired state set by the testing helper function
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
 		// Onboarding status and Status Indicator are not set - main control loop is not running
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
 		// Host Status and Status Indicator are not set - irrelevant for this test
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	err := locaInstanceReconciler.Reconcile(NewReconcilerID(host.GetTenantId(), host.GetResourceId()))
 	require.NoError(t, err, "Reconciliation failed")
@@ -212,8 +213,8 @@ func TestHostNoProviderReconcile(t *testing.T) {
 	loca_testing.AssertHost(t, loca_testing.Tenant1, "", host.GetSerialNumber(), host.GetUuid(),
 		computev1.HostState_HOST_STATE_ONBOARDED,
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 }
 
 // This TC verifies that the reconciliation is skipped when the Desired state of the Host is equal to Current state.
@@ -268,9 +269,9 @@ func TestHostReconciliationSkipped(t *testing.T) {
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
 		// Onboarding status and Status Indicator are not set - main control loop is not running
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
 		// Host Status and Status Indicator are not set - irrelevant for this test
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	err = locaHostReconciler.Reconcile(NewReconcilerID(host.GetTenantId(), host.GetResourceId()))
 	require.NoError(t, err, "Reconciliation failed")
@@ -281,8 +282,8 @@ func TestHostReconciliationSkipped(t *testing.T) {
 	loca_testing.AssertHost(t, loca_testing.Tenant1, lenovoProvider.GetApiEndpoint(), host.GetSerialNumber(), host.GetUuid(),
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 }
 
 func TestHostIsNotReconciledUntilInstanceIsNotRemoved(t *testing.T) {
@@ -325,9 +326,9 @@ func TestHostIsNotReconciledUntilInstanceIsNotRemoved(t *testing.T) {
 		computev1.HostState_HOST_STATE_ONBOARDED, // Desired state set by the testing helper function
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
 		// Onboarding status and Status Indicator are not set - main control loop is not running
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
 		// Host Status and Status Indicator are not set - irrelevant for this test
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// Setting Desired state of the Host to be DELETED
 	dao.DeleteResource(t, loca_testing.Tenant1, host.GetResourceId())
@@ -346,7 +347,7 @@ func TestHostIsNotReconciledUntilInstanceIsNotRemoved(t *testing.T) {
 		// Onboarding Status and Status Indicator were updated by the reconciler
 		util.StatusWaitingOnInstanceRemoval, statusv1.StatusIndication_STATUS_INDICATION_ERROR,
 		// Host Status and Status Indicator are not touched
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// removing instance completely from Inventory. Host should now be freed up
 	dao.HardDeleteInstance(t, loca_testing.Tenant1, instance.GetResourceId())
@@ -399,9 +400,9 @@ func TestRemoveHostInReconciliation(t *testing.T) {
 		computev1.HostState_HOST_STATE_ONBOARDED, // Desired state set by the testing helper function
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
 		// Onboarding status and Status Indicator are not set - main control loop is not running
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
 		// Host Status and Status Indicator are not set - irrelevant for this test
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// Setting Desired state of the Host to be DELETED
 	dao.DeleteResource(t, loca_testing.Tenant1, host.GetResourceId())
@@ -460,9 +461,9 @@ func TestHostReconcileFailedToRemoveHost(t *testing.T) {
 		computev1.HostState_HOST_STATE_ONBOARDED, // Desired state set by the testing helper function
 		computev1.HostState_HOST_STATE_UNSPECIFIED,
 		// Onboarding status and Status Indicator are not set - main control loop is not running
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
 		// Host Status and Status Indicator are not set - irrelevant for this test
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 
 	// Setting Desired state of the Host to be DELETED
 	dao.DeleteResource(t, loca_testing.Tenant1, host.GetResourceId())
@@ -481,7 +482,7 @@ func TestHostReconcileFailedToRemoveHost(t *testing.T) {
 		// Onboarding Status and Status Indicator were updated by the reconciler
 		util.StatusFailedToRemoveHostFromLOCA, statusv1.StatusIndication_STATUS_INDICATION_ERROR,
 		// Host Status and Status Indicator are not touched
-		"", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
+		inv_status.DefaultHostStatus, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 }
 
 func TestHostReconciler_invalidateHost_whenUnableToRevokeHostsCredentialsShouldRetryRequest(t *testing.T) {
