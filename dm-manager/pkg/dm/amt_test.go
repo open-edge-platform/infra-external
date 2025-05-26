@@ -19,24 +19,39 @@ import (
 	inv_testing "github.com/open-edge-platform/infra-core/inventory/v2/pkg/testing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/mocks"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/util"
 )
 
 //nolint:lll // intended long certificate blob
 const cert = "-----BEGIN CERTIFICATE-----\r\nMIIEOzCCAqOgAwIBAgIDBzkQMA0GCSqGSIb3DQEBDAUAMD0xFzAVBgNVBAMTDk1Q\r\nU1Jvb3QtZDdmMDg0MRAwDgYDVQQKEwd1bmtub3duMRAwDgYDVQQGEwd1bmtub3du\r\nMCAXDTI0MDUyMDEyMjQxNVoYDzIwNTUwNTIwMTIyNDE1WjA9MRcwFQYDVQQDEw5N\r\nUFNSb290LWQ3ZjA4NDEQMA4GA1UEChMHdW5rbm93bjEQMA4GA1UEBhMHdW5rbm93\r\nbjCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBANJirZbxnlCYTsuLPzFX\r\neLXH92EF/9TO8ClA7PaPcZP0lkxCwpuRNBa5iGXvawirf2wf6Pv+nntNNNQGvvqU\r\nt1RrpVrC78yiTTTx/LJOTVkaAq+9Gm3LlJWJnXx8QMV3BJRPNO+eEOpNy1XePuWU\r\n1CpYHAYyW77sccNDvh4f8SVOzMQZW+tIE93BBLBv5k8auL8CSDw6E+oxg5RzQE2F\r\nv5lFw7fLUCKPLSOhWNq9g00ZY//aq40C5Jh8rZY7PPEHrZe37WDnlnhBckSE+3Px\r\n68bRt94ut6oKigVwaaYLDyt6s36DsYB0CTIlOotKe011j741jViMHG/H56r8wRCA\r\nb+GybWEK51iC+J1esO68wmC8a/oduh4tCBErdx9q63LbOkF15OLAbCO9uYRrl7KJ\r\nODP+TpUvg0JxPGFBbZ2k1SB/2K7KX5frXRlKdext4zjrjx4vOiL1f6kgfyD96xT/\r\nEL4JfkLkRDxnEwd/Twu4vaMQgpERoLYPdUTLC5c+FrSBeQIDAQABo0IwQDAMBgNV\r\nHRMEBTADAQH/MBEGCWCGSAGG+EIBAQQEAwIABzAdBgNVHQ4EFgQU1/CEBHJ3fPlD\r\nz8xxbEN7AjR1T84wDQYJKoZIhvcNAQEMBQADggGBALCD+mQF+GplYOEVNEcUzi8W\r\nGZBmT7JahopGAubbeZmDGF/Hf+o2QCdPc0J6sRiJq+rOKINGLsptrDOdXYnXK7gf\r\n/s07USPDYCQbrG0kWZqvGCFMbv9Ailo1YFol+XpElrehiJXg3T++6ZIqxX2kJSw6\r\ndsLMoNGb209A7NUnLHC/H8KKjLsbNk4NgH6ixvCfwpccPL//nLgip055BTPZ4Kdc\r\nxZ5/tFq+YTUHrE5H60MmmVcZYGA6bXtix6ExkPcxLW1zg+Nnk5Iu5zQgrlaiXl+4\r\nkG5JqmC1w2MGhcW5G2d/+QewXKDeOceksJ1HufqkHdgyBkb7/jVqu8m0m4w4MPpE\r\n39bdymkNrjwwiPZZpiOjzCscb0b35gvVS01SYzCl1kuUMtz2jw7aS2Xa805PLha1\r\nn+5/ioHqgXYVvZzf6DL1GxnlZzwKA0fVFBohruTNbm5jCIxUlQCs/ym24bIq8Nvj\r\nm2HouES4kKp8wWl7NWZ6gFZAkVOSzmyXmuG+1Vzerg==\r\n-----END CERTIFICATE-----\r\n"
 
+func TestMain(m *testing.M) {
+	tmpDir, err := os.MkdirTemp(os.TempDir(), "dm-manager-test-")
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Failed to create temporary directory")
+	}
+	defer os.RemoveAll(tmpDir)
+	inv_testing.StartTestingEnvironment(tmpDir, "", tmpDir)
+
+	run := m.Run() // run all tests
+
+	os.Exit(run)
+}
+
 func TestDMReconciler_Start(t *testing.T) {
 	termChan := make(chan bool, 1)
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}
-	tmpDir := t.TempDir()
-	inv_testing.StartTestingEnvironment(tmpDir, "", tmpDir)
 	cli := inv_testing.TestClients[inv_testing.APIClient].GetTenantAwareInventoryClient()
 	dmr := &Reconciler{
 		InventoryClient: cli,
 		TermChan:        termChan,
 		ReadyChan:       readyChan,
 		WaitGroup:       wg,
+		Config: &ReconcilerConfig{
+			ReconcilePeriod: time.Minute,
+		},
 	}
 
 	wg.Add(1)
@@ -77,13 +92,19 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	config := ReconcilerConfig{
-		AmtPassword:   "test1234",
-		ClusterDomain: "test.com",
+		PasswordPolicy:  StaticPasswordPolicy,
+		ClusterDomain:   "test.com",
+		ReconcilePeriod: time.Minute,
 	}
+
+	msp := mocks.MockSecretProvider{}
+	const staticPassword = "P@ssw0rd"
+	msp.On("GetSecret", mock.Anything, mock.Anything).Return(staticPassword)
 	dmr := &Reconciler{
-		MpsClient: mpsMock,
-		RpsClient: rpsMock,
-		Config:    &config,
+		MpsClient:      mpsMock,
+		RpsClient:      rpsMock,
+		SecretProvider: &msp,
+		Config:         &config,
 	}
 
 	assertHook := util.NewTestAssertHook("tenant is done")
@@ -100,7 +121,7 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 	rpsMock.On("CreateCIRAConfigWithResponse",
 		mock.Anything, mock.MatchedBy(func(request rps.CreateCIRAConfigJSONRequestBody) bool {
 			return request.CommonName == "mps-node."+config.ClusterDomain &&
-				request.MpsServerAddress == "mps-node."+config.ClusterDomain && *request.Password == config.AmtPassword
+				request.MpsServerAddress == "mps-node."+config.ClusterDomain && *request.Password == staticPassword
 		})).Return(&rps.CreateCIRAConfigResponse{
 		JSON201: &rps.CIRAConfigResponse{},
 	}, nil)
@@ -109,7 +130,7 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 		JSON404: &rps.APIResponse{},
 	}, nil)
 	rpsMock.On("CreateProfileWithResponse", mock.Anything, mock.MatchedBy(func(request rps.CreateProfileJSONRequestBody) bool {
-		return *request.AmtPassword == config.AmtPassword && *request.MebxPassword == config.AmtPassword
+		return *request.AmtPassword == staticPassword && *request.MebxPassword == staticPassword
 	})).Return(&rps.CreateProfileResponse{
 		JSON201: &rps.ProfileResponse{},
 	}, nil)
@@ -127,6 +148,9 @@ func TestReconciler_handleTenantCreation_whenCannotGetCertShouldReturnError(t *t
 	dmr := &Reconciler{
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
+		Config: &ReconcilerConfig{
+			ReconcilePeriod: time.Minute,
+		},
 	}
 
 	assertHook := util.NewTestAssertHook("cannot get CIRA cert")
@@ -147,6 +171,9 @@ func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnErro
 	dmr := &Reconciler{
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
+		Config: &ReconcilerConfig{
+			ReconcilePeriod: time.Minute,
+		},
 	}
 
 	assertHook := util.NewTestAssertHook("cannot get CIRA config ")
@@ -167,9 +194,15 @@ func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnErro
 func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnError(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
+	msp := mocks.MockSecretProvider{}
+	msp.On("GetSecret", mock.Anything, mock.Anything).Return("test")
 	dmr := &Reconciler{
-		MpsClient: mpsMock,
-		RpsClient: rpsMock,
+		MpsClient:      mpsMock,
+		RpsClient:      rpsMock,
+		SecretProvider: &msp,
+		Config: &ReconcilerConfig{
+			ReconcilePeriod: time.Minute,
+		},
 	}
 
 	assertHook := util.NewTestAssertHook("cannot create CIRA config ")
@@ -193,9 +226,15 @@ func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnE
 func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
+	msp := mocks.MockSecretProvider{}
+	msp.On("GetSecret", mock.Anything, mock.Anything).Return("test")
 	dmr := &Reconciler{
-		MpsClient: mpsMock,
-		RpsClient: rpsMock,
+		MpsClient:      mpsMock,
+		RpsClient:      rpsMock,
+		SecretProvider: &msp,
+		Config: &ReconcilerConfig{
+			ReconcilePeriod: time.Minute,
+		},
 	}
 
 	assertHook := util.NewTestAssertHook("cannot get profile")
@@ -223,9 +262,15 @@ func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t
 func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnError(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
+	msp := mocks.MockSecretProvider{}
+	msp.On("GetSecret", mock.Anything, mock.Anything).Return("test")
 	dmr := &Reconciler{
-		MpsClient: mpsMock,
-		RpsClient: rpsMock,
+		MpsClient:      mpsMock,
+		RpsClient:      rpsMock,
+		SecretProvider: &msp,
+		Config: &ReconcilerConfig{
+			ReconcilePeriod: time.Minute,
+		},
 	}
 
 	assertHook := util.NewTestAssertHook("cannot create profile")
@@ -260,7 +305,8 @@ func TestReconciler_handleTenantRemoval(t *testing.T) {
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
 		Config: &ReconcilerConfig{
-			RequestTimeout: 10 * time.Second,
+			RequestTimeout:  10 * time.Second,
+			ReconcilePeriod: time.Minute,
 		},
 	}
 
@@ -281,7 +327,8 @@ func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
 		Config: &ReconcilerConfig{
-			RequestTimeout: 10 * time.Second,
+			RequestTimeout:  10 * time.Second,
+			ReconcilePeriod: time.Minute,
 		},
 	}
 
@@ -330,8 +377,6 @@ func TestReconciler_ReconcileRemove_shouldRemoveExcessiveConfigs(t *testing.T) {
 	termChan := make(chan bool, 1)
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}
-	tmpDir := t.TempDir()
-	inv_testing.StartTestingEnvironment(tmpDir, "", tmpDir)
 	cli := inv_testing.TestClients[inv_testing.APIClient].GetTenantAwareInventoryClient()
 	dmr := &Reconciler{
 		InventoryClient: cli,
@@ -341,7 +386,8 @@ func TestReconciler_ReconcileRemove_shouldRemoveExcessiveConfigs(t *testing.T) {
 		MpsClient:       mpsMock,
 		WaitGroup:       wg,
 		Config: &ReconcilerConfig{
-			RequestTimeout: time.Minute,
+			RequestTimeout:  time.Minute,
+			ReconcilePeriod: time.Minute,
 		},
 	}
 

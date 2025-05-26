@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -25,12 +26,14 @@ import (
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
+	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/secrets"
 )
 
 const (
 	mpsAddressFlag           = "mpsAddress"
 	rpsAddressFlag           = "rpsAddress"
 	clusterDomainAddressFlag = "clusterDomain"
+	passwordPolicyFlag       = "passwordPolicy"
 	reconcilePeriodFlag      = "reconcilePeriod"
 	requestTimeoutFlag       = "requestTimeout"
 	dmName                   = "dm-manager"
@@ -52,6 +55,8 @@ var (
 	reconcilePeriod = flag.Duration(reconcilePeriodFlag, time.Minute, "How often perform full reconciliation for every tenant")
 	requestTimeout  = flag.Duration(requestTimeoutFlag, defaultRequestTimeout,
 		"Timeout duration for requests that are performed by DM manager")
+	passwordPolicy = flag.String(passwordPolicyFlag, "static", "One of two password policies: 'static' or 'dynamic'. "+
+		"In 'static' same user-provided password is used for every device, in 'dynamic' it is automatically generated per-device. ")
 	oamservaddr    = flag.String(oam.OamServerAddress, "", oam.OamServerAddressDescription)
 	enableTracing  = flag.Bool(tracing.EnableTracing, false, tracing.EnableTracingDescription)
 	enableMetrics  = flag.Bool(metrics.EnableMetrics, false, metrics.EnableMetricsDescription)
@@ -71,6 +76,11 @@ var (
 
 func main() {
 	flag.Parse()
+	if strings.EqualFold(*passwordPolicy, dm.StaticPasswordPolicy) && strings.EqualFold(*passwordPolicy, dm.DynamicPasswordPolicy) {
+		log.Error().Msgf("Invalid password policy: %s. It should be either 'static' or 'dynamic'", *passwordPolicy)
+		os.Exit(1)
+	}
+
 	if *enableMetrics {
 		startMetricsServer()
 	}
@@ -92,6 +102,13 @@ func main() {
 	}
 
 	mpsClient, rpsClient, invTenantClient, eventsWatcher := prepareClients(transport)
+	vsp := secrets.VaultSecretProvider{}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if initErr := vsp.Init(ctx, []string{"amt-password"}); initErr != nil {
+		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
+	}
+
 	dmReconciler := &dm.Reconciler{
 		MpsClient:       mpsClient,
 		RpsClient:       rpsClient,
@@ -99,10 +116,11 @@ func main() {
 		EventsWatcher:   eventsWatcher,
 		TermChan:        termChan,
 		ReadyChan:       readyChan,
+		SecretProvider:  &vsp,
 		WaitGroup:       wg,
 		Config: &dm.ReconcilerConfig{
 			ClusterDomain:   *clusterDomain,
-			AmtPassword:     "P@ssw0rd", // TODO: read from secret or vault
+			PasswordPolicy:  *passwordPolicy,
 			ReconcilePeriod: *reconcilePeriod,
 			RequestTimeout:  *requestTimeout,
 		},

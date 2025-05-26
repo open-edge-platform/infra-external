@@ -13,6 +13,7 @@ import (
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/secretprovider"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 )
@@ -21,13 +22,16 @@ const (
 	mpsPort          = 4433
 	fqdnServerFormat = 201
 	passwordAuth     = 2
+
+	StaticPasswordPolicy  = "static"
+	DynamicPasswordPolicy = "dynamic"
 )
 
 var log = logging.GetLogger("DmReconciler")
 
 type ReconcilerConfig struct {
-	ClusterDomain string
-	AmtPassword   string
+	ClusterDomain  string
+	PasswordPolicy string
 
 	RequestTimeout  time.Duration
 	ReconcilePeriod time.Duration
@@ -37,6 +41,7 @@ type Reconciler struct {
 	RpsClient       rps.ClientWithResponsesInterface
 	InventoryClient client.TenantAwareInventoryClient
 	EventsWatcher   chan *client.WatchEvents
+	SecretProvider  secretprovider.SecretProvider
 	TermChan        chan bool
 	ReadyChan       chan bool
 	WaitGroup       *sync.WaitGroup
@@ -119,6 +124,12 @@ func (dmr *Reconciler) handleTenantCreation(
 	}
 
 	if ciraConfig.JSON404 != nil {
+		amtPassword := dmr.SecretProvider.GetSecret("amt-password", "password")
+		if amtPassword == "" {
+			log.Error().Msgf("Couldn't get password from secret provider, see logs above for details")
+			return
+		}
+
 		log.Info().Msgf("CIRA config not found for %v tenant, creating it", tenantID)
 		postCiraConfig, postErr := dmr.RpsClient.CreateCIRAConfigWithResponse(ctx, rps.CreateCIRAConfigJSONRequestBody{
 			AuthMethod:          passwordAuth, // password auth
@@ -130,7 +141,7 @@ func (dmr *Reconciler) handleTenantCreation(
 			MpsRootCertificate:  convertCertToCertBlob(cert.Body),
 			ProxyDetails:        "", // TODO: pass proxy from config
 			Username:            "admin",
-			Password:            &dmr.Config.AmtPassword,
+			Password:            &amtPassword,
 		})
 		if postErr != nil {
 			log.Err(err).Msgf("cannot create CIRA config for %v tenant", tenantID)
@@ -153,21 +164,37 @@ func (dmr *Reconciler) handleTenantCreation(
 	if profile.JSON404 != nil {
 		log.Info().Msgf("profile not found for %v tenant, creating it", tenantID)
 
-		profilePostResponse, err := dmr.RpsClient.CreateProfileWithResponse(ctx, rps.CreateProfileJSONRequestBody{
-			Activation:                 "acmactivate",
-			AmtPassword:                &dmr.Config.AmtPassword,
-			CiraConfigName:             Ptr(tenantID),
-			DhcpEnabled:                true,
-			GenerateRandomMEBxPassword: false,
-			GenerateRandomPassword:     false,
-			IpSyncEnabled:              Ptr(false),
-			KvmEnabled:                 Ptr(true),
-			MebxPassword:               Ptr(dmr.Config.AmtPassword),
-			ProfileName:                tenantID,
-			SolEnabled:                 Ptr(true),
-			TlsMode:                    nil,
-			TlsSigningAuthority:        "SelfSigned",
-		})
+		postProfileBody := rps.CreateProfileJSONRequestBody{
+			Activation:          "acmactivate",
+			CiraConfigName:      Ptr(tenantID),
+			DhcpEnabled:         true,
+			IpSyncEnabled:       Ptr(false),
+			KvmEnabled:          Ptr(true),
+			ProfileName:         tenantID,
+			SolEnabled:          Ptr(true),
+			TlsMode:             nil,
+			TlsSigningAuthority: "SelfSigned",
+		}
+
+		amtPassword := dmr.SecretProvider.GetSecret("amt-password", "password")
+		if amtPassword == "" {
+			log.Error().Msgf("Couldn't get password from secret provider, see logs above for details")
+			return
+		}
+
+		if strings.EqualFold(dmr.Config.PasswordPolicy, StaticPasswordPolicy) {
+			postProfileBody.AmtPassword = &amtPassword
+			postProfileBody.MebxPassword = &amtPassword
+			postProfileBody.GenerateRandomPassword = false
+			postProfileBody.GenerateRandomMEBxPassword = false
+		} else {
+			postProfileBody.AmtPassword = nil
+			postProfileBody.MebxPassword = nil
+			postProfileBody.GenerateRandomPassword = true
+			postProfileBody.GenerateRandomMEBxPassword = true
+		}
+
+		profilePostResponse, err := dmr.RpsClient.CreateProfileWithResponse(ctx, postProfileBody)
 		if err != nil {
 			log.Err(err).Msgf("cannot create profile for %v tenant", tenantID)
 			return
