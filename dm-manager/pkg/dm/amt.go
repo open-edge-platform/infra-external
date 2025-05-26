@@ -23,6 +23,9 @@ const (
 	fqdnServerFormat = 201
 	passwordAuth     = 2
 
+	AmtPasswordSecretName = "amt-password"
+	passwordKey           = "password"
+
 	StaticPasswordPolicy  = "static"
 	DynamicPasswordPolicy = "dynamic"
 )
@@ -149,7 +152,7 @@ func (dmr *Reconciler) handleProfile(ctx context.Context, tenantID string) bool 
 			TlsSigningAuthority: "SelfSigned",
 		}
 
-		amtPassword := dmr.SecretProvider.GetSecret("amt-password", "password")
+		amtPassword := dmr.SecretProvider.GetSecret(AmtPasswordSecretName, passwordKey)
 		if amtPassword == "" {
 			log.Error().Msgf("Couldn't get password from secret provider, see logs above for details")
 			return true
@@ -190,7 +193,7 @@ func (dmr *Reconciler) handleCiraConfig(ctx context.Context, tenantID string, ce
 	}
 
 	if ciraConfig.JSON404 != nil {
-		amtPassword := dmr.SecretProvider.GetSecret("amt-password", "password")
+		amtPassword := dmr.SecretProvider.GetSecret(AmtPasswordSecretName, passwordKey)
 		if amtPassword == "" {
 			log.Error().Msgf("Couldn't get password from secret provider, see logs above for details")
 			return true
@@ -278,7 +281,7 @@ func (dmr *Reconciler) removeCIRAConfigs(ctx context.Context, tenants []string) 
 		}
 
 		for _, ciraConfigName := range findExtraElements(presentCiraConfigs, tenants) {
-			log.Info().Msgf("%v CIRA config doesn't has matching tenant - removing it", ciraConfigName)
+			log.Info().Msgf("%v CIRA config doesn't have matching tenant - removing it", ciraConfigName)
 			dmr.handleTenantRemoval(ciraConfigName)
 		}
 	}
@@ -295,7 +298,7 @@ func (dmr *Reconciler) removeProfiles(ctx context.Context, tenants []string) {
 			presentProfiles = append(presentProfiles, profile.ProfileName)
 		}
 		for _, profileName := range findExtraElements(presentProfiles, tenants) {
-			log.Info().Msgf("%v profile doesn't has matching tenant - removing it", profileName)
+			log.Info().Msgf("%v profile doesn't have matching tenant - removing it", profileName)
 			dmr.handleTenantRemoval(profileName)
 		}
 	}

@@ -369,8 +369,8 @@ func Test_findExtraElements_whenRightHasExtraElementThenItShouldBeIgnored(t *tes
 func TestReconciler_ReconcileRemove_shouldRemoveExcessiveConfigs(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
-	profileHook := util.NewTestAssertHook("willBeRemoved profile doesn't has matching tenant ")
-	CIRAHook := util.NewTestAssertHook("deleteMe CIRA config doesn't has matching tenant")
+	profileHook := util.NewTestAssertHook("willBeRemoved profile doesn't have matching tenant ")
+	CIRAHook := util.NewTestAssertHook("deleteMe CIRA config doesn't have matching tenant")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(profileHook, CIRAHook)}
 
 	termChan := make(chan bool, 1)

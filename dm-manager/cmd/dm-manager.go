@@ -36,9 +36,20 @@ const (
 	passwordPolicyFlag       = "passwordPolicy"
 	reconcilePeriodFlag      = "reconcilePeriod"
 	requestTimeoutFlag       = "requestTimeout"
-	dmName                   = "dm-manager"
-	eventsWatcherBufSize     = 10
-	defaultRequestTimeout    = 10 * time.Second
+
+	clusterDomainDescription   = "Cluster domain address"
+	reconcilePeriodDescription = "How often perform full reconciliation for every tenant"
+	requestTimeoutDescription  = "Timeout for requests that are performed by DM manager"
+	passwordPolicyDescription  = "One of two password policies: 'static' or 'dynamic'. " +
+		"In 'static' same user-provided password is used for every device," +
+		"in 'dynamic' it is automatically generated per-device."
+	mpsAddressDescription = "Address of Management Presence Service (MPS)"
+	rpsAddressDescription = "Address of Remote Provisioning Service (RPS)"
+	insecureDescription   = "Skip TLS verification for MPS/RPS. Does not recommended for production and should be used only for development."
+
+	dmName                = "dm-manager"
+	eventsWatcherBufSize  = 10
+	defaultRequestTimeout = 10 * time.Second
 )
 
 var (
@@ -51,24 +62,21 @@ var (
 
 	inventoryAddress = flag.String(invClient.InventoryAddress,
 		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
-	clusterDomain   = flag.String(clusterDomainAddressFlag, "cluster.onprem", "Cluster domain address")
-	reconcilePeriod = flag.Duration(reconcilePeriodFlag, time.Minute, "How often perform full reconciliation for every tenant")
+	clusterDomain   = flag.String(clusterDomainAddressFlag, "cluster.onprem", clusterDomainDescription)
+	reconcilePeriod = flag.Duration(reconcilePeriodFlag, time.Minute, reconcilePeriodDescription)
 	requestTimeout  = flag.Duration(requestTimeoutFlag, defaultRequestTimeout,
-		"Timeout duration for requests that are performed by DM manager")
-	passwordPolicy = flag.String(passwordPolicyFlag, "static", "One of two password policies: 'static' or 'dynamic'. "+
-		"In 'static' same user-provided password is used for every device,"+
-		"in 'dynamic' it is automatically generated per-device. ")
+		requestTimeoutDescription)
+	passwordPolicy = flag.String(passwordPolicyFlag, "static", passwordPolicyDescription)
 	oamservaddr    = flag.String(oam.OamServerAddress, "", oam.OamServerAddressDescription)
 	enableTracing  = flag.Bool(tracing.EnableTracing, false, tracing.EnableTracingDescription)
 	enableMetrics  = flag.Bool(metrics.EnableMetrics, false, metrics.EnableMetricsDescription)
 	traceURL       = flag.String(tracing.TraceURL, "", tracing.TraceURLDescription)
 	metricsAddress = flag.String(metrics.MetricsAddress, metrics.MetricsAddressDefault, metrics.MetricsAddressDescription)
 	mpsAddress     = flag.String(mpsAddressFlag, "http://mps.orch-infra.svc:3000",
-		"Address of Management Presence Service (MPS)")
+		mpsAddressDescription)
 	rpsAddress = flag.String(rpsAddressFlag, "http://rps.orch-infra.svc:8081",
-		"Address of Remote Provisioning Service (RPS)")
-	insecure = flag.Bool("InsecureSkipVerify", false,
-		"Skip TLS verification for MPS/RPS. Does not recommended for production and should be used only for development.")
+		rpsAddressDescription)
+	insecure     = flag.Bool("InsecureSkipVerify", false, insecureDescription)
 	insecureGrpc = flag.Bool(invClient.InsecureGrpc, true, invClient.InsecureGrpcDescription)
 	caCertPath   = flag.String(invClient.CaCertPath, "", invClient.CaCertPathDescription)
 	tlsCertPath  = flag.String(invClient.TLSCertPath, "", invClient.TLSCertPathDescription)
@@ -107,7 +115,7 @@ func main() {
 	vsp := secrets.VaultSecretProvider{}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if initErr := vsp.Init(ctx, []string{"amt-password"}); initErr != nil {
+	if initErr := vsp.Init(ctx, []string{dm.AmtPasswordSecretName}); initErr != nil {
 		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
 	}
 
