@@ -117,49 +117,22 @@ func (dmr *Reconciler) handleTenantCreation(
 		return
 	}
 
-	ciraConfig, err := dmr.RpsClient.GetCIRAConfigWithResponse(ctx, tenantID)
-	if err != nil {
-		log.Err(err).Msgf("cannot get CIRA config for %v tenant", tenantID)
+	if errorOccurred := dmr.handleCiraConfig(ctx, tenantID, cert.Body); errorOccurred {
 		return
 	}
 
-	if ciraConfig.JSON404 != nil {
-		amtPassword := dmr.SecretProvider.GetSecret("amt-password", "password")
-		if amtPassword == "" {
-			log.Error().Msgf("Couldn't get password from secret provider, see logs above for details")
-			return
-		}
-
-		log.Info().Msgf("CIRA config not found for %v tenant, creating it", tenantID)
-		postCiraConfig, postErr := dmr.RpsClient.CreateCIRAConfigWithResponse(ctx, rps.CreateCIRAConfigJSONRequestBody{
-			AuthMethod:          passwordAuth, // password auth
-			ServerAddressFormat: fqdnServerFormat,
-			CommonName:          "mps-node." + dmr.Config.ClusterDomain,
-			MpsServerAddress:    "mps-node." + dmr.Config.ClusterDomain,
-			MpsPort:             mpsPort,
-			ConfigName:          tenantID,
-			MpsRootCertificate:  convertCertToCertBlob(cert.Body),
-			ProxyDetails:        "", // TODO: pass proxy from config
-			Username:            "admin",
-			Password:            &amtPassword,
-		})
-		if postErr != nil {
-			log.Err(err).Msgf("cannot create CIRA config for %v tenant", tenantID)
-			return
-		}
-
-		if postCiraConfig.JSON201 != nil {
-			log.Info().Msgf("created CIRA config for %v", tenantID)
-		} else {
-			log.Err(fmt.Errorf("%v", string(postCiraConfig.Body))).Msgf("cannot create CIRA config for %v", tenantID)
-			return
-		}
+	if errorOccurred := dmr.handleProfile(ctx, tenantID); errorOccurred {
+		return
 	}
 
+	log.Debug().Msgf("creation for %v tenant is done", tenantID)
+}
+
+func (dmr *Reconciler) handleProfile(ctx context.Context, tenantID string) bool {
 	profile, err := dmr.RpsClient.GetProfileWithResponse(ctx, tenantID)
 	if err != nil {
 		log.Err(err).Msgf("cannot get profile for %v tenant", tenantID)
-		return
+		return true
 	}
 	if profile.JSON404 != nil {
 		log.Info().Msgf("profile not found for %v tenant, creating it", tenantID)
@@ -179,7 +152,7 @@ func (dmr *Reconciler) handleTenantCreation(
 		amtPassword := dmr.SecretProvider.GetSecret("amt-password", "password")
 		if amtPassword == "" {
 			log.Error().Msgf("Couldn't get password from secret provider, see logs above for details")
-			return
+			return true
 		}
 
 		if strings.EqualFold(dmr.Config.PasswordPolicy, StaticPasswordPolicy) {
@@ -197,17 +170,58 @@ func (dmr *Reconciler) handleTenantCreation(
 		profilePostResponse, err := dmr.RpsClient.CreateProfileWithResponse(ctx, postProfileBody)
 		if err != nil {
 			log.Err(err).Msgf("cannot create profile for %v tenant", tenantID)
-			return
+			return true
 		}
 		if profilePostResponse.JSON201 != nil {
 			log.Info().Msgf("created profile for %v", tenantID)
 		} else {
 			log.Err(fmt.Errorf("%v", string(profilePostResponse.Body))).Msgf("cannot create profile for %v", tenantID)
-			return
+			return true
 		}
 	}
+	return false
+}
 
-	log.Debug().Msgf("creation for %v tenant is done", tenantID)
+func (dmr *Reconciler) handleCiraConfig(ctx context.Context, tenantID string, cert []byte) bool {
+	ciraConfig, err := dmr.RpsClient.GetCIRAConfigWithResponse(ctx, tenantID)
+	if err != nil {
+		log.Err(err).Msgf("cannot get CIRA config for %v tenant", tenantID)
+		return true
+	}
+
+	if ciraConfig.JSON404 != nil {
+		amtPassword := dmr.SecretProvider.GetSecret("amt-password", "password")
+		if amtPassword == "" {
+			log.Error().Msgf("Couldn't get password from secret provider, see logs above for details")
+			return true
+		}
+
+		log.Info().Msgf("CIRA config not found for %v tenant, creating it", tenantID)
+		postCiraConfig, postErr := dmr.RpsClient.CreateCIRAConfigWithResponse(ctx, rps.CreateCIRAConfigJSONRequestBody{
+			AuthMethod:          passwordAuth, // password auth
+			ServerAddressFormat: fqdnServerFormat,
+			CommonName:          "mps-node." + dmr.Config.ClusterDomain,
+			MpsServerAddress:    "mps-node." + dmr.Config.ClusterDomain,
+			MpsPort:             mpsPort,
+			ConfigName:          tenantID,
+			MpsRootCertificate:  convertCertToCertBlob(cert),
+			ProxyDetails:        "", // TODO: pass proxy from config
+			Username:            "admin",
+			Password:            &amtPassword,
+		})
+		if postErr != nil {
+			log.Err(err).Msgf("cannot create CIRA config for %v tenant", tenantID)
+			return true
+		}
+
+		if postCiraConfig.JSON201 != nil {
+			log.Info().Msgf("created CIRA config for %v", tenantID)
+		} else {
+			log.Err(fmt.Errorf("%v", string(postCiraConfig.Body))).Msgf("cannot create CIRA config for %v", tenantID)
+			return true
+		}
+	}
+	return false
 }
 
 func (dmr *Reconciler) Stop() {

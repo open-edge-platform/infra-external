@@ -31,7 +31,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Failed to create temporary directory")
 	}
-	defer os.RemoveAll(tmpDir)
 	inv_testing.StartTestingEnvironment(tmpDir, "", tmpDir)
 
 	run := m.Run() // run all tests

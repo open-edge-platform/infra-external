@@ -51,12 +51,13 @@ var (
 
 	inventoryAddress = flag.String(invClient.InventoryAddress,
 		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
-	clusterDomain   = flag.String(clusterDomainAddressFlag, "cluster.onprem", "cluster domain address")
+	clusterDomain   = flag.String(clusterDomainAddressFlag, "cluster.onprem", "Cluster domain address")
 	reconcilePeriod = flag.Duration(reconcilePeriodFlag, time.Minute, "How often perform full reconciliation for every tenant")
 	requestTimeout  = flag.Duration(requestTimeoutFlag, defaultRequestTimeout,
 		"Timeout duration for requests that are performed by DM manager")
 	passwordPolicy = flag.String(passwordPolicyFlag, "static", "One of two password policies: 'static' or 'dynamic'. "+
-		"In 'static' same user-provided password is used for every device, in 'dynamic' it is automatically generated per-device. ")
+		"In 'static' same user-provided password is used for every device,"+
+		"in 'dynamic' it is automatically generated per-device. ")
 	oamservaddr    = flag.String(oam.OamServerAddress, "", oam.OamServerAddressDescription)
 	enableTracing  = flag.Bool(tracing.EnableTracing, false, tracing.EnableTracingDescription)
 	enableMetrics  = flag.Bool(metrics.EnableMetrics, false, metrics.EnableMetricsDescription)
@@ -76,7 +77,8 @@ var (
 
 func main() {
 	flag.Parse()
-	if strings.EqualFold(*passwordPolicy, dm.StaticPasswordPolicy) && strings.EqualFold(*passwordPolicy, dm.DynamicPasswordPolicy) {
+	if !(strings.EqualFold(*passwordPolicy, dm.StaticPasswordPolicy) ||
+		strings.EqualFold(*passwordPolicy, dm.DynamicPasswordPolicy)) {
 		log.Error().Msgf("Invalid password policy: %s. It should be either 'static' or 'dynamic'", *passwordPolicy)
 		os.Exit(1)
 	}
@@ -142,8 +144,6 @@ func prepareClients(transport *http.Transport) (
 	mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses,
 	invTenantClient invClient.TenantAwareInventoryClient, eventsWatcher chan *invClient.WatchEvents,
 ) {
-	log.Info().Msgf("MPS address: %s", *mpsAddress)
-
 	mpsClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
 		return nil
