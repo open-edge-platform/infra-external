@@ -50,6 +50,9 @@ var (
 
 	enableMetrics  = flag.Bool(metrics.EnableMetrics, false, metrics.EnableMetricsDescription)
 	metricsAddress = flag.String(metrics.MetricsAddress, metrics.MetricsAddressDefault, metrics.MetricsAddressDescription)
+
+	// eventsWatcherBufSize is the buffer size for the events channel.
+	eventsWatcherBufSize = 10
 )
 
 var (
@@ -121,7 +124,7 @@ func main() {
 	}
 	// set up OAM (health check) server
 	setupOamServer(*enableTracing, *oamservaddr)
-	eventsWatcher := make(chan *client.WatchEvents)
+	eventsWatcher := make(chan *client.WatchEvents, eventsWatcherBufSize)
 	invClient, err := client.NewTenantAwareInventoryClient(context.Background(),
 		client.InventoryClientConfig{
 			Name:                      clientName,

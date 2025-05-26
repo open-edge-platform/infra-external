@@ -16,7 +16,9 @@ SWAGGERVERSION_REQ             := 0.31.0
 MOCKERYVERSION_HAVE            := $(shell mockery version)
 MOCKERYVERSION_REQ             := v3.2.4
 OAPI_CODEGEN_HAVE              := $(shell oapi-codegen -version |sed '1d')
-OAPI_CODEGENVERSION_REQ       := v2.4.1
+OAPI_CODEGENVERSION_REQ        := v2.4.1
+OASDIFF_HAVE                   := $(shell oasdiff --version | sed -n 's/^oasdiff version //p')
+OASDIFF_REQ                    := 1.11.4
 # No version reported
 GOCOBERTURAVERSION_REQ         := 1.2.0
 POSTGRES_VERSION               := 16.4
@@ -50,6 +52,10 @@ ifeq ($(OAPI_CODEGEN), true)
 	@(echo "$(OAPI_CODEGEN_HAVE)" | grep "$(OAPI_CODEGEN_REQ)" > /dev/null) || \
 	(echo  "\e[1;31mWARNING: You are not using the recommended version of oapi-codegen\nRecommended: $(OAPI_CODEGEN_REQ)\nYours: $(OAPI_CODEGEN_HAVE)\e[1;m" && exit 1)
 endif
+ifeq ($(OASDIFF), true)
+	@(echo "$(OASDIFF_HAVE)" | grep "$(OASDIFF_REQ)" > /dev/null) || \
+	(echo  "\e[1;31mWARNING: You are not using the recommended version of oasdiff\nRecommended: $(OASDIFF_REQ)\nYours: $(OASDIFF_HAVE)\e[1;m" && exit 1)
+endif
 
 go-dependency: ## install go dependency tooling
 ifeq ($(GOJUNITREPORT), true)
@@ -72,4 +78,7 @@ ifeq ($(MOCKERY), true)
 endif
 ifeq ($(OAPI_CODEGEN), true)
 	$(GOCMD) install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@${OAPI_CODEGENVERSION_REQ}
+endif
+ifeq ($(OASDIFF), true)
+	$(GOCMD) install github.com/oasdiff/oasdiff@v${OASDIFF_REQ}
 endif
