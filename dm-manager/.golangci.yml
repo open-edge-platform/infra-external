@@ -193,7 +193,7 @@ issues:
         - testpackage
     - path: pkg/dm/utils_test.go
       linters:
-      - testpackage
+        - testpackage
 
 output:
   # Format:
