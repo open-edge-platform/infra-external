@@ -4,6 +4,7 @@
 package dm
 
 import (
+	"context"
 	"os"
 	"sync"
 	"testing"
@@ -21,6 +22,7 @@ import (
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/mocks"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/util"
+	"github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
 //nolint:lll // intended long certificate blob
@@ -38,12 +40,12 @@ func TestMain(m *testing.M) {
 	os.Exit(run)
 }
 
-func TestDMReconciler_Start(t *testing.T) {
+func TestManager_Start(t *testing.T) {
 	termChan := make(chan bool, 1)
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}
 	cli := inv_testing.TestClients[inv_testing.APIClient].GetTenantAwareInventoryClient()
-	dmr := &Reconciler{
+	dmr := &Manager{
 		InventoryClient: cli,
 		TermChan:        termChan,
 		ReadyChan:       readyChan,
@@ -77,7 +79,7 @@ func TestDMReconciler_Start(t *testing.T) {
 		t.Fatal("Timeout waiting for reconciler to stop")
 	}
 
-	assert.True(t, true, "Reconciler stopped successfully")
+	assert.True(t, true, "Manager stopped successfully")
 }
 
 func Test_convertCertToCertBlob(t *testing.T) {
@@ -99,7 +101,7 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 	msp := mocks.MockSecretProvider{}
 	const staticPassword = "P@ssw0rd"
 	msp.On("GetSecret", mock.Anything, mock.Anything).Return(staticPassword)
-	dmr := &Reconciler{
+	dmr := &Manager{
 		MpsClient:      mpsMock,
 		RpsClient:      rpsMock,
 		SecretProvider: &msp,
@@ -134,8 +136,9 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 		JSON201: &rps.ProfileResponse{},
 	}, nil)
 
-	dmr.handleTenantCreation("mock-tenant")
+	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
+	assert.NoError(t, err)
 	assertHook.Assert(t)
 	CIRAHook.Assert(t)
 	profileHook.Assert(t)
@@ -144,7 +147,7 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 func TestReconciler_handleTenantCreation_whenCannotGetCertShouldReturnError(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
-	dmr := &Reconciler{
+	dmr := &Manager{
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
 		Config: &ReconcilerConfig{
@@ -159,15 +162,16 @@ func TestReconciler_handleTenantCreation_whenCannotGetCertShouldReturnError(t *t
 		Body: []byte(cert),
 	}, errors.Errorf("mocked error"))
 
-	dmr.handleTenantCreation("mock-tenant")
+	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
+	assert.ErrorContains(t, err, "mocked error")
 	assertHook.Assert(t)
 }
 
 func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnError(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
-	dmr := &Reconciler{
+	dmr := &Manager{
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
 		Config: &ReconcilerConfig{
@@ -185,8 +189,9 @@ func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnErro
 		JSON404: &rps.APIResponse{},
 	}, errors.Errorf("mocked error"))
 
-	dmr.handleTenantCreation("mock-tenant")
+	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
+	assert.ErrorContains(t, err, "mocked error")
 	assertHook.Assert(t)
 }
 
@@ -195,7 +200,7 @@ func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnE
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	msp := mocks.MockSecretProvider{}
 	msp.On("GetSecret", mock.Anything, mock.Anything).Return("test")
-	dmr := &Reconciler{
+	dmr := &Manager{
 		MpsClient:      mpsMock,
 		RpsClient:      rpsMock,
 		SecretProvider: &msp,
@@ -217,8 +222,9 @@ func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnE
 		JSON201: &rps.CIRAConfigResponse{},
 	}, errors.Errorf("mocked error"))
 
-	dmr.handleTenantCreation("mock-tenant")
+	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
+	assert.ErrorContains(t, err, "mocked error")
 	assertHook.Assert(t)
 }
 
@@ -227,7 +233,7 @@ func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	msp := mocks.MockSecretProvider{}
 	msp.On("GetSecret", mock.Anything, mock.Anything).Return("test")
-	dmr := &Reconciler{
+	dmr := &Manager{
 		MpsClient:      mpsMock,
 		RpsClient:      rpsMock,
 		SecretProvider: &msp,
@@ -253,8 +259,9 @@ func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t
 		JSON404: &rps.APIResponse{},
 	}, errors.Errorf("mocked error"))
 
-	dmr.handleTenantCreation("mock-tenant")
+	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
+	assert.ErrorContains(t, err, "mocked error")
 	assertHook.Assert(t)
 }
 
@@ -263,7 +270,7 @@ func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnErro
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	msp := mocks.MockSecretProvider{}
 	msp.On("GetSecret", mock.Anything, mock.Anything).Return("test")
-	dmr := &Reconciler{
+	dmr := &Manager{
 		MpsClient:      mpsMock,
 		RpsClient:      rpsMock,
 		SecretProvider: &msp,
@@ -292,15 +299,16 @@ func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnErro
 		JSON201: &rps.ProfileResponse{},
 	}, errors.Errorf("mocked error"))
 
-	dmr.handleTenantCreation("mock-tenant")
+	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
+	assert.ErrorContains(t, err, "mocked error")
 	assertHook.Assert(t)
 }
 
-func TestReconciler_handleTenantRemoval(t *testing.T) {
+func TestReconciler_handleTenantRemoval_happyPath(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
-	dmr := &Reconciler{
+	dmr := &Manager{
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
 		Config: &ReconcilerConfig{
@@ -314,15 +322,16 @@ func TestReconciler_handleTenantRemoval(t *testing.T) {
 	assertHook := util.NewTestAssertHook("Finished tenant removal")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook)}
 
-	dmr.handleTenantRemoval("mock-tenant")
+	err := dmr.handleTenantRemoval(context.Background(), "mock-tenant")
 
+	assert.NoError(t, err)
 	assertHook.Assert(t)
 }
 
 func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
-	dmr := &Reconciler{
+	dmr := &Manager{
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
 		Config: &ReconcilerConfig{
@@ -335,15 +344,12 @@ func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
 		Return(&rps.RemoveProfileResponse{}, errors.Errorf("mock error"))
 	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything).
 		Return(&rps.RemoveCIRAConfigResponse{}, errors.Errorf("mock error"))
-	assertHook := util.NewTestAssertHook("Finished tenant removal")
 	profileHook := util.NewTestAssertHook("cannot remove profile")
-	CIRAHook := util.NewTestAssertHook("cannot remove CIRA")
-	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook, profileHook, CIRAHook)}
+	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(profileHook)}
 
-	dmr.handleTenantRemoval("mock-tenant")
+	err := dmr.handleTenantRemoval(context.Background(), "mock-tenant")
 
-	assertHook.Assert(t)
-	CIRAHook.Assert(t)
+	assert.ErrorContains(t, err, "mock error")
 	profileHook.Assert(t)
 }
 
@@ -366,7 +372,7 @@ func Test_findExtraElements_whenRightHasExtraElementThenItShouldBeIgnored(t *tes
 	assert.Len(t, diff, 0)
 }
 
-func TestReconciler_Reconcile_shouldRemoveExcessiveConfigs(t *testing.T) {
+func TestReconciler_ReconcileAll_shouldRemoveExcessiveConfigs(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	profileHook := util.NewTestAssertHook("willBeRemoved profile doesn't have matching tenant ")
@@ -377,7 +383,7 @@ func TestReconciler_Reconcile_shouldRemoveExcessiveConfigs(t *testing.T) {
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}
 	cli := inv_testing.TestClients[inv_testing.APIClient].GetTenantAwareInventoryClient()
-	dmr := &Reconciler{
+	dmr := &Manager{
 		InventoryClient: cli,
 		TermChan:        termChan,
 		ReadyChan:       readyChan,
@@ -389,6 +395,9 @@ func TestReconciler_Reconcile_shouldRemoveExcessiveConfigs(t *testing.T) {
 			ReconcilePeriod: time.Minute,
 		},
 	}
+
+	tenantController := controller.NewController[ReconcilerID](dmr.Reconcile)
+	dmr.TenantController = tenantController
 
 	tenantID := inv_testing.CreateTenant(t, inv_testing.TenantDesiredState(tenantv1.TenantState_TENANT_STATE_CREATED)).TenantId
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything).
@@ -404,7 +413,7 @@ func TestReconciler_Reconcile_shouldRemoveExcessiveConfigs(t *testing.T) {
 	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
 	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveCIRAConfigResponse{}, nil)
 
-	dmr.Reconcile()
+	dmr.ReconcileAll()
 
 	profileHook.Assert(t)
 	CIRAHook.Assert(t)

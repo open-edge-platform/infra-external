@@ -28,6 +28,7 @@ import (
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/flags"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/secrets"
+	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
 const (
@@ -37,7 +38,7 @@ const (
 )
 
 var (
-	log = logging.GetLogger("DMManager")
+	log = logging.GetLogger("Manager")
 	wg  = &sync.WaitGroup{}
 
 	osChan    = make(chan os.Signal, 1)
@@ -103,7 +104,7 @@ func main() {
 		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
 	}
 
-	dmReconciler := &dm.Reconciler{
+	dmReconciler := &dm.Manager{
 		MpsClient:       mpsClient,
 		RpsClient:       rpsClient,
 		InventoryClient: invTenantClient,
@@ -119,6 +120,14 @@ func main() {
 			RequestTimeout:  *requestTimeout,
 		},
 	}
+
+	const defaultParallelGoroutines = 10
+	tenantController := rec_v2.NewController[dm.ReconcilerID](
+		dmReconciler.Reconcile,
+		rec_v2.WithParallelism(defaultParallelGoroutines),
+		rec_v2.WithTimeout(*requestTimeout))
+	dmReconciler.TenantController = tenantController
+
 	wg.Add(1)
 	go dmReconciler.Start()
 
