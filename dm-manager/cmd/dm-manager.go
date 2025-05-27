@@ -45,7 +45,8 @@ const (
 		"in 'dynamic' it is automatically generated per-device."
 	mpsAddressDescription = "Address of Management Presence Service (MPS)"
 	rpsAddressDescription = "Address of Remote Provisioning Service (RPS)"
-	insecureDescription   = "Skip TLS verification for MPS/RPS. Does not recommended for production and should be used only for development."
+	insecureDescription   = "Skip TLS verification for MPS/RPS. " +
+		"Does not recommended for production and should be used only for development."
 
 	dmName                = "dm-manager"
 	eventsWatcherBufSize  = 10

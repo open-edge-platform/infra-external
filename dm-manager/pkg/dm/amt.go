@@ -5,13 +5,13 @@ package dm
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"sync"
 	"time"
 
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/secretprovider"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
@@ -19,9 +19,12 @@ import (
 )
 
 const (
-	mpsPort          = 4433
+	mpsCiraPort = 4433
+	// Use domain name (like mps-node.kind.internal) instead of IP address of service, which will not
+	// go through traefik gateway due to SNI filtering.
 	fqdnServerFormat = 201
-	passwordAuth     = 2
+	// Use password authentication instead of certificate authentication.
+	passwordAuth = 2
 
 	AmtPasswordSecretName = "amt-password"
 	passwordKey           = "password"
@@ -57,18 +60,16 @@ func (dmr *Reconciler) Start() {
 		dmr.ReadyChan <- true
 	}
 	log.Info().Msgf("Starting periodic reconciliation")
-	dmr.ReconcileAdd()
-	dmr.ReconcileRemove()
+	dmr.Reconcile()
 	for {
 		select {
 		case <-ticker.C:
 			log.Info().Msgf("Running periodic reconciliation")
-			dmr.ReconcileAdd()
-			dmr.ReconcileRemove()
+			dmr.Reconcile()
 		case <-dmr.TermChan:
 			log.Info().Msgf("Stopping periodic reconciliation")
+			dmr.Stop()
 			ticker.Stop()
-			dmr.WaitGroup.Done()
 			return
 		case event := <-dmr.EventsWatcher:
 			if event.Event.GetEventKind() == inventoryv1.SubscribeEventsResponse_EVENT_KIND_CREATED {
@@ -178,7 +179,7 @@ func (dmr *Reconciler) handleProfile(ctx context.Context, tenantID string) bool 
 		if profilePostResponse.JSON201 != nil {
 			log.Info().Msgf("created profile for %v", tenantID)
 		} else {
-			log.Err(fmt.Errorf("%v", string(profilePostResponse.Body))).Msgf("cannot create profile for %v", tenantID)
+			log.Err(errors.Errorf("%v", string(profilePostResponse.Body))).Msgf("cannot create profile for %v", tenantID)
 			return true
 		}
 	}
@@ -205,7 +206,7 @@ func (dmr *Reconciler) handleCiraConfig(ctx context.Context, tenantID string, ce
 			ServerAddressFormat: fqdnServerFormat,
 			CommonName:          "mps-node." + dmr.Config.ClusterDomain,
 			MpsServerAddress:    "mps-node." + dmr.Config.ClusterDomain,
-			MpsPort:             mpsPort,
+			MpsPort:             mpsCiraPort,
 			ConfigName:          tenantID,
 			MpsRootCertificate:  convertCertToCertBlob(cert),
 			ProxyDetails:        "", // TODO: pass proxy from config
@@ -220,7 +221,7 @@ func (dmr *Reconciler) handleCiraConfig(ctx context.Context, tenantID string, ce
 		if postCiraConfig.JSON201 != nil {
 			log.Info().Msgf("created CIRA config for %v", tenantID)
 		} else {
-			log.Err(fmt.Errorf("%v", string(postCiraConfig.Body))).Msgf("cannot create CIRA config for %v", tenantID)
+			log.Err(errors.Errorf("%v", string(postCiraConfig.Body))).Msgf("cannot create CIRA config for %v", tenantID)
 			return true
 		}
 	}
@@ -228,29 +229,13 @@ func (dmr *Reconciler) handleCiraConfig(ctx context.Context, tenantID string, ce
 }
 
 func (dmr *Reconciler) Stop() {
+	dmr.WaitGroup.Done()
 }
 
-func (dmr *Reconciler) ReconcileAdd() {
+func (dmr *Reconciler) Reconcile() {
 	ctx, cancel := context.WithTimeout(context.Background(), dmr.Config.RequestTimeout)
 	defer cancel()
-	tenants, err := dmr.InventoryClient.ListAll(ctx, &inventoryv1.ResourceFilter{
-		Resource: &inventoryv1.Resource{Resource: &inventoryv1.Resource_Tenant{}},
-	})
-	if err != nil {
-		log.Err(err).Msgf("cannot list tenants")
-		return
-	}
-
-	for _, tenant := range tenants {
-		dmr.handleTenantCreation(tenant.GetTenant().GetTenantId())
-	}
-}
-
-func (dmr *Reconciler) ReconcileRemove() {
-	ctx, cancel := context.WithTimeout(context.Background(), dmr.Config.RequestTimeout)
-	defer cancel()
-
-	tenantsList, err := dmr.InventoryClient.ListAll(ctx, &inventoryv1.ResourceFilter{
+	tenantsResp, err := dmr.InventoryClient.ListAll(ctx, &inventoryv1.ResourceFilter{
 		Resource: &inventoryv1.Resource{Resource: &inventoryv1.Resource_Tenant{}},
 	})
 	if err != nil {
@@ -259,8 +244,9 @@ func (dmr *Reconciler) ReconcileRemove() {
 	}
 
 	tenants := []string{}
-	for _, tenant := range tenantsList {
+	for _, tenant := range tenantsResp {
 		tenants = append(tenants, tenant.GetTenant().GetTenantId())
+		dmr.handleTenantCreation(tenant.GetTenant().GetTenantId())
 	}
 
 	dmr.removeProfiles(ctx, tenants)

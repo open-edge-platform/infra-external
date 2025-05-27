@@ -4,7 +4,6 @@
 package dm
 
 import (
-	"fmt"
 	"os"
 	"sync"
 	"testing"
@@ -15,6 +14,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	tenantv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/tenant/v1"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_testing "github.com/open-edge-platform/infra-core/inventory/v2/pkg/testing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
@@ -157,7 +157,7 @@ func TestReconciler_handleTenantCreation_whenCannotGetCertShouldReturnError(t *t
 
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
-	}, fmt.Errorf("mocked error"))
+	}, errors.Errorf("mocked error"))
 
 	dmr.handleTenantCreation("mock-tenant")
 
@@ -183,7 +183,7 @@ func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnErro
 	}, nil)
 	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
 		JSON404: &rps.APIResponse{},
-	}, fmt.Errorf("mocked error"))
+	}, errors.Errorf("mocked error"))
 
 	dmr.handleTenantCreation("mock-tenant")
 
@@ -215,7 +215,7 @@ func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnE
 	}, nil)
 	rpsMock.On("CreateCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.CreateCIRAConfigResponse{
 		JSON201: &rps.CIRAConfigResponse{},
-	}, fmt.Errorf("mocked error"))
+	}, errors.Errorf("mocked error"))
 
 	dmr.handleTenantCreation("mock-tenant")
 
@@ -251,7 +251,7 @@ func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t
 
 	rpsMock.On("GetProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.GetProfileResponse{
 		JSON404: &rps.APIResponse{},
-	}, fmt.Errorf("mocked error"))
+	}, errors.Errorf("mocked error"))
 
 	dmr.handleTenantCreation("mock-tenant")
 
@@ -290,7 +290,7 @@ func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnErro
 	}, nil)
 	rpsMock.On("CreateProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.CreateProfileResponse{
 		JSON201: &rps.ProfileResponse{},
-	}, fmt.Errorf("mocked error"))
+	}, errors.Errorf("mocked error"))
 
 	dmr.handleTenantCreation("mock-tenant")
 
@@ -332,9 +332,9 @@ func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
 	}
 
 	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything).
-		Return(&rps.RemoveProfileResponse{}, fmt.Errorf("mock error"))
+		Return(&rps.RemoveProfileResponse{}, errors.Errorf("mock error"))
 	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything).
-		Return(&rps.RemoveCIRAConfigResponse{}, fmt.Errorf("mock error"))
+		Return(&rps.RemoveCIRAConfigResponse{}, errors.Errorf("mock error"))
 	assertHook := util.NewTestAssertHook("Finished tenant removal")
 	profileHook := util.NewTestAssertHook("cannot remove profile")
 	CIRAHook := util.NewTestAssertHook("cannot remove CIRA")
@@ -366,7 +366,7 @@ func Test_findExtraElements_whenRightHasExtraElementThenItShouldBeIgnored(t *tes
 	assert.Len(t, diff, 0)
 }
 
-func TestReconciler_ReconcileRemove_shouldRemoveExcessiveConfigs(t *testing.T) {
+func TestReconciler_Reconcile_shouldRemoveExcessiveConfigs(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	profileHook := util.NewTestAssertHook("willBeRemoved profile doesn't have matching tenant ")
@@ -391,6 +391,8 @@ func TestReconciler_ReconcileRemove_shouldRemoveExcessiveConfigs(t *testing.T) {
 	}
 
 	tenantID := inv_testing.CreateTenant(t, inv_testing.TenantDesiredState(tenantv1.TenantState_TENANT_STATE_CREATED)).TenantId
+	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything).
+		Return(&mps.GetApiV1CiracertResponse{}, errors.Errorf("mocked error"))
 
 	rpsMock.On("GetAllProfilesWithResponse", mock.Anything, mock.Anything).Return(&rps.GetAllProfilesResponse{
 		JSON200: &[]rps.ProfileResponse{{ProfileName: "willBeRemoved"}, {ProfileName: tenantID}},
@@ -402,7 +404,7 @@ func TestReconciler_ReconcileRemove_shouldRemoveExcessiveConfigs(t *testing.T) {
 	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
 	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveCIRAConfigResponse{}, nil)
 
-	dmr.ReconcileRemove()
+	dmr.Reconcile()
 
 	profileHook.Assert(t)
 	CIRAHook.Assert(t)
