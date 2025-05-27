@@ -22,6 +22,9 @@ const (
 	mpsCiraPort = 4433
 	// Use domain name (like mps-node.kind.internal) instead of IP address of service, which will not
 	// go through traefik gateway due to SNI filtering.
+	// AddressFormat valid values:
+	// 3 = IPv4 address
+	// 201 = FQDN.
 	fqdnServerFormat = 201
 	// Use password authentication instead of certificate authentication.
 	passwordAuth = 2
@@ -68,10 +71,15 @@ func (dmr *Reconciler) Start() {
 			dmr.Reconcile()
 		case <-dmr.TermChan:
 			log.Info().Msgf("Stopping periodic reconciliation")
-			dmr.Stop()
 			ticker.Stop()
+			dmr.Stop()
 			return
-		case event := <-dmr.EventsWatcher:
+		case event, ok := <-dmr.EventsWatcher:
+			if !ok {
+				ticker.Stop()
+				dmr.Stop()
+				return
+			}
 			if event.Event.GetEventKind() == inventoryv1.SubscribeEventsResponse_EVENT_KIND_CREATED {
 				log.Info().Msgf("Received create event: %v", event.Event.GetResource().GetTenant().GetResourceId())
 				dmr.handleTenantCreation(event.Event.GetResource().GetTenant().GetTenantId())
@@ -95,13 +103,14 @@ func (dmr *Reconciler) handleTenantRemoval(
 	profileResp, err := dmr.RpsClient.RemoveProfileWithResponse(ctx, tenantID)
 	if err != nil {
 		log.Err(err).Msgf("cannot remove profile for %v tenant", tenantID)
+		return
 	}
-
 	log.Debug().Msgf("profile removal response: %v", string(profileResp.Body))
 
 	ciraResp, err := dmr.RpsClient.RemoveCIRAConfigWithResponse(ctx, tenantID)
 	if err != nil {
 		log.Err(err).Msgf("cannot remove CIRA config for %v tenant", tenantID)
+		return
 	}
 	log.Debug().Msgf("cira removal response: %v", string(ciraResp.Body))
 

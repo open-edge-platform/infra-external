@@ -26,28 +26,11 @@ import (
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/flags"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/secrets"
 )
 
 const (
-	mpsAddressFlag           = "mpsAddress"
-	rpsAddressFlag           = "rpsAddress"
-	clusterDomainAddressFlag = "clusterDomain"
-	passwordPolicyFlag       = "passwordPolicy"
-	reconcilePeriodFlag      = "reconcilePeriod"
-	requestTimeoutFlag       = "requestTimeout"
-
-	clusterDomainDescription   = "Cluster domain address"
-	reconcilePeriodDescription = "How often perform full reconciliation for every tenant"
-	requestTimeoutDescription  = "Timeout for requests that are performed by DM manager"
-	passwordPolicyDescription  = "One of two password policies: 'static' or 'dynamic'. " +
-		"In 'static' same user-provided password is used for every device," +
-		"in 'dynamic' it is automatically generated per-device."
-	mpsAddressDescription = "Address of Management Presence Service (MPS)"
-	rpsAddressDescription = "Address of Remote Provisioning Service (RPS)"
-	insecureDescription   = "Skip TLS verification for MPS/RPS. " +
-		"Does not recommended for production and should be used only for development."
-
 	dmName                = "dm-manager"
 	eventsWatcherBufSize  = 10
 	defaultRequestTimeout = 10 * time.Second
@@ -63,21 +46,21 @@ var (
 
 	inventoryAddress = flag.String(invClient.InventoryAddress,
 		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
-	clusterDomain   = flag.String(clusterDomainAddressFlag, "cluster.onprem", clusterDomainDescription)
-	reconcilePeriod = flag.Duration(reconcilePeriodFlag, time.Minute, reconcilePeriodDescription)
-	requestTimeout  = flag.Duration(requestTimeoutFlag, defaultRequestTimeout,
-		requestTimeoutDescription)
-	passwordPolicy = flag.String(passwordPolicyFlag, "static", passwordPolicyDescription)
+	clusterDomain   = flag.String(flags.ClusterDomainAddressFlag, "cluster.onprem", flags.ClusterDomainDescription)
+	reconcilePeriod = flag.Duration(flags.ReconcilePeriodFlag, time.Minute, flags.ReconcilePeriodDescription)
+	requestTimeout  = flag.Duration(flags.RequestTimeoutFlag, defaultRequestTimeout,
+		flags.RequestTimeoutDescription)
+	passwordPolicy = flag.String(flags.PasswordPolicyFlag, "static", flags.PasswordPolicyDescription)
 	oamservaddr    = flag.String(oam.OamServerAddress, "", oam.OamServerAddressDescription)
 	enableTracing  = flag.Bool(tracing.EnableTracing, false, tracing.EnableTracingDescription)
 	enableMetrics  = flag.Bool(metrics.EnableMetrics, false, metrics.EnableMetricsDescription)
 	traceURL       = flag.String(tracing.TraceURL, "", tracing.TraceURLDescription)
 	metricsAddress = flag.String(metrics.MetricsAddress, metrics.MetricsAddressDefault, metrics.MetricsAddressDescription)
-	mpsAddress     = flag.String(mpsAddressFlag, "http://mps.orch-infra.svc:3000",
-		mpsAddressDescription)
-	rpsAddress = flag.String(rpsAddressFlag, "http://rps.orch-infra.svc:8081",
-		rpsAddressDescription)
-	insecure     = flag.Bool("InsecureSkipVerify", false, insecureDescription)
+	mpsAddress     = flag.String(flags.MpsAddressFlag, "http://mps.orch-infra.svc:3000",
+		flags.MpsAddressDescription)
+	rpsAddress = flag.String(flags.RpsAddressFlag, "http://rps.orch-infra.svc:8081",
+		flags.RpsAddressDescription)
+	insecure     = flag.Bool("InsecureSkipVerify", false, flags.InsecureDescription)
 	insecureGrpc = flag.Bool(invClient.InsecureGrpc, true, invClient.InsecureGrpcDescription)
 	caCertPath   = flag.String(invClient.CaCertPath, "", invClient.CaCertPathDescription)
 	tlsCertPath  = flag.String(invClient.TLSCertPath, "", invClient.TLSCertPathDescription)
