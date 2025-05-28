@@ -20,7 +20,6 @@ import (
 )
 
 const (
-	mpsCiraPort = 4433
 	// Use domain name (like mps-node.kind.internal) instead of IP address of service, which will not
 	// go through traefik gateway due to SNI filtering.
 	// AddressFormat valid values:
@@ -40,7 +39,8 @@ const (
 var log = logging.GetLogger("DmReconciler")
 
 type ReconcilerConfig struct {
-	ClusterDomain  string
+	MpsAddress     string
+	MpsPort        int32
 	PasswordPolicy string
 
 	RequestTimeout  time.Duration
@@ -218,9 +218,9 @@ func (dmm *Manager) handleCiraConfig(ctx context.Context, tenantID string, cert 
 		postCiraConfig, err := dmm.RpsClient.CreateCIRAConfigWithResponse(ctx, rps.CreateCIRAConfigJSONRequestBody{
 			AuthMethod:          passwordAuth, // password auth
 			ServerAddressFormat: fqdnServerFormat,
-			CommonName:          "mps-node." + dmm.Config.ClusterDomain,
-			MpsServerAddress:    "mps-node." + dmm.Config.ClusterDomain,
-			MpsPort:             mpsCiraPort,
+			CommonName:          dmm.Config.MpsAddress,
+			MpsServerAddress:    dmm.Config.MpsAddress,
+			MpsPort:             dmm.Config.MpsPort,
 			ConfigName:          tenantID,
 			MpsRootCertificate:  convertCertToCertBlob(cert),
 			ProxyDetails:        "", // TODO: pass proxy from config

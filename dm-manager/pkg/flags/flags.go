@@ -6,14 +6,12 @@
 package flags
 
 const (
-	MpsAddressFlag           = "mpsAddress"
-	RpsAddressFlag           = "rpsAddress"
-	ClusterDomainAddressFlag = "clusterDomain"
-	PasswordPolicyFlag       = "passwordPolicy"
-	ReconcilePeriodFlag      = "reconcilePeriod"
-	RequestTimeoutFlag       = "requestTimeout"
+	MpsAddressFlag      = "mpsAddress"
+	RpsAddressFlag      = "rpsAddress"
+	PasswordPolicyFlag  = "passwordPolicy"
+	ReconcilePeriodFlag = "reconcilePeriod"
+	RequestTimeoutFlag  = "requestTimeout"
 
-	ClusterDomainDescription   = "Cluster domain address"
 	ReconcilePeriodDescription = "How often perform full reconciliation for every tenant"
 	RequestTimeoutDescription  = "Timeout for requests that are performed by DM manager"
 	PasswordPolicyDescription  = "One of two password policies: 'static' or 'dynamic'. " +

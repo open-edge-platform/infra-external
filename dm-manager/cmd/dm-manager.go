@@ -10,12 +10,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"k8s.io/apimachinery/pkg/util/yaml"
 
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	invClient "github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
@@ -32,6 +34,8 @@ import (
 )
 
 const (
+	orchMpsHostKey        = "orchMPSHost"
+	infraConfigPath       = "/etc/infra-config/config.yaml"
 	dmName                = "dm-manager"
 	eventsWatcherBufSize  = 10
 	defaultRequestTimeout = 10 * time.Second
@@ -47,7 +51,6 @@ var (
 
 	inventoryAddress = flag.String(invClient.InventoryAddress,
 		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
-	clusterDomain   = flag.String(flags.ClusterDomainAddressFlag, "cluster.onprem", flags.ClusterDomainDescription)
 	reconcilePeriod = flag.Duration(flags.ReconcilePeriodFlag, time.Minute, flags.ReconcilePeriodDescription)
 	requestTimeout  = flag.Duration(flags.RequestTimeoutFlag, defaultRequestTimeout,
 		flags.RequestTimeoutDescription)
@@ -104,6 +107,8 @@ func main() {
 		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
 	}
 
+	orchMpsHost, orchMpsPort := getMpsAddress(infraConfigPath)
+
 	dmReconciler := &dm.Manager{
 		MpsClient:       mpsClient,
 		RpsClient:       rpsClient,
@@ -114,7 +119,8 @@ func main() {
 		SecretProvider:  &vsp,
 		WaitGroup:       wg,
 		Config: &dm.ReconcilerConfig{
-			ClusterDomain:   *clusterDomain,
+			MpsAddress:      orchMpsHost,
+			MpsPort:         orchMpsPort,
 			PasswordPolicy:  *passwordPolicy,
 			ReconcilePeriod: *reconcilePeriod,
 			RequestTimeout:  *requestTimeout,
@@ -139,6 +145,48 @@ func main() {
 	dmReconciler.Stop()
 	wg.Wait()
 	log.Info().Msgf("Device Management Manager successfully stopped")
+}
+
+//nolint:gocritic // named results mean additional assignment/typecast.
+func getMpsAddress(filepath string) (string, int32) {
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Failed to read configuration file: %v", filepath)
+		return "", 0
+	}
+
+	var config map[string]any
+	if err = yaml.Unmarshal(data, &config); err != nil {
+		log.Fatal().Err(err).Msgf("Failed to unmarshal configuration file")
+		return "", 0
+	}
+
+	value, ok := config[orchMpsHostKey]
+	if !ok {
+		log.Fatal().Msgf("Key 'orchMPSHost' not found in configuration file")
+		return "", 0
+	}
+
+	stringValue, ok := value.(string)
+	if !ok {
+		log.Fatal().Msgf("failed to parse '%v' as string", value)
+	}
+
+	splitted := strings.Split(stringValue, ":")
+	const expectedHostAndPortLen = 2
+	if len(splitted) != expectedHostAndPortLen {
+		log.Fatal().Msgf("Variable 'orchMPSHost' is not set or has an invalid format."+
+			" Current value: '%v'", os.Getenv(orchMpsHostKey))
+		return "", 0
+	}
+	orchMpsHost := splitted[0]
+	orchMpsPort, err := strconv.ParseInt(splitted[1], 10, 32)
+	if err != nil {
+		log.Fatal().Err(err).Msgf("Failed to parse port from 'orchMPSHost' environment variable: '%v'", os.Getenv(orchMpsHostKey))
+		return "", 0
+	}
+
+	return orchMpsHost, int32(orchMpsPort)
 }
 
 func prepareClients(transport *http.Transport) (

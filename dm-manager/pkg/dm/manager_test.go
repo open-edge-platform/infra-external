@@ -87,8 +87,9 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	config := ReconcilerConfig{
 		PasswordPolicy:  StaticPasswordPolicy,
-		ClusterDomain:   "test.com",
 		ReconcilePeriod: time.Minute,
+		MpsAddress:      "mps-node.kind.internal",
+		MpsPort:         4433,
 	}
 
 	msp := mocks.MockSecretProvider{}
@@ -114,8 +115,9 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 	}, nil)
 	rpsMock.On("CreateCIRAConfigWithResponse",
 		mock.Anything, mock.MatchedBy(func(request rps.CreateCIRAConfigJSONRequestBody) bool {
-			return request.CommonName == "mps-node."+config.ClusterDomain &&
-				request.MpsServerAddress == "mps-node."+config.ClusterDomain && *request.Password == staticPassword
+			return request.CommonName == config.MpsAddress &&
+				request.MpsServerAddress == config.MpsAddress &&
+				*request.Password == staticPassword
 		})).Return(&rps.CreateCIRAConfigResponse{
 		JSON201: &rps.CIRAConfigResponse{},
 	}, nil)

@@ -87,6 +87,7 @@ linters-settings:
           - github.com/open-edge-platform
           - github.com/prometheus
           - github.com/rs/zerolog
+          - k8s.io/apimachinery/pkg
       test:
         files:
           - "$test"
@@ -96,6 +97,7 @@ linters-settings:
           - github.com/prometheus
           - github.com/stretchr/testify
           - github.com/rs/zerolog
+          - k8s.io/apimachinery/pkg
   cyclop:
     # SDL requirements recommend a maximum cyclomatic complexity of 10
     max-complexity: 10
