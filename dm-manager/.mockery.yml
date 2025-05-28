@@ -20,3 +20,11 @@ packages:
       structname: "Mock{{.InterfaceName}}"
     interfaces:
       ClientWithResponsesInterface:
+  github.com/open-edge-platform/infra-core/inventory/v2/pkg/secretprovider:
+    config:
+      dir: "pkg/mocks"
+      filename: "mocksecretprovider.go"
+      pkgname: "mocks"
+      structname: "Mock{{.InterfaceName}}"
+    interfaces:
+      SecretProvider:

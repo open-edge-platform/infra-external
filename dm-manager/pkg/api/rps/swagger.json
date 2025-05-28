@@ -63,17 +63,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/CIRAConfigResponse"
-                      }
-                    },
-                    {
-                      "$ref": "#/components/schemas/CountCIRAResponse"
-                    }
-                  ]
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CIRAConfigResponse"
+                  }
                 }
               }
             }
@@ -637,17 +630,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/ProfileResponse"
-                      }
-                    },
-                    {
-                      "$ref": "#/components/schemas/CountProfileResponse"
-                    }
-                  ]
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileResponse"
+                  }
                 }
               }
             }
@@ -1625,8 +1611,7 @@
             "format": "int32"
           },
           "mpsRootCertificate": {
-            "type": "string",
-            "format": "byte"
+            "type": "string"
           },
           "proxyDetails": {
             "type": "string"

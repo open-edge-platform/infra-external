@@ -39,7 +39,7 @@ TEST_TARGET      ?= .
 TEST_PKG         ?= $(shell go list ./... | grep -v "pkg/api" | grep -v "cmd" | tr '\n' ,)
 TEST_COVER       := atomic ./...
 TEST_ARGS        := ""
-TEST_USE_DB      := false
+TEST_USE_DB      := true
 
 # OpenAPI breaking check variables
 TEMP_BASE_OPENAPI_DIR := /tmp/dm-manager-main

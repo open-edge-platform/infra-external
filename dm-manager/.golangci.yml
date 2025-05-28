@@ -86,6 +86,8 @@ linters-settings:
           - $gostd
           - github.com/open-edge-platform
           - github.com/prometheus
+          - github.com/rs/zerolog
+          - k8s.io/apimachinery/pkg
       test:
         files:
           - "$test"
@@ -94,6 +96,8 @@ linters-settings:
           - github.com/open-edge-platform
           - github.com/prometheus
           - github.com/stretchr/testify
+          - github.com/rs/zerolog
+          - k8s.io/apimachinery/pkg
   cyclop:
     # SDL requirements recommend a maximum cyclomatic complexity of 10
     max-complexity: 10
@@ -186,10 +190,11 @@ issues:
     - Error return value of `.*Stop` is not checked
 
   exclude-rules:
-    - path: pkg/dm/auth_test.go
+    - path: pkg/dm/manager_test.go
       linters:
-        # setting it as a separate package, loca_test, would not allow to
-        # test unexported functions, which are main pillars of this codebase.
+        - testpackage
+    - path: pkg/dm/utils_test.go
+      linters:
         - testpackage
 
 output:

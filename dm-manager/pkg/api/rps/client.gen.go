@@ -117,7 +117,7 @@ type CIRAConfigPOST struct {
 	CommonName          string  `json:"commonName"`
 	ConfigName          string  `json:"configName"`
 	MpsPort             int32   `json:"mpsPort"`
-	MpsRootCertificate  []byte  `json:"mpsRootCertificate"`
+	MpsRootCertificate  string  `json:"mpsRootCertificate"`
 	MpsServerAddress    string  `json:"mpsServerAddress"`
 	Password            *string `json:"password,omitempty"`
 	ProxyDetails        string  `json:"proxyDetails"`
@@ -140,12 +140,6 @@ type CIRAConfigResponse struct {
 	Version             *string `json:"version,omitempty"`
 }
 
-// CountCIRAResponse defines model for CountCIRAResponse.
-type CountCIRAResponse struct {
-	Data       *[]CIRAConfigResponse `json:"data,omitempty"`
-	TotalCount *int                  `json:"totalCount,omitempty"`
-}
-
 // CountDomainResponse defines model for CountDomainResponse.
 type CountDomainResponse struct {
 	Data       *[]DomainResponse `json:"data,omitempty"`
@@ -156,12 +150,6 @@ type CountDomainResponse struct {
 type CountIEEE8021xResponse struct {
 	Data       *[]IEEE8021xConfigResponse `json:"data,omitempty"`
 	TotalCount *int                       `json:"totalCount,omitempty"`
-}
-
-// CountProfileResponse defines model for CountProfileResponse.
-type CountProfileResponse struct {
-	Data       *[]ProfileResponse `json:"data,omitempty"`
-	TotalCount *int               `json:"totalCount,omitempty"`
 }
 
 // CountWirelessResponse defines model for CountWirelessResponse.
@@ -2461,13 +2449,10 @@ type ClientWithResponsesInterface interface {
 type GetAllCIRAConfigsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		union json.RawMessage
-	}
-	JSON404 *APIResponse
-	JSON500 *APIResponse
+	JSON200      *[]CIRAConfigResponse
+	JSON404      *APIResponse
+	JSON500      *APIResponse
 }
-type GetAllCIRAConfigs2000 = []CIRAConfigResponse
 
 // Status returns HTTPResponse.Status
 func (r GetAllCIRAConfigsResponse) Status() string {
@@ -2849,13 +2834,10 @@ func (r Get8021xConfigResponse) StatusCode() int {
 type GetAllProfilesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *struct {
-		union json.RawMessage
-	}
-	JSON404 *APIResponse
-	JSON500 *APIResponse
+	JSON200      *[]ProfileResponse
+	JSON404      *APIResponse
+	JSON500      *APIResponse
 }
-type GetAllProfiles2000 = []ProfileResponse
 
 // Status returns HTTPResponse.Status
 func (r GetAllProfilesResponse) Status() string {
@@ -3450,9 +3432,7 @@ func ParseGetAllCIRAConfigsResponse(rsp *http.Response) (*GetAllCIRAConfigsRespo
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			union json.RawMessage
-		}
+		var dest []CIRAConfigResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -4061,9 +4041,7 @@ func ParseGetAllProfilesResponse(rsp *http.Response) (*GetAllProfilesResponse, e
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest struct {
-			union json.RawMessage
-		}
+		var dest []ProfileResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
