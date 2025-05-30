@@ -29,6 +29,7 @@ type DeviceController struct {
 	InventoryClient  client.TenantAwareInventoryClient
 	TermChan         chan bool
 	ReadyChan        chan bool
+	EventChan        chan *client.WatchEvents
 	WaitGroup        *sync.WaitGroup
 	DeviceController *rec_v2.Controller[DeviceID]
 }
@@ -44,5 +45,6 @@ func (dc *DeviceController) Stop() {
 }
 
 func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Request[DeviceID]) rec_v2.Directive[DeviceID] {
+
 	return request.Ack()
 }
