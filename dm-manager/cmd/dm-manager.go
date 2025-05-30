@@ -27,6 +27,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/tracing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/devices"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/flags"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/secrets"
@@ -34,11 +35,12 @@ import (
 )
 
 const (
-	orchMpsHostKey        = "orchMPSHost"
-	infraConfigPath       = "/etc/infra-config/config.yaml"
-	dmName                = "dm-manager"
-	eventsWatcherBufSize  = 10
-	defaultRequestTimeout = 10 * time.Second
+	orchMpsHostKey            = "orchMPSHost"
+	infraConfigPath           = "/etc/infra-config/config.yaml"
+	dmName                    = "dm-manager"
+	eventsWatcherBufSize      = 10
+	defaultRequestTimeout     = 10 * time.Second
+	defaultParallelGoroutines = 10
 )
 
 var (
@@ -50,7 +52,7 @@ var (
 	readyChan = make(chan bool, 1)
 
 	inventoryAddress = flag.String(invClient.InventoryAddress,
-		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
+		"http://inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
 	reconcilePeriod = flag.Duration(flags.ReconcilePeriodFlag, time.Minute, flags.ReconcilePeriodDescription)
 	requestTimeout  = flag.Duration(flags.RequestTimeoutFlag, defaultRequestTimeout,
 		flags.RequestTimeoutDescription)
@@ -127,22 +129,38 @@ func main() {
 		},
 	}
 
-	const defaultParallelGoroutines = 10
 	tenantController := rec_v2.NewController[dm.ReconcilerID](
 		dmReconciler.Reconcile,
 		rec_v2.WithParallelism(defaultParallelGoroutines),
 		rec_v2.WithTimeout(*requestTimeout))
 	dmReconciler.TenantController = tenantController
 
+	deviceReconciler := devices.DeviceController{
+		MpsClient:       mpsClient,
+		RpsClient:       rpsClient,
+		WaitGroup:       wg,
+		TermChan:        termChan,
+		ReadyChan:       readyChan,
+		InventoryClient: invTenantClient,
+	}
+	deviceController := rec_v2.NewController[devices.DeviceID](
+		deviceReconciler.Reconcile,
+		rec_v2.WithParallelism(defaultParallelGoroutines),
+		rec_v2.WithTimeout(*requestTimeout))
+	deviceReconciler.DeviceController = deviceController
+
 	wg.Add(1)
 	go dmReconciler.Start()
 
+	wg.Add(1)
+	deviceReconciler.Start()
 	<-osChan
 	termChan <- true
 
 	close(osChan)
 	close(termChan)
-	dmReconciler.Stop()
+	//dmReconciler.Stop()
+	deviceReconciler.Stop()
 	wg.Wait()
 	log.Info().Msgf("Device Management Manager successfully stopped")
 }
@@ -233,6 +251,7 @@ func prepareClients(transport *http.Transport) (
 	if err != nil {
 		log.Fatal().Err(err).Msgf("cannot create inventory client")
 	}
+
 	return mpsClient, rpsClient, invTenantClient, eventsWatcher
 }
 

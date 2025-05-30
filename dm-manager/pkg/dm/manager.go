@@ -62,7 +62,8 @@ type Manager struct {
 func (dmm *Manager) Start() {
 	ticker := time.NewTicker(dmm.Config.ReconcilePeriod)
 	dmm.ReadyChan <- true
-	log.Info().Msgf("Starting periodic reconciliation")
+	log.Info().Msgf("Starting periodic reconciliation for Device Management Toolkit")
+	dmm.ReconcileAll()
 	for {
 		select {
 		case <-ticker.C:
@@ -155,7 +156,7 @@ func (dmm *Manager) handleProfile(ctx context.Context, tenantID string) error {
 		log.Info().Msgf("profile not found for %v tenant, creating it", tenantID)
 
 		postProfileBody := rps.CreateProfileJSONRequestBody{
-			Activation:          "acmactivate",
+			Activation:          "ccmactivate",
 			CiraConfigName:      Ptr(tenantID),
 			DhcpEnabled:         true,
 			IpSyncEnabled:       Ptr(false),

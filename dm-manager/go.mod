@@ -7,7 +7,8 @@ go 1.24.1
 
 require (
 	github.com/oapi-codegen/runtime v1.1.1
-	github.com/open-edge-platform/infra-core/inventory/v2 v2.25.0
+	github.com/open-edge-platform/infra-core/apiv2/v2 v2.0.0-20250529092058-6f646e6f92bd
+	github.com/open-edge-platform/infra-core/inventory/v2 v2.25.1-0.20250529120328-af6ea11d726d
 	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.1
 	github.com/open-edge-platform/orch-library/go v0.6.1
 	github.com/prometheus/client_golang v1.22.0
@@ -39,6 +40,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/eko/gocache/lib/v4 v4.2.0 // indirect
 	github.com/eko/gocache/store/go_cache/v4 v4.2.2 // indirect
+	github.com/getkin/kin-openapi v0.131.0 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.4 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
@@ -96,12 +98,16 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.1-0.20231216201459-8508981c8b6c // indirect
+	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
+	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/open-edge-platform/orch-library/go/dazl v0.5.4 // indirect
 	github.com/open-policy-agent/opa v1.4.2 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
@@ -144,8 +150,8 @@ require (
 	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/tools v0.33.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250324211829-b45e905df463 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
 	google.golang.org/grpc v1.72.1 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
