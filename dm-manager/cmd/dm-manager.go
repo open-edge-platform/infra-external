@@ -160,9 +160,11 @@ func main() {
 		TermChan:        termChan,
 		ReadyChan:       readyChan,
 		InventoryClient: deviceInvClient,
-		EventChan:       deviceEventsWatcher,
+		ReconcilePeriod: *reconcilePeriod,
+		RequestTimeout:  *requestTimeout,
+		EventsWatcher:   deviceEventsWatcher,
 	}
-	deviceController := rec_v2.NewController[devices.DeviceID](
+	deviceController := rec_v2.NewController[devices.HostID](
 		deviceReconciler.Reconcile,
 		rec_v2.WithParallelism(defaultParallelGoroutines),
 		rec_v2.WithTimeout(*requestTimeout))
