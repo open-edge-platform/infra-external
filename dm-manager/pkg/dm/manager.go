@@ -156,7 +156,7 @@ func (dmm *Manager) handleProfile(ctx context.Context, tenantID string) error {
 		log.Info().Msgf("profile not found for %v tenant, creating it", tenantID)
 
 		postProfileBody := rps.CreateProfileJSONRequestBody{
-			Activation:          "ccmactivate",
+			Activation:          "acmactivate",
 			CiraConfigName:      Ptr(tenantID),
 			DhcpEnabled:         true,
 			IpSyncEnabled:       Ptr(false),

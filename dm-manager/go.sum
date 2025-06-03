@@ -249,8 +249,8 @@ github.com/oapi-codegen/runtime v1.1.1 h1:EXLHh0DXIJnWhdRPN2w4MXAzFyE4CskzhNLUmt
 github.com/oapi-codegen/runtime v1.1.1/go.mod h1:SK9X900oXmPWilYR5/WKPzt3Kqxn/uS/+lbpREv+eCg=
 github.com/oklog/ulid v1.3.1 h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
-github.com/open-edge-platform/infra-core/inventory/v2 v2.25.1-0.20250529120328-af6ea11d726d h1:Akixt1XJiku9wf4e1Mj/NXoaPqqzXUSCF1atIocU97M=
-github.com/open-edge-platform/infra-core/inventory/v2 v2.25.1-0.20250529120328-af6ea11d726d/go.mod h1:/bg3cDaZgXU88DOzGLJSkbK4ETpwibhmJnhkpvid7v0=
+github.com/open-edge-platform/infra-core/inventory/v2 v2.26.1 h1:36vSSEN1wlucqKBMMI0ekC8Ng0TKH9pfERUVou8Wm8Y=
+github.com/open-edge-platform/infra-core/inventory/v2 v2.26.1/go.mod h1:/bg3cDaZgXU88DOzGLJSkbK4ETpwibhmJnhkpvid7v0=
 github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.1 h1:DMgYiZJiTM5FY1qEijc7Li5po5uWUw9G+yzMEby95R8=
 github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.1/go.mod h1:wd36Czv7EztGRTNvV02SVWWVuna74CZwMKPeeCQbNrg=
 github.com/open-edge-platform/orch-library/go v0.6.1 h1:IGR2ic73f3obnhlxTRfHcyYMbPbYu7BSqa9UYyEZ78Q=

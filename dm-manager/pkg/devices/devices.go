@@ -8,18 +8,44 @@ package devices
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/rs/zerolog/log"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
+	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
+
+const (
+	POWER_ON    = mps.PowerActionRequestActionN2
+	POWER_CYCLE = mps.GetAMTFeaturesResponseOptInStateN5
+	POWER_OFF   = mps.PowerActionRequestActionN8
+	POWER_RESET = mps.PowerActionRequestActionN10
+	// In-band power actions require the presence of an agent running while the operating system
+	// is up and operational like the Intel Local Manageability Service (LMS):
+	POWER_SLEEP     = mps.PowerActionRequestActionN4
+	POWER_HIBERNATE = mps.PowerActionRequestActionN7
+)
+
+var log = logging.GetLogger("DeviceReconciler")
+
+var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
+	computev1.PowerState_POWER_STATE_UNSPECIFIED: POWER_ON, // todo: consider removing this mapping
+	computev1.PowerState_POWER_STATE_ON:          POWER_ON,
+	computev1.PowerState_POWER_STATE_OFF:         POWER_OFF,
+	computev1.PowerState_POWER_STATE_SLEEP:       POWER_SLEEP,
+	computev1.PowerState_POWER_STATE_RESET:       POWER_RESET,
+	computev1.PowerState_POWER_STATE_HIBERNATE:   POWER_HIBERNATE,
+}
 
 type HostID string
 
@@ -27,16 +53,16 @@ func (id HostID) GetTenantID() string {
 	return strings.Split(string(id), "_")[0]
 }
 
-func (id HostID) GetHostID() string {
-	return strings.Split(string(id), "_")[0]
+func (id HostID) GetHostUUID() string {
+	return strings.Split(string(id), "_")[1]
 }
 
 func (id HostID) String() string {
-	return fmt.Sprintf("[tenantID=%s, hostID=%s]", id.GetTenantID(), id.GetHostID())
+	return fmt.Sprintf("[tenantID=%s, hostID=%s]", id.GetTenantID(), id.GetHostUUID())
 }
 
-func NewDeviceID(tenantID, hostID string) HostID {
-	return HostID(tenantID + "_" + hostID)
+func NewDeviceID(tenantID, hostUUID string) HostID {
+	return HostID(tenantID + "_" + hostUUID)
 }
 
 type DeviceController struct {
@@ -90,7 +116,7 @@ func (dc *DeviceController) ReconcileAll() {
 	}
 
 	for _, host := range hosts {
-		err := dc.DeviceController.Reconcile(NewDeviceID(host.GetHost().GetTenantId(), host.GetHost().GetResourceId()))
+		err := dc.DeviceController.Reconcile(NewDeviceID(host.GetHost().GetTenantId(), host.GetHost().GetUuid()))
 		if err != nil {
 			log.Err(err).Msgf("failed to reconcile device")
 		}
@@ -103,6 +129,76 @@ func (dc *DeviceController) Stop() {
 }
 
 func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Request[HostID]) rec_v2.Directive[HostID] {
+	log.Debug().Msgf("started device reconciliation for %v", request.ID)
+	mpsHost, err := dc.MpsClient.GetApiV1DevicesGuidWithResponse(ctx, request.ID.GetHostUUID())
+	if err != nil {
+		log.Err(err).Msgf("couldn't get device info from MPS")
+		return request.Fail(err)
+	}
+	log.Debug().Msgf("MPS device - %+v", *mpsHost.JSON200)
+
+	invHost, err := dc.InventoryClient.GetHostByUUID(ctx, request.ID.GetTenantID(), request.ID.GetHostUUID())
+	if err != nil {
+		log.Err(err).Msgf("couldn't get device from inventory")
+		return request.Fail(err)
+	}
+	log.Debug().Msgf("inventory host - %v", invHost)
+
+	log.Debug().Msgf("desired state is %v, current state is %v for %v",
+		invHost.GetDesiredAmtState().String(), invHost.GetCurrentAmtState().String(), request.ID.GetHostUUID())
+
+	switch {
+	case invHost.GetDesiredAmtState() == invHost.GetCurrentAmtState():
+		//if invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED && invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState() {
+		//if invHost.GetPowerCommandPolicy() == computev1.PowerCommandPolicy_POWER_COMMAND_POLICY_IMMEDIATE {
+		powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(), mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
+			Action: powerMapping[invHost.DesiredPowerState],
+		})
+		if err != nil {
+			log.Err(err).Msgf("failed to send power action to MPS")
+			return request.Fail(err)
+		}
+
+		log.Debug().Msgf("power action response for %v with status code %v - %v", request.ID.GetHostUUID(),
+			powerAction.HTTPResponse, string(powerAction.Body))
+
+		if powerAction.StatusCode() != http.StatusOK {
+			log.Err(errors.Errorf("%v", string(powerAction.Body))).Msgf("expected to get 2XX, but got %v", powerAction.StatusCode())
+			return request.Fail(err)
+		}
+
+		// intentionally comparing whole body, as there are cases where MPS defines variable as lowercase
+		// but it is uppercase instead
+		// "Body":{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}}
+		if !strings.Contains(string(powerAction.Body), "SUCCESS") {
+			log.Err(errors.Errorf("power request sent successfully, but received unexpected response")).
+				Msgf("expected to receive SUCCESS, but got %s", string(powerAction.Body))
+			return request.Fail(err)
+		}
+
+		_, err = dc.InventoryClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(), &fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldCurrentPowerState,
+		}}, &inventoryv1.Resource{
+			Resource: &inventoryv1.Resource_Host{
+				Host: &computev1.HostResource{
+					CurrentPowerState: invHost.GetDesiredPowerState(),
+				},
+			},
+		})
+		if err != nil {
+			log.Err(err).Msgf("failed to update device info")
+			return request.Fail(err)
+		}
+		//} else {
+		//	log.Info().Msgf("implement me")
+		//}
+		//}
+
+	case invHost.GetDesiredAmtState() == computev1.AmtState_AMT_STATE_UNPROVISIONED:
+
+	case invHost.GetDesiredAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED:
+
+	}
 
 	return request.Ack()
 }

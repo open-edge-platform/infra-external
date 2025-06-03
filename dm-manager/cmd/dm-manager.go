@@ -49,10 +49,10 @@ var (
 
 	osChan    = make(chan os.Signal, 1)
 	termChan  = make(chan bool, 1)
-	readyChan = make(chan bool, 1)
+	readyChan = make(chan bool, 2)
 
 	inventoryAddress = flag.String(invClient.InventoryAddress,
-		"http://inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
+		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
 	reconcilePeriod = flag.Duration(flags.ReconcilePeriodFlag, time.Minute, flags.ReconcilePeriodDescription)
 	requestTimeout  = flag.Duration(flags.RequestTimeoutFlag, defaultRequestTimeout,
 		flags.RequestTimeoutDescription)
@@ -174,13 +174,13 @@ func main() {
 	go dmReconciler.Start()
 
 	wg.Add(1)
-	deviceReconciler.Start()
+	go deviceReconciler.Start()
 	<-osChan
 	termChan <- true
 
 	close(osChan)
 	close(termChan)
-	//dmReconciler.Stop()
+	dmReconciler.Stop()
 	deviceReconciler.Stop()
 	wg.Wait()
 	log.Info().Msgf("Device Management Manager successfully stopped")
@@ -243,11 +243,9 @@ func prepareDmClients() (
 			KeyPath:  *tlsKeyPath,
 			Insecure: *insecureGrpc,
 		},
-		Events:     eventsWatcher,
-		ClientKind: inventoryv1.ClientKind_CLIENT_KIND_TENANT_CONTROLLER,
-		ResourceKinds: []inventoryv1.ResourceKind{
-			inventoryv1.ResourceKind_RESOURCE_KIND_TENANT,
-		},
+		Events:        eventsWatcher,
+		ClientKind:    inventoryv1.ClientKind_CLIENT_KIND_API,
+		ResourceKinds: []inventoryv1.ResourceKind{},
 		Wg:            wg,
 		EnableTracing: *enableTracing,
 		EnableMetrics: *enableMetrics,
