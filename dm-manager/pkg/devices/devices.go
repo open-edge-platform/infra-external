@@ -195,6 +195,20 @@ func (dc *DeviceController) handlePowerChange(
 	currentPowerState := invHost.GetDesiredPowerState()
 	// prevent reboot loop on host
 	if invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_RESET {
+		_, err = dc.InventoryAPIClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+			&fieldmaskpb.FieldMask{Paths: []string{
+				computev1.HostResourceFieldDesiredPowerState,
+			}}, &inventoryv1.Resource{
+				Resource: &inventoryv1.Resource_Host{
+					Host: &computev1.HostResource{
+						DesiredPowerState: computev1.PowerState_POWER_STATE_ON,
+					},
+				},
+			})
+		if err != nil {
+			log.Err(err).Msgf("failed to update device info")
+			return request.Fail(err)
+		}
 		currentPowerState = computev1.PowerState_POWER_STATE_ON
 	}
 	_, err = dc.InventoryRmClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),

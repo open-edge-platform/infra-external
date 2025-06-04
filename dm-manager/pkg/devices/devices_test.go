@@ -5,15 +5,13 @@ package devices
 
 import (
 	"context"
-	"net/http"
-	"os"
-	"testing"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	"net/http"
+	"os"
+	"testing"
 
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
@@ -49,7 +47,7 @@ func TestNewDeviceID(t *testing.T) {
 	assert.Equal(t, "asd", deviceID.GetHostUUID())
 }
 
-func TestDeviceController_Reconcile(t *testing.T) {
+func TestDeviceController_Reconcile_poweredOffSystemShouldTurnOn(t *testing.T) {
 	dao := inv_testing.NewInvResourceDAOOrFail(t)
 	hostUUID := uuid.NewString()
 	host := dao.CreateHostWithOpts(t, client.FakeTenantID, true, func(c *computev1.HostResource) {
@@ -93,9 +91,57 @@ func TestDeviceController_Reconcile(t *testing.T) {
 
 	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[HostID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
 
-	time.Sleep(time.Second)
 	host, err = dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
 	assert.NoError(t, err)
 	assert.Equal(t, computev1.PowerState_POWER_STATE_ON, host.CurrentPowerState)
-	log.Info().Msgf("host -%+v", host)
+}
+
+func TestDeviceController_Reconcile_powerCycleShouldRebootAndChangeToPowerOn(t *testing.T) {
+	dao := inv_testing.NewInvResourceDAOOrFail(t)
+	hostUUID := uuid.NewString()
+	host := dao.CreateHostWithOpts(t, client.FakeTenantID, true, func(c *computev1.HostResource) {
+		c.DesiredPowerState = computev1.PowerState_POWER_STATE_RESET
+		c.DesiredAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
+		c.Uuid = hostUUID
+	})
+
+	_, err := dao.GetRMClient().Update(context.Background(), host.GetTenantId(), host.GetResourceId(), &fieldmaskpb.FieldMask{
+		Paths: []string{
+			computev1.HostResourceFieldCurrentAmtState, computev1.HostResourceFieldCurrentPowerState,
+		},
+	}, &inventoryv1.Resource{
+		Resource: &inventoryv1.Resource_Host{
+			Host: &computev1.HostResource{
+				CurrentPowerState: computev1.PowerState_POWER_STATE_HIBERNATE,
+				CurrentAmtState:   computev1.AmtState_AMT_STATE_PROVISIONED,
+			},
+		},
+	})
+	assert.NoError(t, err)
+
+	mpsMock := new(mps.MockClientWithResponsesInterface)
+
+	deviceReconciller := DeviceController{
+		MpsClient: mpsMock, InventoryRmClient: dao.GetRMClient(), InventoryAPIClient: dao.GetAPIClient(),
+	}
+	deviceController := rec_v2.NewController[HostID](
+		deviceReconciller.Reconcile)
+	deviceReconciller.DeviceController = deviceController
+
+	mpsMock.On("GetApiV1DevicesGuidWithResponse", mock.Anything, mock.Anything).
+		Return(&mps.GetApiV1DevicesGuidResponse{}, nil)
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
+		Return(&mps.PostApiV1AmtPowerActionGuidResponse{
+			HTTPResponse: &http.Response{
+				StatusCode: http.StatusOK,
+			},
+			Body: []byte(`{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}`),
+		}, nil)
+
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[HostID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
+
+	host, err = dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
+	assert.NoError(t, err)
+	assert.Equal(t, computev1.PowerState_POWER_STATE_ON, host.CurrentPowerState)
+	assert.Equal(t, computev1.PowerState_POWER_STATE_ON, host.DesiredPowerState)
 }
