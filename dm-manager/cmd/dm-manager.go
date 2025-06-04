@@ -151,18 +151,19 @@ func main() {
 		rec_v2.WithTimeout(*requestTimeout))
 	dmReconciler.TenantController = tenantController
 
-	deviceInvClient, deviceEventsWatcher := prepareDevicesClients()
+	rmClient, apiClient, deviceEventsWatcher := prepareDevicesClients()
 
 	deviceReconciler := devices.DeviceController{
-		MpsClient:       mpsClient,
-		RpsClient:       rpsClient,
-		WaitGroup:       wg,
-		TermChan:        termChan,
-		ReadyChan:       readyChan,
-		InventoryClient: deviceInvClient,
-		ReconcilePeriod: *reconcilePeriod,
-		RequestTimeout:  *requestTimeout,
-		EventsWatcher:   deviceEventsWatcher,
+		MpsClient:          mpsClient,
+		RpsClient:          rpsClient,
+		WaitGroup:          wg,
+		TermChan:           termChan,
+		ReadyChan:          readyChan,
+		InventoryRmClient:  rmClient,
+		InventoryApiClient: apiClient,
+		ReconcilePeriod:    *reconcilePeriod,
+		RequestTimeout:     *requestTimeout,
+		EventsWatcher:      deviceEventsWatcher,
 	}
 	deviceController := rec_v2.NewController[devices.HostID](
 		deviceReconciler.Reconcile,
@@ -258,11 +259,11 @@ func prepareDmClients() (
 }
 
 func prepareDevicesClients() (
-	invTenantClient invClient.TenantAwareInventoryClient, eventsWatcher chan *invClient.WatchEvents,
+	rmClient invClient.TenantAwareInventoryClient, apiClient invClient.TenantAwareInventoryClient, eventsWatcher chan *invClient.WatchEvents,
 ) {
 	eventsWatcher = make(chan *invClient.WatchEvents, eventsWatcherBufSize)
-	invTenantClient, err := invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
-		Name:                      "DM device manager",
+	rmClient, err := invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
+		Name:                      "DM RM manager",
 		Address:                   *inventoryAddress,
 		EnableRegisterRetry:       false,
 		AbortOnUnknownClientError: true,
@@ -285,7 +286,28 @@ func prepareDevicesClients() (
 		log.Fatal().Err(err).Msgf("cannot create inventory client")
 	}
 
-	return invTenantClient, eventsWatcher
+	apiClient, err = invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
+		Name:                      "DM API manager",
+		Address:                   *inventoryAddress,
+		EnableRegisterRetry:       false,
+		AbortOnUnknownClientError: true,
+		SecurityCfg: &invClient.SecurityConfig{
+			CaPath:   *caCertPath,
+			CertPath: *tlsCertPath,
+			KeyPath:  *tlsKeyPath,
+			Insecure: *insecureGrpc,
+		},
+		Events:        eventsWatcher,
+		ClientKind:    inventoryv1.ClientKind_CLIENT_KIND_API,
+		Wg:            wg,
+		EnableTracing: *enableTracing,
+		EnableMetrics: *enableMetrics,
+	})
+	if err != nil {
+		log.Fatal().Err(err).Msgf("cannot create inventory client")
+	}
+
+	return rmClient, apiClient, eventsWatcher
 }
 
 func setupOamServer(enableTracing bool, oamservaddr string) {

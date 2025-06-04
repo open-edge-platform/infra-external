@@ -66,14 +66,15 @@ func NewDeviceID(tenantID, hostUUID string) HostID {
 }
 
 type DeviceController struct {
-	MpsClient        mps.ClientWithResponsesInterface
-	RpsClient        rps.ClientWithResponsesInterface
-	InventoryClient  client.TenantAwareInventoryClient
-	TermChan         chan bool
-	ReadyChan        chan bool
-	EventsWatcher    chan *client.WatchEvents
-	WaitGroup        *sync.WaitGroup
-	DeviceController *rec_v2.Controller[HostID]
+	MpsClient          mps.ClientWithResponsesInterface
+	RpsClient          rps.ClientWithResponsesInterface
+	InventoryRmClient  client.TenantAwareInventoryClient // manages Current* fields
+	InventoryApiClient client.TenantAwareInventoryClient // managed Desired* fields
+	TermChan           chan bool
+	ReadyChan          chan bool
+	EventsWatcher      chan *client.WatchEvents
+	WaitGroup          *sync.WaitGroup
+	DeviceController   *rec_v2.Controller[HostID]
 
 	ReconcilePeriod time.Duration
 	RequestTimeout  time.Duration
@@ -107,7 +108,7 @@ func (dc *DeviceController) Start() {
 func (dc *DeviceController) ReconcileAll() {
 	ctx, cancel := context.WithTimeout(context.Background(), dc.RequestTimeout)
 	defer cancel()
-	hosts, err := dc.InventoryClient.ListAll(ctx, &inventoryv1.ResourceFilter{
+	hosts, err := dc.InventoryRmClient.ListAll(ctx, &inventoryv1.ResourceFilter{
 		Resource: &inventoryv1.Resource{Resource: &inventoryv1.Resource_Host{}},
 	})
 	if err != nil {
@@ -130,14 +131,8 @@ func (dc *DeviceController) Stop() {
 
 func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Request[HostID]) rec_v2.Directive[HostID] {
 	log.Debug().Msgf("started device reconciliation for %v", request.ID)
-	mpsHost, err := dc.MpsClient.GetApiV1DevicesGuidWithResponse(ctx, request.ID.GetHostUUID())
-	if err != nil {
-		log.Err(err).Msgf("couldn't get device info from MPS")
-		return request.Fail(err)
-	}
-	log.Debug().Msgf("MPS device - %+v", *mpsHost.JSON200)
 
-	invHost, err := dc.InventoryClient.GetHostByUUID(ctx, request.ID.GetTenantID(), request.ID.GetHostUUID())
+	invHost, err := dc.InventoryRmClient.GetHostByUUID(ctx, request.ID.GetTenantID(), request.ID.GetHostUUID())
 	if err != nil {
 		log.Err(err).Msgf("couldn't get device from inventory")
 		return request.Fail(err)
@@ -176,7 +171,7 @@ func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Reques
 			return request.Fail(err)
 		}
 
-		_, err = dc.InventoryClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(), &fieldmaskpb.FieldMask{Paths: []string{
+		_, err = dc.InventoryRmClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(), &fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentPowerState,
 		}}, &inventoryv1.Resource{
 			Resource: &inventoryv1.Resource_Host{
