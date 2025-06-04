@@ -88,6 +88,7 @@ linters-settings:
           - github.com/prometheus
           - github.com/rs/zerolog
           - k8s.io/apimachinery/pkg
+          - github.com/google/uuid
       test:
         files:
           - "$test"
@@ -96,6 +97,7 @@ linters-settings:
           - github.com/open-edge-platform
           - github.com/prometheus
           - github.com/stretchr/testify
+          - github.com/google/uuid
           - github.com/rs/zerolog
           - k8s.io/apimachinery/pkg
   cyclop:
@@ -196,6 +198,9 @@ issues:
     - path: pkg/dm/utils_test.go
       linters:
         - testpackage
+    - path: pkg/devices/devices_test.go
+      linters:
+      - testpackage
 
 output:
   # Format:

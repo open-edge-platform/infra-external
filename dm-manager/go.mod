@@ -6,6 +6,7 @@ module github.com/open-edge-platform/infra-external/dm-manager
 go 1.24.1
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/open-edge-platform/infra-core/inventory/v2 v2.26.1
 	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.18.1
@@ -63,7 +64,6 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/cel-go v0.25.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1 // indirect

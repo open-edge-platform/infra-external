@@ -5,22 +5,22 @@ package devices
 
 import (
 	"context"
-	"github.com/google/uuid"
-	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
-	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
-	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
-	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
-	"github.com/stretchr/testify/mock"
-	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"net/http"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
+	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
+	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	inv_testing "github.com/open-edge-platform/infra-core/inventory/v2/pkg/testing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
+	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
 func TestMain(m *testing.M) {
@@ -60,7 +60,9 @@ func TestDeviceController_Reconcile(t *testing.T) {
 
 	_, err := dao.GetRMClient().Update(context.Background(), host.GetTenantId(), host.GetResourceId(), &fieldmaskpb.FieldMask{
 		Paths: []string{
-			computev1.HostResourceFieldCurrentAmtState, computev1.HostResourceFieldCurrentPowerState}}, &inventoryv1.Resource{
+			computev1.HostResourceFieldCurrentAmtState, computev1.HostResourceFieldCurrentPowerState,
+		},
+	}, &inventoryv1.Resource{
 		Resource: &inventoryv1.Resource_Host{
 			Host: &computev1.HostResource{
 				CurrentPowerState: computev1.PowerState_POWER_STATE_OFF,
@@ -73,7 +75,8 @@ func TestDeviceController_Reconcile(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 
 	deviceReconciller := DeviceController{
-		MpsClient: mpsMock, InventoryRmClient: dao.GetRMClient(), InventoryApiClient: dao.GetAPIClient()}
+		MpsClient: mpsMock, InventoryRmClient: dao.GetRMClient(), InventoryAPIClient: dao.GetAPIClient(),
+	}
 	deviceController := rec_v2.NewController[HostID](
 		deviceReconciller.Reconcile)
 	deviceReconciller.DeviceController = deviceController

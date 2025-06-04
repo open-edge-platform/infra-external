@@ -41,6 +41,8 @@ const (
 	eventsWatcherBufSize      = 10
 	defaultRequestTimeout     = 10 * time.Second
 	defaultParallelGoroutines = 10
+
+	numberOfController = 2
 )
 
 var (
@@ -49,7 +51,7 @@ var (
 
 	osChan    = make(chan os.Signal, 1)
 	termChan  = make(chan bool, 1)
-	readyChan = make(chan bool, 2)
+	readyChan = make(chan bool, numberOfController)
 
 	inventoryAddress = flag.String(invClient.InventoryAddress,
 		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
@@ -101,13 +103,6 @@ func main() {
 		}
 	}
 
-	vsp := secrets.VaultSecretProvider{}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	if initErr := vsp.Init(ctx, []string{dm.AmtPasswordSecretName}); initErr != nil {
-		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
-	}
-
 	mpsClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
 		apiClient.Client = &http.Client{Transport: transport}
 		return nil
@@ -124,9 +119,39 @@ func main() {
 		log.Fatal().Err(err).Msgf("cannot create client")
 	}
 
-	dmInvClient, dmEventsWatcher := prepareDmClients()
 	orchMpsHost, orchMpsPort := getMpsAddress(infraConfigPath)
 
+	vsp := secrets.VaultSecretProvider{}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if initErr := vsp.Init(ctx, []string{dm.AmtPasswordSecretName}); initErr != nil {
+		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
+	}
+
+	dmReconciler := getDmController(mpsClient, rpsClient, vsp, orchMpsHost, orchMpsPort)
+	deviceReconciler := getDeviceController(mpsClient, rpsClient)
+
+	wg.Add(1)
+	go dmReconciler.Start()
+
+	wg.Add(1)
+	go deviceReconciler.Start()
+	<-osChan
+	termChan <- true
+
+	close(osChan)
+	close(termChan)
+	dmReconciler.Stop()
+	deviceReconciler.Stop()
+	wg.Wait()
+	log.Info().Msgf("Device Management Manager successfully stopped")
+}
+
+func getDmController(
+	mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses, vsp secrets.VaultSecretProvider,
+	orchMpsHost string, orchMpsPort int32,
+) *dm.Manager {
+	dmInvClient, dmEventsWatcher := prepareDmClients()
 	dmReconciler := &dm.Manager{
 		MpsClient:       mpsClient,
 		RpsClient:       rpsClient,
@@ -150,7 +175,10 @@ func main() {
 		rec_v2.WithParallelism(defaultParallelGoroutines),
 		rec_v2.WithTimeout(*requestTimeout))
 	dmReconciler.TenantController = tenantController
+	return dmReconciler
+}
 
+func getDeviceController(mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses) devices.DeviceController {
 	rmClient, apiClient, deviceEventsWatcher := prepareDevicesClients()
 
 	deviceReconciler := devices.DeviceController{
@@ -160,7 +188,7 @@ func main() {
 		TermChan:           termChan,
 		ReadyChan:          readyChan,
 		InventoryRmClient:  rmClient,
-		InventoryApiClient: apiClient,
+		InventoryAPIClient: apiClient,
 		ReconcilePeriod:    *reconcilePeriod,
 		RequestTimeout:     *requestTimeout,
 		EventsWatcher:      deviceEventsWatcher,
@@ -170,21 +198,7 @@ func main() {
 		rec_v2.WithParallelism(defaultParallelGoroutines),
 		rec_v2.WithTimeout(*requestTimeout))
 	deviceReconciler.DeviceController = deviceController
-
-	wg.Add(1)
-	go dmReconciler.Start()
-
-	wg.Add(1)
-	go deviceReconciler.Start()
-	<-osChan
-	termChan <- true
-
-	close(osChan)
-	close(termChan)
-	dmReconciler.Stop()
-	deviceReconciler.Stop()
-	wg.Wait()
-	log.Info().Msgf("Device Management Manager successfully stopped")
+	return deviceReconciler
 }
 
 //nolint:gocritic // named results mean additional assignment/typecast.
@@ -259,7 +273,8 @@ func prepareDmClients() (
 }
 
 func prepareDevicesClients() (
-	rmClient invClient.TenantAwareInventoryClient, apiClient invClient.TenantAwareInventoryClient, eventsWatcher chan *invClient.WatchEvents,
+	rmClient invClient.TenantAwareInventoryClient, apiClient invClient.TenantAwareInventoryClient,
+	eventsWatcher chan *invClient.WatchEvents,
 ) {
 	eventsWatcher = make(chan *invClient.WatchEvents, eventsWatcherBufSize)
 	rmClient, err := invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{

@@ -26,25 +26,24 @@ import (
 )
 
 const (
-	POWER_ON    = mps.PowerActionRequestActionN2
-	POWER_CYCLE = mps.GetAMTFeaturesResponseOptInStateN5
-	POWER_OFF   = mps.PowerActionRequestActionN8
-	POWER_RESET = mps.PowerActionRequestActionN10
+	powerOn    = mps.PowerActionRequestActionN2
+	powerOff   = mps.PowerActionRequestActionN8
+	powerReset = mps.PowerActionRequestActionN10
 	// In-band power actions require the presence of an agent running while the operating system
-	// is up and operational like the Intel Local Manageability Service (LMS):
-	POWER_SLEEP     = mps.PowerActionRequestActionN4
-	POWER_HIBERNATE = mps.PowerActionRequestActionN7
+	// is up and operational like the Intel Local Manageability Service (LMS).
+	powerSleep     = mps.PowerActionRequestActionN4
+	powerHibernate = mps.PowerActionRequestActionN7
 )
 
 var log = logging.GetLogger("DeviceReconciler")
 
 var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
-	computev1.PowerState_POWER_STATE_UNSPECIFIED: POWER_ON, // todo: consider removing this mapping
-	computev1.PowerState_POWER_STATE_ON:          POWER_ON,
-	computev1.PowerState_POWER_STATE_OFF:         POWER_OFF,
-	computev1.PowerState_POWER_STATE_SLEEP:       POWER_SLEEP,
-	computev1.PowerState_POWER_STATE_RESET:       POWER_RESET,
-	computev1.PowerState_POWER_STATE_HIBERNATE:   POWER_HIBERNATE,
+	computev1.PowerState_POWER_STATE_UNSPECIFIED: powerOn, // todo: consider removing this mapping
+	computev1.PowerState_POWER_STATE_ON:          powerOn,
+	computev1.PowerState_POWER_STATE_OFF:         powerOff,
+	computev1.PowerState_POWER_STATE_SLEEP:       powerSleep,
+	computev1.PowerState_POWER_STATE_RESET:       powerReset,
+	computev1.PowerState_POWER_STATE_HIBERNATE:   powerHibernate,
 }
 
 type HostID string
@@ -69,7 +68,7 @@ type DeviceController struct {
 	MpsClient          mps.ClientWithResponsesInterface
 	RpsClient          rps.ClientWithResponsesInterface
 	InventoryRmClient  client.TenantAwareInventoryClient // manages Current* fields
-	InventoryApiClient client.TenantAwareInventoryClient // managed Desired* fields
+	InventoryAPIClient client.TenantAwareInventoryClient // managed Desired* fields
 	TermChan           chan bool
 	ReadyChan          chan bool
 	EventsWatcher      chan *client.WatchEvents
@@ -122,11 +121,10 @@ func (dc *DeviceController) ReconcileAll() {
 			log.Err(err).Msgf("failed to reconcile device")
 		}
 	}
-	log.Debug().Msgf("reconcilation of devices is done")
+	log.Debug().Msgf("`reconciliation` of devices is done")
 }
 
 func (dc *DeviceController) Stop() {
-
 }
 
 func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Request[HostID]) rec_v2.Directive[HostID] {
@@ -143,57 +141,75 @@ func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Reques
 		invHost.GetDesiredAmtState().String(), invHost.GetCurrentAmtState().String(), request.ID.GetHostUUID())
 
 	switch {
-	case invHost.GetDesiredAmtState() == invHost.GetCurrentAmtState():
-		//if invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED && invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState() {
-		//if invHost.GetPowerCommandPolicy() == computev1.PowerCommandPolicy_POWER_COMMAND_POLICY_IMMEDIATE {
-		powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(), mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
-			Action: powerMapping[invHost.DesiredPowerState],
-		})
-		if err != nil {
-			log.Err(err).Msgf("failed to send power action to MPS")
-			return request.Fail(err)
-		}
+	case invHost.GetDesiredAmtState() == invHost.GetCurrentAmtState() &&
+		invHost.GetDesiredPowerState() == invHost.GetCurrentPowerState():
+		log.Debug().Msgf("desired state is equal to current state for %v, nothing to do", request.ID.GetHostUUID())
+		return request.Ack()
 
-		log.Debug().Msgf("power action response for %v with status code %v - %v", request.ID.GetHostUUID(),
-			powerAction.HTTPResponse, string(powerAction.Body))
-
-		if powerAction.StatusCode() != http.StatusOK {
-			log.Err(errors.Errorf("%v", string(powerAction.Body))).Msgf("expected to get 2XX, but got %v", powerAction.StatusCode())
-			return request.Fail(err)
-		}
-
-		// intentionally comparing whole body, as there are cases where MPS defines variable as lowercase
-		// but it is uppercase instead
-		// "Body":{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}}
-		if !strings.Contains(string(powerAction.Body), "SUCCESS") {
-			log.Err(errors.Errorf("power request sent successfully, but received unexpected response")).
-				Msgf("expected to receive SUCCESS, but got %s", string(powerAction.Body))
-			return request.Fail(err)
-		}
-
-		_, err = dc.InventoryRmClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(), &fieldmaskpb.FieldMask{Paths: []string{
-			computev1.HostResourceFieldCurrentPowerState,
-		}}, &inventoryv1.Resource{
-			Resource: &inventoryv1.Resource_Host{
-				Host: &computev1.HostResource{
-					CurrentPowerState: invHost.GetDesiredPowerState(),
-				},
-			},
-		})
-		if err != nil {
-			log.Err(err).Msgf("failed to update device info")
-			return request.Fail(err)
-		}
-		//} else {
+	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
+		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState():
+		// if invHost.GetPowerCommandPolicy() == computev1.PowerCommandPolicy_POWER_COMMAND_POLICY_IMMEDIATE {
+		return dc.handlePowerChange(ctx, request, invHost)
+		// } else {
 		//	log.Info().Msgf("implement me")
 		//}
 		//}
 
 	case invHost.GetDesiredAmtState() == computev1.AmtState_AMT_STATE_UNPROVISIONED:
-
-	case invHost.GetDesiredAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED:
-
+		log.Fatal().Msgf("implement me")
 	}
 
+	return request.Ack()
+}
+
+func (dc *DeviceController) handlePowerChange(
+	ctx context.Context, request rec_v2.Request[HostID], invHost *computev1.HostResource,
+) rec_v2.Directive[HostID] {
+	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
+		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
+			Action: powerMapping[invHost.GetDesiredPowerState()],
+		})
+	if err != nil {
+		log.Err(err).Msgf("failed to send power action to MPS")
+		return request.Fail(err)
+	}
+
+	log.Debug().Msgf("power action response for %v with status code %v - %v", request.ID.GetHostUUID(),
+		powerAction.HTTPResponse, string(powerAction.Body))
+
+	if powerAction.StatusCode() != http.StatusOK {
+		log.Err(errors.Errorf("%v", string(powerAction.Body))).
+			Msgf("expected to get 2XX, but got %v", powerAction.StatusCode())
+		return request.Fail(err)
+	}
+
+	// intentionally comparing whole body, as there are cases where MPS defines variable as lowercase
+	// but it is uppercase instead
+	// "Body":{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}}
+	if !strings.Contains(string(powerAction.Body), "SUCCESS") {
+		log.Err(errors.Errorf("power request sent successfully, but received unexpected response")).
+			Msgf("expected to receive SUCCESS, but got %s", string(powerAction.Body))
+		return request.Fail(err)
+	}
+
+	currentPowerState := invHost.GetDesiredPowerState()
+	// prevent reboot loop on host
+	if invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_RESET {
+		currentPowerState = computev1.PowerState_POWER_STATE_ON
+	}
+	_, err = dc.InventoryRmClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+		&fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldCurrentPowerState,
+		}}, &inventoryv1.Resource{
+			Resource: &inventoryv1.Resource_Host{
+				Host: &computev1.HostResource{
+					CurrentPowerState: currentPowerState,
+				},
+			},
+		})
+	if err != nil {
+		log.Err(err).Msgf("failed to update device info")
+		return request.Fail(err)
+	}
 	return request.Ack()
 }
