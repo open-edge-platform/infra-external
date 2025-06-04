@@ -5,13 +5,14 @@ package devices
 
 import (
 	"context"
+	"net/http"
+	"os"
+	"testing"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
-	"net/http"
-	"os"
-	"testing"
 
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"

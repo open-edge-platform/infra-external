@@ -137,8 +137,9 @@ func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Reques
 	}
 	log.Debug().Msgf("inventory host - %v", invHost)
 
-	log.Debug().Msgf("desired state is %v, current state is %v for %v",
-		invHost.GetDesiredAmtState().String(), invHost.GetCurrentAmtState().String(), request.ID.GetHostUUID())
+	log.Debug().Msgf("desired state is %v[%v], current state is %v[%v] for %v",
+		invHost.GetDesiredAmtState().String(), invHost.GetDesiredPowerState().String(),
+		invHost.GetCurrentAmtState().String(), invHost.GetCurrentPowerState(), request.ID.GetHostUUID())
 
 	switch {
 	case invHost.GetDesiredAmtState() == invHost.GetCurrentAmtState() &&
@@ -165,6 +166,8 @@ func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Reques
 func (dc *DeviceController) handlePowerChange(
 	ctx context.Context, request rec_v2.Request[HostID], invHost *computev1.HostResource,
 ) rec_v2.Directive[HostID] {
+	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID.GetHostUUID(),
+		invHost.GetCurrentPowerState(), invHost.GetDesiredPowerState())
 	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
 		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
 			Action: powerMapping[invHost.GetDesiredPowerState()],
