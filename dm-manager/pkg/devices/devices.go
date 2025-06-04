@@ -121,10 +121,11 @@ func (dc *DeviceController) ReconcileAll() {
 			log.Err(err).Msgf("failed to reconcile device")
 		}
 	}
-	log.Debug().Msgf("`reconciliation` of devices is done")
+	log.Debug().Msgf("reconciliation of devices is done")
 }
 
 func (dc *DeviceController) Stop() {
+	dc.WaitGroup.Done()
 }
 
 func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Request[HostID]) rec_v2.Directive[HostID] {

@@ -7,7 +7,9 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -145,4 +147,45 @@ func TestDeviceController_Reconcile_powerCycleShouldRebootAndChangeToPowerOn(t *
 	assert.NoError(t, err)
 	assert.Equal(t, computev1.PowerState_POWER_STATE_ON, host.CurrentPowerState)
 	assert.Equal(t, computev1.PowerState_POWER_STATE_ON, host.DesiredPowerState)
+}
+
+func TestDeviceController_Start(t *testing.T) {
+	termChan := make(chan bool, 1)
+	readyChan := make(chan bool, 1)
+	wg := &sync.WaitGroup{}
+	dc := &DeviceController{
+		InventoryAPIClient: inv_testing.TestClients[inv_testing.APIClient].GetTenantAwareInventoryClient(),
+		InventoryRmClient:  inv_testing.TestClients[inv_testing.RMClient].GetTenantAwareInventoryClient(),
+		TermChan:           termChan,
+		ReadyChan:          readyChan,
+		ReconcilePeriod:    time.Minute,
+		RequestTimeout:     time.Second,
+		WaitGroup:          wg,
+	}
+
+	wg.Add(1)
+	go dc.Start()
+
+	select {
+	case readyEvent := <-readyChan:
+		assert.True(t, readyEvent)
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timeout waiting for ReadyChan signal")
+	}
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	termChan <- true
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timeout waiting for reconciler to stop")
+	}
+
+	assert.True(t, true, "Manager stopped successfully")
 }
