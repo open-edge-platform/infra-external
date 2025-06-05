@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
@@ -33,6 +34,22 @@ func (h TestAssertHook) Assert(t *testing.T) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	assert.True(t, *h.caughtMessage)
+}
+
+func (h TestAssertHook) AssertWithTimeout(t *testing.T, timeout time.Duration) {
+	t.Helper()
+
+	ticker := time.NewTicker(10 * time.Millisecond)
+	select {
+	case <-ticker.C:
+		h.mutex.Lock()
+		if *h.caughtMessage {
+			assert.True(t, *h.caughtMessage)
+		}
+		h.mutex.Unlock()
+	case <-time.After(timeout):
+		assert.Fail(t, "Expected message not caught within timeout", h.expectedMessage)
+	}
 }
 
 func NewTestAssertHook(message string) *TestAssertHook {

@@ -208,10 +208,8 @@ func TestDeviceController_ReconcileAll_shouldContinueOnErrorInReconcile(t *testi
 
 	deviceReconciller.ReconcileAll()
 
-	time.Sleep(time.Second)
-
-	powerHook.Assert(t)
-	reconcileHook.Assert(t)
+	powerHook.AssertWithTimeout(t, time.Second)
+	reconcileHook.AssertWithTimeout(t, time.Second)
 }
 
 func TestDeviceController_Start_shouldHandleEvents(t *testing.T) {
@@ -243,8 +241,6 @@ func TestDeviceController_Start_shouldHandleEvents(t *testing.T) {
 		},
 	}
 
-	time.Sleep(time.Second)
-
-	eventHook.Assert(t)
-	reconcileHook.Assert(t)
+	eventHook.AssertWithTimeout(t, time.Second)
+	reconcileHook.AssertWithTimeout(t, time.Second)
 }
