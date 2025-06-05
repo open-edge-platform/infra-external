@@ -61,7 +61,7 @@ func main() {
 		listHosts(apiClient)
 	}
 	if *updateHostFlag {
-		updateHost(apiClient, rmClient)
+		updateHost(apiClient)
 	}
 	if *createHostFlag {
 		createHost(apiClient, rmClient)
@@ -85,7 +85,7 @@ func listHosts(invTenantClient invClient.TenantAwareInventoryClient) []*inventor
 	return hosts
 }
 
-func createHost(apiClient invClient.TenantAwareInventoryClient, rmClient invClient.TenantAwareInventoryClient) {
+func createHost(apiClient, rmClient invClient.TenantAwareInventoryClient) {
 	host, err := apiClient.Create(context.Background(), *tenantID,
 		&inventoryv1.Resource{
 			Resource: &inventoryv1.Resource_Host{
@@ -122,7 +122,7 @@ func createHost(apiClient invClient.TenantAwareInventoryClient, rmClient invClie
 	}
 }
 
-func updateHost(apiClient invClient.TenantAwareInventoryClient, rmClient invClient.TenantAwareInventoryClient) {
+func updateHost(apiClient invClient.TenantAwareInventoryClient) {
 	_, err := apiClient.Update(context.Background(), *tenantID, *hostUUID,
 		&fieldmaskpb.FieldMask{
 			Paths: []string{
@@ -133,10 +133,8 @@ func updateHost(apiClient invClient.TenantAwareInventoryClient, rmClient invClie
 		&inventoryv1.Resource{
 			Resource: &inventoryv1.Resource_Host{
 				Host: &computev1.HostResource{
-					//CurrentPowerState: computev1.PowerState_POWER_STATE_ON,
 					DesiredPowerState: computev1.PowerState_POWER_STATE_RESET,
-					//CurrentAmtState:   computev1.AmtState_AMT_STATE_PROVISIONED,
-					DesiredAmtState: computev1.AmtState_AMT_STATE_PROVISIONED,
+					DesiredAmtState:   computev1.AmtState_AMT_STATE_PROVISIONED,
 				},
 			},
 		})

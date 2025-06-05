@@ -200,7 +200,7 @@ issues:
         - testpackage
     - path: pkg/devices/devices_test.go
       linters:
-      - testpackage
+        - testpackage
 
 output:
   # Format:

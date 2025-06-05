@@ -150,15 +150,7 @@ func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Reques
 
 	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState():
-		// if invHost.GetPowerCommandPolicy() == computev1.PowerCommandPolicy_POWER_COMMAND_POLICY_IMMEDIATE {
 		return dc.handlePowerChange(ctx, request, invHost)
-		// } else {
-		//	log.Info().Msgf("implement me")
-		//}
-		//}
-
-	case invHost.GetDesiredAmtState() == computev1.AmtState_AMT_STATE_UNPROVISIONED:
-		log.Fatal().Msgf("implement me")
 	}
 
 	return request.Ack()
