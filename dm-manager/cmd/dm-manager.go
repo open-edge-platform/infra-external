@@ -42,7 +42,7 @@ const (
 	defaultRequestTimeout     = 10 * time.Second
 	defaultParallelGoroutines = 10
 
-	numberOfController = 2
+	numberOfControllers = 2
 )
 
 var (
@@ -51,7 +51,7 @@ var (
 
 	osChan    = make(chan os.Signal, 1)
 	termChan  = make(chan bool, 1)
-	readyChan = make(chan bool, numberOfController)
+	readyChan = make(chan bool, numberOfControllers)
 
 	inventoryAddress = flag.String(invClient.InventoryAddress,
 		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
@@ -248,7 +248,7 @@ func prepareDmClients() (
 ) {
 	eventsWatcher = make(chan *invClient.WatchEvents, eventsWatcherBufSize)
 	invTenantClient, err := invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
-		Name:                      "DM dmt manager",
+		Name:                      "DM DMT manager",
 		Address:                   *inventoryAddress,
 		EnableRegisterRetry:       false,
 		AbortOnUnknownClientError: true,

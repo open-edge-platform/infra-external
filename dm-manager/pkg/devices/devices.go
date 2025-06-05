@@ -68,7 +68,7 @@ type DeviceController struct {
 	MpsClient          mps.ClientWithResponsesInterface
 	RpsClient          rps.ClientWithResponsesInterface
 	InventoryRmClient  client.TenantAwareInventoryClient // manages Current* fields
-	InventoryAPIClient client.TenantAwareInventoryClient // managed Desired* fields
+	InventoryAPIClient client.TenantAwareInventoryClient // manages Desired* fields
 	TermChan           chan bool
 	ReadyChan          chan bool
 	EventsWatcher      chan *client.WatchEvents
@@ -144,11 +144,10 @@ func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Reques
 		log.Err(err).Msgf("couldn't get device from inventory")
 		return request.Fail(err)
 	}
-	log.Debug().Msgf("inventory host - %v", invHost)
 
 	log.Debug().Msgf("desired state is %v[%v], current state is %v[%v] for %v",
 		invHost.GetDesiredAmtState().String(), invHost.GetDesiredPowerState().String(),
-		invHost.GetCurrentAmtState().String(), invHost.GetCurrentPowerState(), request.ID.GetHostUUID())
+		invHost.GetCurrentAmtState().String(), invHost.GetCurrentPowerState(), request.ID)
 
 	switch {
 	case invHost.GetDesiredAmtState() == invHost.GetCurrentAmtState() &&
@@ -167,7 +166,7 @@ func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Reques
 func (dc *DeviceController) handlePowerChange(
 	ctx context.Context, request rec_v2.Request[DeviceID], invHost *computev1.HostResource,
 ) rec_v2.Directive[DeviceID] {
-	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID.GetHostUUID(),
+	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID,
 		invHost.GetCurrentPowerState(), invHost.GetDesiredPowerState())
 	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
 		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
