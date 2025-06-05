@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const hookTickDuration = 10 * time.Millisecond
+
 // TestAssertHook Hook that acts as assert for string in log output.
 // Used when some of the functions do not return error (e.g. resource already exists) but we want to test specific test path.
 type TestAssertHook struct {
@@ -39,7 +41,7 @@ func (h TestAssertHook) Assert(t *testing.T) {
 func (h TestAssertHook) AssertWithTimeout(t *testing.T, timeout time.Duration) {
 	t.Helper()
 
-	ticker := time.NewTicker(10 * time.Millisecond)
+	ticker := time.NewTicker(hookTickDuration)
 	select {
 	case <-ticker.C:
 		h.mutex.Lock()
