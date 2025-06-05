@@ -189,7 +189,7 @@ func (dc *DeviceController) handlePowerChange(
 	// intentionally comparing whole body, as there are cases where MPS defines variable as lowercase
 	// but it is uppercase instead
 	// "Body":{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}}
-	if !strings.Contains(string(powerAction.Body), "SUCCESS") {
+	if !strings.Contains(strings.ToUpper(string(powerAction.Body)), "SUCCESS") {
 		log.Err(errors.Errorf("power request sent successfully, but received unexpected response")).
 			Msgf("expected to receive SUCCESS, but got %s", string(powerAction.Body))
 		return request.Fail(err)

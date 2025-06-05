@@ -105,7 +105,7 @@ func createHost(apiClient, rmClient invClient.TenantAwareInventoryClient) {
 	_, err = rmClient.Update(context.Background(), *tenantID, host.GetHost().GetResourceId(),
 		&fieldmaskpb.FieldMask{
 			Paths: []string{
-				computev1.HostResourceFieldCurrentAmtState,
+				computev1.HostResourceFieldCurrentPowerState,
 				computev1.HostResourceFieldCurrentAmtState,
 			},
 		},
@@ -126,7 +126,7 @@ func updateHost(apiClient invClient.TenantAwareInventoryClient) {
 	_, err := apiClient.Update(context.Background(), *tenantID, *hostUUID,
 		&fieldmaskpb.FieldMask{
 			Paths: []string{
-				computev1.HostResourceFieldCurrentAmtState,
+				computev1.HostResourceFieldDesiredPowerState,
 				computev1.HostResourceFieldDesiredAmtState,
 			},
 		},
@@ -139,7 +139,7 @@ func updateHost(apiClient invClient.TenantAwareInventoryClient) {
 			},
 		})
 	if err != nil {
-		log.Info().Msgf("err - %v", err)
+		log.Err(err).Msgf("failed to update host")
 	}
 }
 
