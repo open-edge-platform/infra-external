@@ -5,6 +5,7 @@ package devices
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"sync"
@@ -68,7 +69,7 @@ func TestDeviceController_Reconcile_poweredOffSystemShouldTurnOn(t *testing.T) {
 			Body: []byte(`{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}`),
 		}, nil)
 
-	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[HostID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[DeviceID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
 
 	host, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
 	assert.NoError(t, err)
@@ -89,7 +90,7 @@ func TestDeviceController_Reconcile_powerCycleShouldRebootAndChangeToPowerOn(t *
 			Body: []byte(`{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}`),
 		}, nil)
 
-	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[HostID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[DeviceID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
 
 	host, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
 	assert.NoError(t, err)
@@ -130,8 +131,10 @@ func prepareEnv(
 		InventoryRmClient:  dao.GetRMClient(),
 		InventoryAPIClient: dao.GetAPIClient(),
 		RequestTimeout:     time.Second,
+		ReconcilePeriod:    time.Minute,
+		ReadyChan:          make(chan bool, 1),
 	}
-	deviceController := rec_v2.NewController[HostID](
+	deviceController := rec_v2.NewController[DeviceID](
 		deviceReconciller.Reconcile)
 	deviceReconciller.DeviceController = deviceController
 	return dao, hostUUID, mpsMock, deviceReconciller
@@ -184,7 +187,7 @@ func TestDeviceController_Reconcile_desiredAndActualStatesAreEqualShouldDoNothin
 	hook := util.NewTestAssertHook("desired state is equal to current state ")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(hook)}
 
-	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[HostID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[DeviceID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
 
 	host, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
 	assert.NoError(t, err)
@@ -208,5 +211,40 @@ func TestDeviceController_ReconcileAll_shouldContinueOnErrorInReconcile(t *testi
 	time.Sleep(time.Second)
 
 	powerHook.Assert(t)
+	reconcileHook.Assert(t)
+}
+
+func TestDeviceController_Start_shouldHandleEvents(t *testing.T) {
+	eventsWatcher := make(chan *client.WatchEvents, 10)
+	wg := &sync.WaitGroup{}
+	_, hostUUID, _, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_ON, computev1.PowerState_POWER_STATE_ON)
+
+	deviceReconciller.EventsWatcher = eventsWatcher
+
+	eventHook := util.NewTestAssertHook(fmt.Sprintf("received %v event",
+		inventoryv1.SubscribeEventsResponse_EVENT_KIND_CREATED.String()))
+	reconcileHook := util.NewTestAssertHook("desired state is equal to current state ")
+	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(eventHook, reconcileHook)}
+
+	wg.Add(1)
+	go deviceReconciller.Start()
+
+	eventsWatcher <- &client.WatchEvents{
+		Event: &inventoryv1.SubscribeEventsResponse{
+			EventKind: inventoryv1.SubscribeEventsResponse_EVENT_KIND_CREATED,
+			Resource: &inventoryv1.Resource{
+				Resource: &inventoryv1.Resource_Host{
+					Host: &computev1.HostResource{
+						TenantId: client.FakeTenantID,
+						Uuid:     hostUUID,
+					},
+				},
+			},
+		},
+	}
+
+	time.Sleep(time.Second)
+
+	eventHook.Assert(t)
 	reconcileHook.Assert(t)
 }

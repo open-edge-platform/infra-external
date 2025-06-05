@@ -193,7 +193,7 @@ func getDeviceController(mpsClient *mps.ClientWithResponses, rpsClient *rps.Clie
 		RequestTimeout:     *requestTimeout,
 		EventsWatcher:      deviceEventsWatcher,
 	}
-	deviceController := rec_v2.NewController[devices.HostID](
+	deviceController := rec_v2.NewController[devices.DeviceID](
 		deviceReconciler.Reconcile,
 		rec_v2.WithParallelism(defaultParallelGoroutines),
 		rec_v2.WithTimeout(*requestTimeout))

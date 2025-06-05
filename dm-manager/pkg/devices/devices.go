@@ -46,22 +46,22 @@ var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
 	computev1.PowerState_POWER_STATE_HIBERNATE:   powerHibernate,
 }
 
-type HostID string
+type DeviceID string
 
-func (id HostID) GetTenantID() string {
+func (id DeviceID) GetTenantID() string {
 	return strings.Split(string(id), "_")[0]
 }
 
-func (id HostID) GetHostUUID() string {
+func (id DeviceID) GetHostUUID() string {
 	return strings.Split(string(id), "_")[1]
 }
 
-func (id HostID) String() string {
+func (id DeviceID) String() string {
 	return fmt.Sprintf("[tenantID=%s, hostID=%s]", id.GetTenantID(), id.GetHostUUID())
 }
 
-func NewDeviceID(tenantID, hostUUID string) HostID {
-	return HostID(tenantID + "_" + hostUUID)
+func NewDeviceID(tenantID, hostUUID string) DeviceID {
+	return DeviceID(tenantID + "_" + hostUUID)
 }
 
 type DeviceController struct {
@@ -73,7 +73,7 @@ type DeviceController struct {
 	ReadyChan          chan bool
 	EventsWatcher      chan *client.WatchEvents
 	WaitGroup          *sync.WaitGroup
-	DeviceController   *rec_v2.Controller[HostID]
+	DeviceController   *rec_v2.Controller[DeviceID]
 
 	ReconcilePeriod time.Duration
 	RequestTimeout  time.Duration
@@ -99,7 +99,15 @@ func (dc *DeviceController) Start() {
 				dc.Stop()
 				return
 			}
-			log.Info().Msgf("event received: %v", event)
+			log.Info().Msgf("received %v event for %v",
+				event.Event.GetEventKind().String(), event.Event.GetResource().GetHost().GetUuid())
+			err := dc.DeviceController.Reconcile(NewDeviceID(
+				event.Event.GetResource().GetHost().GetTenantId(),
+				event.Event.GetResource().GetHost().GetUuid()),
+			)
+			if err != nil {
+				log.Err(err).Msgf("failed to add event for %v to the reconciler", event.Event.GetResource().GetHost().GetUuid())
+			}
 		}
 	}
 }
@@ -128,7 +136,7 @@ func (dc *DeviceController) Stop() {
 	dc.WaitGroup.Done()
 }
 
-func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Request[HostID]) rec_v2.Directive[HostID] {
+func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Request[DeviceID]) rec_v2.Directive[DeviceID] {
 	log.Debug().Msgf("started device reconciliation for %v", request.ID)
 
 	invHost, err := dc.InventoryRmClient.GetHostByUUID(ctx, request.ID.GetTenantID(), request.ID.GetHostUUID())
@@ -157,8 +165,8 @@ func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Reques
 }
 
 func (dc *DeviceController) handlePowerChange(
-	ctx context.Context, request rec_v2.Request[HostID], invHost *computev1.HostResource,
-) rec_v2.Directive[HostID] {
+	ctx context.Context, request rec_v2.Request[DeviceID], invHost *computev1.HostResource,
+) rec_v2.Directive[DeviceID] {
 	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID.GetHostUUID(),
 		invHost.GetCurrentPowerState(), invHost.GetDesiredPowerState())
 	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
