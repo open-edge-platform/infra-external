@@ -208,7 +208,7 @@ common-oasdiff-breaking: ## Check for breaking changes in openapi using oasdiff
 	rm -rf ${TEMP_BASE_OPENAPI_DIR}
 	mkdir -p ${TEMP_BASE_OPENAPI_DIR}
 	git archive origin/${BASE_BRANCH} ${OPENAPI_PATH} | tar -x -C ${TEMP_BASE_OPENAPI_DIR}
-	#oasdiff breaking --composed "${TEMP_BASE_OPENAPI_DIR}/${OPENAPI_PATH}"  "${OPENAPI_PATH}" --fail-on ERR #TODO: remove after merge
+	oasdiff breaking --composed "${TEMP_BASE_OPENAPI_DIR}/${OPENAPI_PATH}"  "${OPENAPI_PATH}" --fail-on ERR
 
 go-test: $(OUT_DIR) $(GO_TEST_DEPS) ## Run go test and calculate code coverage
 ifeq ($(TEST_USE_DB), true)

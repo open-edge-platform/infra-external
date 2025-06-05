@@ -62,7 +62,8 @@ type Manager struct {
 func (dmm *Manager) Start() {
 	ticker := time.NewTicker(dmm.Config.ReconcilePeriod)
 	dmm.ReadyChan <- true
-	log.Info().Msgf("Starting periodic reconciliation")
+	log.Info().Msgf("Starting periodic reconciliation for Device Management Toolkit")
+	dmm.ReconcileAll()
 	for {
 		select {
 		case <-ticker.C:
