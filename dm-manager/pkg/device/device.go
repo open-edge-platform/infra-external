@@ -145,7 +145,7 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 
 	log.Debug().Msgf("desired state is %v[%v], current state is %v[%v] for %v",
 		invHost.GetDesiredAmtState().String(), invHost.GetDesiredPowerState().String(),
-		invHost.GetCurrentAmtState().String(), invHost.GetCurrentPowerState(), request.ID)
+		invHost.GetCurrentAmtState().String(), invHost.GetCurrentPowerState().String(), request.ID)
 
 	switch {
 	case invHost.GetDesiredAmtState() == invHost.GetCurrentAmtState() &&
