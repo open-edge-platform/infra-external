@@ -198,7 +198,7 @@ issues:
     - path: pkg/dm/utils_test.go
       linters:
         - testpackage
-    - path: pkg/devices/devices_test.go
+    - path: pkg/device/device_test.go
       linters:
         - testpackage
 

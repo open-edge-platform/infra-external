@@ -45,7 +45,7 @@ func TestManager_Start(t *testing.T) {
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}
 	cli := inv_testing.TestClients[inv_testing.APIClient].GetTenantAwareInventoryClient()
-	dmr := &Manager{
+	dmr := &TenantController{
 		InventoryClient: cli,
 		TermChan:        termChan,
 		ReadyChan:       readyChan,
@@ -79,7 +79,7 @@ func TestManager_Start(t *testing.T) {
 		t.Fatal("Timeout waiting for reconciler to stop")
 	}
 
-	assert.True(t, true, "Manager stopped successfully")
+	assert.True(t, true, "TenantController stopped successfully")
 }
 
 func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
@@ -95,7 +95,7 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 	msp := mocks.MockSecretProvider{}
 	const staticPassword = "P@ssw0rd"
 	msp.On("GetSecret", mock.Anything, mock.Anything).Return(staticPassword)
-	dmr := &Manager{
+	dmr := &TenantController{
 		MpsClient:      mpsMock,
 		RpsClient:      rpsMock,
 		SecretProvider: &msp,
@@ -142,7 +142,7 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 func TestReconciler_handleTenantCreation_whenCannotGetCertShouldReturnError(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
-	dmr := &Manager{
+	dmr := &TenantController{
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
 		Config: &ReconcilerConfig{
@@ -166,7 +166,7 @@ func TestReconciler_handleTenantCreation_whenCannotGetCertShouldReturnError(t *t
 func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnError(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
-	dmr := &Manager{
+	dmr := &TenantController{
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
 		Config: &ReconcilerConfig{
@@ -195,7 +195,7 @@ func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnE
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	msp := mocks.MockSecretProvider{}
 	msp.On("GetSecret", mock.Anything, mock.Anything).Return("test")
-	dmr := &Manager{
+	dmr := &TenantController{
 		MpsClient:      mpsMock,
 		RpsClient:      rpsMock,
 		SecretProvider: &msp,
@@ -228,7 +228,7 @@ func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	msp := mocks.MockSecretProvider{}
 	msp.On("GetSecret", mock.Anything, mock.Anything).Return("test")
-	dmr := &Manager{
+	dmr := &TenantController{
 		MpsClient:      mpsMock,
 		RpsClient:      rpsMock,
 		SecretProvider: &msp,
@@ -265,7 +265,7 @@ func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnErro
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	msp := mocks.MockSecretProvider{}
 	msp.On("GetSecret", mock.Anything, mock.Anything).Return("test")
-	dmr := &Manager{
+	dmr := &TenantController{
 		MpsClient:      mpsMock,
 		RpsClient:      rpsMock,
 		SecretProvider: &msp,
@@ -303,7 +303,7 @@ func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnErro
 func TestReconciler_handleTenantRemoval_happyPath(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
-	dmr := &Manager{
+	dmr := &TenantController{
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
 		Config: &ReconcilerConfig{
@@ -326,7 +326,7 @@ func TestReconciler_handleTenantRemoval_happyPath(t *testing.T) {
 func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
-	dmr := &Manager{
+	dmr := &TenantController{
 		MpsClient: mpsMock,
 		RpsClient: rpsMock,
 		Config: &ReconcilerConfig{
@@ -359,7 +359,7 @@ func TestReconciler_ReconcileAll_shouldRemoveExcessiveConfigs(t *testing.T) {
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}
 	cli := inv_testing.TestClients[inv_testing.APIClient].GetTenantAwareInventoryClient()
-	dmr := &Manager{
+	dmr := &TenantController{
 		InventoryClient: cli,
 		TermChan:        termChan,
 		ReadyChan:       readyChan,

@@ -27,7 +27,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/tracing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/devices"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/device"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/flags"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/secrets"
@@ -46,7 +46,7 @@ const (
 )
 
 var (
-	log = logging.GetLogger("Manager")
+	log = logging.GetLogger("TenantController")
 	wg  = &sync.WaitGroup{}
 
 	osChan    = make(chan os.Signal, 1)
@@ -128,8 +128,8 @@ func main() {
 		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
 	}
 
-	dmReconciler := getDmController(mpsClient, rpsClient, vsp, orchMpsHost, orchMpsPort)
-	deviceReconciler := getDeviceController(mpsClient, rpsClient)
+	dmReconciler := getTenantController(mpsClient, rpsClient, vsp, orchMpsHost, orchMpsPort)
+	deviceReconciler := getDeviceController(mpsClient)
 
 	wg.Add(1)
 	go dmReconciler.Start()
@@ -144,15 +144,15 @@ func main() {
 	dmReconciler.Stop()
 	deviceReconciler.Stop()
 	wg.Wait()
-	log.Info().Msgf("Device Management Manager successfully stopped")
+	log.Info().Msgf("Device Management TenantController successfully stopped")
 }
 
-func getDmController(
+func getTenantController(
 	mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses, vsp secrets.VaultSecretProvider,
 	orchMpsHost string, orchMpsPort int32,
-) *dm.Manager {
+) *dm.TenantController {
 	dmInvClient, dmEventsWatcher := prepareDmClients()
-	dmReconciler := &dm.Manager{
+	dmReconciler := &dm.TenantController{
 		MpsClient:       mpsClient,
 		RpsClient:       rpsClient,
 		InventoryClient: dmInvClient,
@@ -178,12 +178,11 @@ func getDmController(
 	return dmReconciler
 }
 
-func getDeviceController(mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses) devices.DeviceController {
+func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
 	rmClient, apiClient, deviceEventsWatcher := prepareDevicesClients()
 
-	deviceReconciler := devices.DeviceController{
+	deviceReconciler := device.Controller{
 		MpsClient:          mpsClient,
-		RpsClient:          rpsClient,
 		WaitGroup:          wg,
 		TermChan:           termChan,
 		ReadyChan:          readyChan,
@@ -193,7 +192,7 @@ func getDeviceController(mpsClient *mps.ClientWithResponses, rpsClient *rps.Clie
 		RequestTimeout:     *requestTimeout,
 		EventsWatcher:      deviceEventsWatcher,
 	}
-	deviceController := rec_v2.NewController[devices.DeviceID](
+	deviceController := rec_v2.NewController[device.ID](
 		deviceReconciler.Reconcile,
 		rec_v2.WithParallelism(defaultParallelGoroutines),
 		rec_v2.WithTimeout(*requestTimeout))

@@ -3,7 +3,7 @@
  * // SPDX-License-Identifier: Apache-2.0
  */
 
-package devices
+package device
 
 import (
 	"context"
@@ -21,7 +21,6 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -46,40 +45,39 @@ var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
 	computev1.PowerState_POWER_STATE_HIBERNATE:   powerHibernate,
 }
 
-type DeviceID string
+type ID string
 
-func (id DeviceID) GetTenantID() string {
+func (id ID) GetTenantID() string {
 	return strings.Split(string(id), "_")[0]
 }
 
-func (id DeviceID) GetHostUUID() string {
+func (id ID) GetHostUUID() string {
 	return strings.Split(string(id), "_")[1]
 }
 
-func (id DeviceID) String() string {
+func (id ID) String() string {
 	return fmt.Sprintf("[tenantID=%s, hostID=%s]", id.GetTenantID(), id.GetHostUUID())
 }
 
-func NewDeviceID(tenantID, hostUUID string) DeviceID {
-	return DeviceID(tenantID + "_" + hostUUID)
+func NewID(tenantID, hostUUID string) ID {
+	return ID(tenantID + "_" + hostUUID)
 }
 
-type DeviceController struct {
+type Controller struct {
 	MpsClient          mps.ClientWithResponsesInterface
-	RpsClient          rps.ClientWithResponsesInterface
 	InventoryRmClient  client.TenantAwareInventoryClient // manages Current* fields
 	InventoryAPIClient client.TenantAwareInventoryClient // manages Desired* fields
 	TermChan           chan bool
 	ReadyChan          chan bool
 	EventsWatcher      chan *client.WatchEvents
 	WaitGroup          *sync.WaitGroup
-	DeviceController   *rec_v2.Controller[DeviceID]
+	DeviceController   *rec_v2.Controller[ID]
 
 	ReconcilePeriod time.Duration
 	RequestTimeout  time.Duration
 }
 
-func (dc *DeviceController) Start() {
+func (dc *Controller) Start() {
 	ticker := time.NewTicker(dc.ReconcilePeriod)
 	dc.ReadyChan <- true
 	log.Info().Msgf("Starting periodic reconciliation for devices")
@@ -101,7 +99,7 @@ func (dc *DeviceController) Start() {
 			}
 			log.Info().Msgf("received %v event for %v",
 				event.Event.GetEventKind().String(), event.Event.GetResource().GetHost().GetUuid())
-			err := dc.DeviceController.Reconcile(NewDeviceID(
+			err := dc.DeviceController.Reconcile(NewID(
 				event.Event.GetResource().GetHost().GetTenantId(),
 				event.Event.GetResource().GetHost().GetUuid()),
 			)
@@ -112,7 +110,7 @@ func (dc *DeviceController) Start() {
 	}
 }
 
-func (dc *DeviceController) ReconcileAll() {
+func (dc *Controller) ReconcileAll() {
 	ctx, cancel := context.WithTimeout(context.Background(), dc.RequestTimeout)
 	defer cancel()
 	hosts, err := dc.InventoryRmClient.ListAll(ctx, &inventoryv1.ResourceFilter{
@@ -124,7 +122,7 @@ func (dc *DeviceController) ReconcileAll() {
 	}
 
 	for _, host := range hosts {
-		err := dc.DeviceController.Reconcile(NewDeviceID(host.GetHost().GetTenantId(), host.GetHost().GetUuid()))
+		err := dc.DeviceController.Reconcile(NewID(host.GetHost().GetTenantId(), host.GetHost().GetUuid()))
 		if err != nil {
 			log.Err(err).Msgf("failed to reconcile device")
 		}
@@ -132,11 +130,11 @@ func (dc *DeviceController) ReconcileAll() {
 	log.Debug().Msgf("reconciliation of devices is done")
 }
 
-func (dc *DeviceController) Stop() {
+func (dc *Controller) Stop() {
 	dc.WaitGroup.Done()
 }
 
-func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Request[DeviceID]) rec_v2.Directive[DeviceID] {
+func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID]) rec_v2.Directive[ID] {
 	log.Debug().Msgf("started device reconciliation for %v", request.ID)
 
 	invHost, err := dc.InventoryRmClient.GetHostByUUID(ctx, request.ID.GetTenantID(), request.ID.GetHostUUID())
@@ -163,9 +161,9 @@ func (dc *DeviceController) Reconcile(ctx context.Context, request rec_v2.Reques
 	return request.Ack()
 }
 
-func (dc *DeviceController) handlePowerChange(
-	ctx context.Context, request rec_v2.Request[DeviceID], invHost *computev1.HostResource,
-) rec_v2.Directive[DeviceID] {
+func (dc *Controller) handlePowerChange(
+	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
 	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID,
 		invHost.GetCurrentPowerState(), invHost.GetDesiredPowerState())
 	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),

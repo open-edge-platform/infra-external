@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-package devices
+package device
 
 import (
 	"context"
@@ -42,15 +42,15 @@ func TestMain(m *testing.M) {
 }
 
 func TestNewDeviceID(t *testing.T) {
-	deviceID := NewDeviceID("tenant1", "host1")
+	deviceID := NewID("tenant1", "host1")
 	assert.Equal(t, "tenant1", deviceID.GetTenantID())
 	assert.Equal(t, "host1", deviceID.GetHostUUID())
 
-	deviceID = NewDeviceID("zxc", "")
+	deviceID = NewID("zxc", "")
 	assert.Equal(t, "zxc", deviceID.GetTenantID())
 	assert.Equal(t, "", deviceID.GetHostUUID())
 
-	deviceID = NewDeviceID("", "asd")
+	deviceID = NewID("", "asd")
 	assert.Equal(t, "", deviceID.GetTenantID())
 	assert.Equal(t, "asd", deviceID.GetHostUUID())
 }
@@ -69,7 +69,7 @@ func TestDeviceController_Reconcile_poweredOffSystemShouldTurnOn(t *testing.T) {
 			Body: []byte(`{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}`),
 		}, nil)
 
-	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[DeviceID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
 
 	host, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
 	assert.NoError(t, err)
@@ -90,7 +90,7 @@ func TestDeviceController_Reconcile_powerCycleShouldRebootAndChangeToPowerOn(t *
 			Body: []byte(`{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}`),
 		}, nil)
 
-	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[DeviceID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
 
 	host, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
 	assert.NoError(t, err)
@@ -100,7 +100,7 @@ func TestDeviceController_Reconcile_powerCycleShouldRebootAndChangeToPowerOn(t *
 
 func prepareEnv(
 	t *testing.T, desiredPowerState, currentPowerState computev1.PowerState,
-) (*inv_testing.InvResourceDAO, string, *mps.MockClientWithResponsesInterface, DeviceController) {
+) (*inv_testing.InvResourceDAO, string, *mps.MockClientWithResponsesInterface, Controller) {
 	t.Helper()
 	dao := inv_testing.NewInvResourceDAOOrFail(t)
 	hostUUID := uuid.NewString()
@@ -126,7 +126,7 @@ func prepareEnv(
 
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 
-	deviceReconciller := DeviceController{
+	deviceReconciller := Controller{
 		MpsClient:          mpsMock,
 		InventoryRmClient:  dao.GetRMClient(),
 		InventoryAPIClient: dao.GetAPIClient(),
@@ -134,7 +134,7 @@ func prepareEnv(
 		ReconcilePeriod:    time.Minute,
 		ReadyChan:          make(chan bool, 1),
 	}
-	deviceController := rec_v2.NewController[DeviceID](
+	deviceController := rec_v2.NewController[ID](
 		deviceReconciller.Reconcile)
 	deviceReconciller.DeviceController = deviceController
 	return dao, hostUUID, mpsMock, deviceReconciller
@@ -144,7 +144,7 @@ func TestDeviceController_Start(t *testing.T) {
 	termChan := make(chan bool, 1)
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}
-	dc := &DeviceController{
+	dc := &Controller{
 		InventoryAPIClient: inv_testing.TestClients[inv_testing.APIClient].GetTenantAwareInventoryClient(),
 		InventoryRmClient:  inv_testing.TestClients[inv_testing.RMClient].GetTenantAwareInventoryClient(),
 		TermChan:           termChan,
@@ -187,7 +187,7 @@ func TestDeviceController_Reconcile_desiredAndActualStatesAreEqualShouldDoNothin
 	hook := util.NewTestAssertHook("desired state is equal to current state ")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(hook)}
 
-	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[DeviceID]{ID: NewDeviceID(client.FakeTenantID, hostUUID)})
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
 
 	host, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
 	assert.NoError(t, err)
