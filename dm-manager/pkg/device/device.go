@@ -237,6 +237,9 @@ func (dc *Controller) checkPowerState(
 			}
 			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 		}
+
+		log.Debug().Msgf("%v host desired state is %v, which matches current power state",
+			invHost.GetResourceId(), invHost.GetDesiredPowerState().String())
 	} else {
 		log.Debug().Msgf("%v host desired state is %v, which cannot be verified in runtime",
 			invHost.GetResourceId(), invHost.GetDesiredPowerState().String())
@@ -345,15 +348,16 @@ func (dc *Controller) handlePowerChange(
 		currentPowerState = computev1.PowerState_POWER_STATE_ON
 	}
 
-	invHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+	updateHost := &computev1.HostResource{}
+	updateHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
 	if err != nil {
 		log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
 		// this error is unlikely, but in such case, set timestamp = 0
 		invHost.PowerStatusTimestamp = 0
 	}
-	invHost.CurrentPowerState = currentPowerState
-	invHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IDLE
-	invHost.PowerStatus = invHost.GetDesiredPowerState().String()
+	updateHost.CurrentPowerState = currentPowerState
+	updateHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IDLE
+	updateHost.PowerStatus = invHost.GetDesiredPowerState().String()
 
 	_, err = dc.InventoryRmClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
@@ -363,7 +367,7 @@ func (dc *Controller) handlePowerChange(
 			computev1.HostResourceFieldPowerStatusTimestamp,
 		}}, &inventoryv1.Resource{
 			Resource: &inventoryv1.Resource_Host{
-				Host: invHost,
+				Host: updateHost,
 			},
 		})
 	if err != nil {

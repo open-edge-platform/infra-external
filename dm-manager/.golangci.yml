@@ -201,6 +201,7 @@ issues:
     - path: pkg/device/device_test.go
       linters:
         - testpackage
+        - tagliatelle
 
 output:
   # Format:
