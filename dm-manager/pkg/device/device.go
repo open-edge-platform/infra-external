@@ -26,6 +26,9 @@ import (
 )
 
 const (
+	minDelay = 1 * time.Second
+	maxDelay = 5 * time.Second
+
 	powerOn    = mps.PowerActionRequestActionN2
 	powerOff   = mps.PowerActionRequestActionN8
 	powerReset = mps.PowerActionRequestActionN10
@@ -153,8 +156,7 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 	switch {
 	case invHost.GetDesiredAmtState() == invHost.GetCurrentAmtState() &&
 		invHost.GetDesiredPowerState() == invHost.GetCurrentPowerState():
-		log.Debug().Msgf("desired state is equal to current state for %v, nothing to do", request.ID.GetHostUUID())
-		return request.Ack()
+		return dc.checkPowerState(ctx, request, invHost)
 
 	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState():
@@ -171,6 +173,55 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 		}
 
 		return req
+	}
+
+	return request.Ack()
+}
+
+func (dc *Controller) checkPowerState(ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource) rec_v2.Directive[ID] {
+	// due to latency and mps not returning responses instantly, it is not possible to check states like reboot.
+	// for SLEEP/HYBERNATE, it returns 2 (POWER_ON)
+	if invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_ON ||
+		invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_OFF {
+		currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(ctx, invHost.GetUuid())
+		if err != nil {
+			log.Err(err).Msgf("failed to check current power state for %v", invHost.GetUuid())
+			return request.Fail(err)
+		}
+
+		if currentPowerState.StatusCode() != http.StatusOK {
+			err = errors.Errorf("%v", string(currentPowerState.Body))
+			log.Err(err).
+				Msgf("expected to get 2XX, but got %v", currentPowerState.StatusCode())
+		}
+
+		powerStateCode := int32(*currentPowerState.JSON200.Powerstate)
+		if powerStateCode != int32(invHost.GetDesiredPowerState().Enum().Number()) {
+			_, err = dc.InventoryRmClient.Update(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
+				&fieldmaskpb.FieldMask{Paths: []string{
+					computev1.HostResourceFieldCurrentPowerState,
+					computev1.HostResourceFieldPowerStatus,
+					computev1.HostResourceFieldPowerStatusIndicator,
+					computev1.HostResourceFieldPowerStatusTimestamp,
+				}}, &inventoryv1.Resource{
+					Resource: &inventoryv1.Resource_Host{
+						Host: &computev1.HostResource{
+							PowerStatus:          computev1.PowerState_name[powerStateCode],
+							PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
+							PowerStatusTimestamp: uint64(time.Now().Unix()),
+							CurrentPowerState:    computev1.PowerState(powerStateCode),
+						},
+					},
+				})
+			if err != nil {
+				log.Err(err).Msgf("failed to update device info")
+				return request.Fail(err)
+			}
+			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
+		}
+	} else {
+		log.Debug().Msgf("%v host desired state is %v, which cannot be verified in runtime",
+			invHost.GetResourceId(), invHost.GetDesiredPowerState().String())
 	}
 
 	return request.Ack()
@@ -236,6 +287,21 @@ func (dc *Controller) handlePowerChange(
 	if !strings.EqualFold(*powerAction.JSON200.Body.ReturnValueStr, "SUCCESS") {
 		log.Err(errors.Errorf("power request sent successfully, but received unexpected response")).
 			Msgf("expected to receive SUCCESS, but got %s", string(powerAction.Body))
+
+		// NOT_READY is returned when device is powered off but someone tries to reboot it
+		// due to incorrect start state. Most of actions require POWER_ON as start state.
+		// https://device-management-toolkit.github.io/docs/2.27/Reference/powerstates/
+		if strings.EqualFold(*powerAction.JSON200.Body.ReturnValueStr, "NOT_READY") {
+			powerAction, err = dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
+				mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
+					Action: powerMapping[computev1.PowerState_POWER_STATE_ON],
+				})
+			if err != nil {
+				log.Err(err).Msgf("failed to send power action to MPS")
+				return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
+			}
+			return request.Retry(errors.Errorf("powering on")).With(rec_v2.ExponentialBackoff(minDelay, maxDelay)), statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS, nil
+		}
 
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}

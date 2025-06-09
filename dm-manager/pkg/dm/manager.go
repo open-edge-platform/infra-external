@@ -20,6 +20,8 @@ import (
 )
 
 const (
+	minDelay = 1 * time.Second
+	maxDelay = 5 * time.Second
 	// Use domain name (like mps-node.kind.internal) instead of IP address of service, which will not
 	// go through traefik gateway due to SNI filtering.
 	// AddressFormat valid values:
@@ -275,12 +277,12 @@ func (tc *TenantController) ReconcileAll() {
 func (tc *TenantController) Reconcile(ctx context.Context, request rec_v2.Request[ReconcilerID]) rec_v2.Directive[ReconcilerID] {
 	if request.ID.isCreate() {
 		if err := tc.handleTenantCreation(ctx, request.ID.GetTenantID()); err != nil {
-			return request.Retry(err)
+			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 		}
 		return request.Ack()
 	}
 	if err := tc.handleTenantRemoval(ctx, request.ID.GetTenantID()); err != nil {
-		return request.Retry(err)
+		return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 	}
 	return request.Ack()
 }
