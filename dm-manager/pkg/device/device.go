@@ -17,6 +17,7 @@ import (
 
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
+	statusv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/status/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
@@ -155,42 +156,86 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 
 	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState():
-		return dc.handlePowerChange(ctx, request, invHost)
+		req, status, err := dc.handlePowerChange(ctx, request, invHost)
+		if err != nil {
+			_, updateError := dc.updateState(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+				err.Error(),
+				status,
+			)
+			if updateError != nil {
+				log.Err(updateError).Msgf("failed to update device status")
+				return request.Fail(updateError)
+			}
+		}
+
+		return req
 	}
 
 	return request.Ack()
 }
 
+func (dc *Controller) updateState(
+	ctx context.Context, tenantID, hostID, powerStatus string, powerStatusIndicator statusv1.StatusIndication,
+) (*inventoryv1.Resource, error) {
+	return dc.InventoryAPIClient.Update(ctx, tenantID, hostID,
+		&fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldPowerStatus,
+			computev1.HostResourceFieldPowerStatusIndicator,
+			computev1.HostResourceFieldPowerStatusTimestamp,
+		}}, &inventoryv1.Resource{
+			Resource: &inventoryv1.Resource_Host{
+				Host: &computev1.HostResource{
+					PowerStatus:          powerStatus,
+					PowerStatusIndicator: powerStatusIndicator,
+					PowerStatusTimestamp: uint64(time.Now().Unix()),
+				},
+			},
+		})
+}
+
 func (dc *Controller) handlePowerChange(
 	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
-) rec_v2.Directive[ID] {
+) (rec_v2.Directive[ID], statusv1.StatusIndication, error) {
 	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID,
 		invHost.GetCurrentPowerState(), invHost.GetDesiredPowerState())
+
+	_, err := dc.updateState(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+		invHost.GetDesiredPowerState().String(),
+		statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
+	)
+	if err != nil {
+		log.Err(err).Msgf("failed to update device info")
+		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
+	}
+
+	// assumption is that we don't have to check if power actions are supported, as AMT supports it since 1.0.0
+	// https://en.wikipedia.org/wiki/Intel_AMT_versions
 	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
 		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
 			Action: powerMapping[invHost.GetDesiredPowerState()],
 		})
 	if err != nil {
 		log.Err(err).Msgf("failed to send power action to MPS")
-		return request.Fail(err)
+		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
 	log.Debug().Msgf("power action response for %v with status code %v - %v", request.ID.GetHostUUID(),
 		powerAction.HTTPResponse, string(powerAction.Body))
 
 	if powerAction.StatusCode() != http.StatusOK {
-		log.Err(errors.Errorf("%v", string(powerAction.Body))).
+		err = errors.Errorf("%v", string(powerAction.Body))
+		log.Err(err).
 			Msgf("expected to get 2XX, but got %v", powerAction.StatusCode())
-		return request.Fail(err)
+		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
 	// intentionally comparing whole body, as there are cases where MPS defines variable as lowercase
 	// but it is uppercase instead
-	// "Body":{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}}
-	if !strings.Contains(strings.ToUpper(string(powerAction.Body)), "SUCCESS") {
+	if !strings.EqualFold(*powerAction.JSON200.Body.ReturnValueStr, "SUCCESS") {
 		log.Err(errors.Errorf("power request sent successfully, but received unexpected response")).
 			Msgf("expected to receive SUCCESS, but got %s", string(powerAction.Body))
-		return request.Fail(err)
+
+		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
 	currentPowerState := invHost.GetDesiredPowerState()
@@ -208,23 +253,31 @@ func (dc *Controller) handlePowerChange(
 			})
 		if err != nil {
 			log.Err(err).Msgf("failed to update device info")
-			return request.Fail(err)
+			return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 		}
 		currentPowerState = computev1.PowerState_POWER_STATE_ON
 	}
+
 	_, err = dc.InventoryRmClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentPowerState,
+			computev1.HostResourceFieldPowerStatus,
+			computev1.HostResourceFieldPowerStatusIndicator,
+			computev1.HostResourceFieldPowerStatusTimestamp,
 		}}, &inventoryv1.Resource{
 			Resource: &inventoryv1.Resource_Host{
 				Host: &computev1.HostResource{
-					CurrentPowerState: currentPowerState,
+					PowerStatus:          invHost.GetDesiredPowerState().String(),
+					PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+					PowerStatusTimestamp: uint64(time.Now().Unix()),
+					CurrentPowerState:    currentPowerState,
 				},
 			},
 		})
 	if err != nil {
 		log.Err(err).Msgf("failed to update device info")
-		return request.Fail(err)
+		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
-	return request.Ack()
+
+	return request.Ack(), statusv1.StatusIndication_STATUS_INDICATION_IDLE, nil
 }
