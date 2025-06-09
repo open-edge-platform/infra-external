@@ -20,11 +20,13 @@ import (
 
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
+	statusv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/status/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_testing "github.com/open-edge-platform/infra-core/inventory/v2/pkg/testing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/util"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
@@ -243,4 +245,42 @@ func TestDeviceController_Start_shouldHandleEvents(t *testing.T) {
 
 	eventHook.AssertWithTimeout(t, time.Second)
 	reconcileHook.AssertWithTimeout(t, time.Second)
+}
+
+func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenShouldForcePowerOn(t *testing.T) {
+	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(
+		t, computev1.PowerState_POWER_STATE_ON, computev1.PowerState_POWER_STATE_POWER_CYCLE)
+
+	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
+		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
+			HTTPResponse: &http.Response{
+				StatusCode: http.StatusOK,
+			},
+			JSON200: &mps.PowerStateResponse{
+				Powerstate: dm.Ptr(int(powerOff)),
+			},
+		}, nil)
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
+		Return(&mps.PostApiV1AmtPowerActionGuidResponse{
+			HTTPResponse: &http.Response{
+				StatusCode: http.StatusOK,
+			},
+			Body: []byte(`{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}`),
+		}, nil)
+
+	invHost, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
+	assert.NoError(t, err)
+	assert.Equal(t, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED, invHost.PowerStatusIndicator)
+
+	powerHook := util.NewTestAssertHook("but current power state is 8")
+	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(powerHook)}
+
+	deviceReconciller.checkPowerState(context.Background(),
+		rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)}, invHost)
+
+	powerHook.AssertWithTimeout(t, time.Second)
+	invHost, err = dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
+	assert.NoError(t, err)
+	assert.Equal(t, computev1.PowerState_POWER_STATE_OFF, invHost.CurrentPowerState)
+	assert.Equal(t, statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS, invHost.PowerStatusIndicator)
 }

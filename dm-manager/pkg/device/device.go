@@ -52,6 +52,11 @@ var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
 	computev1.PowerState_POWER_STATE_POWER_CYCLE: powerCycle,
 }
 
+var powerStateMapping = map[mps.PowerActionRequestAction]computev1.PowerState{
+	mps.PowerActionRequestActionN8: computev1.PowerState_POWER_STATE_OFF,
+	mps.PowerActionRequestActionN2: computev1.PowerState_POWER_STATE_ON,
+}
+
 type ID string
 
 func (id ID) GetTenantID() string {
@@ -202,17 +207,18 @@ func (dc *Controller) checkPowerState(
 		powerStateCode := int32(*currentPowerState.JSON200.Powerstate)
 		if powerStateCode != int32(invHost.GetDesiredPowerState().Enum().Number()) {
 			log.Info().Msgf("%v host desired state is %v, but current power state is %v",
-				invHost.GetUuid(), invHost.GetDesiredPowerState().String(), computev1.PowerState(powerStateCode).String())
+				invHost.GetUuid(), powerMapping[invHost.GetDesiredPowerState()], powerStateCode)
 
-			invHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+			updateHost := &computev1.HostResource{}
+			updateHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
 			if err != nil {
 				log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
 				// this error is unlikely, but in such case, set timestamp = 0
-				invHost.PowerStatusTimestamp = 0
+				updateHost.PowerStatusTimestamp = 0
 			}
-			invHost.PowerStatus = computev1.PowerState_name[powerStateCode]
-			invHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS
-			invHost.CurrentPowerState = computev1.PowerState(powerStateCode)
+			updateHost.PowerStatus = "mismatch between desired and current power state"
+			updateHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS
+			updateHost.CurrentPowerState = powerStateMapping[mps.PowerActionRequestAction(powerStateCode)]
 
 			_, err = dc.InventoryRmClient.Update(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
 				&fieldmaskpb.FieldMask{Paths: []string{
@@ -222,7 +228,7 @@ func (dc *Controller) checkPowerState(
 					computev1.HostResourceFieldPowerStatusTimestamp,
 				}}, &inventoryv1.Resource{
 					Resource: &inventoryv1.Resource_Host{
-						Host: invHost,
+						Host: updateHost,
 					},
 				})
 			if err != nil {
