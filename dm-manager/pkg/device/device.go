@@ -29,6 +29,7 @@ const (
 	powerOn    = mps.PowerActionRequestActionN2
 	powerOff   = mps.PowerActionRequestActionN8
 	powerReset = mps.PowerActionRequestActionN10
+	powerCycle = mps.PowerActionRequestActionN5
 	// In-band power actions require the presence of an agent running while the operating system
 	// is up and operational like the Intel Local Manageability Service (LMS).
 	powerSleep     = mps.PowerActionRequestActionN4
@@ -44,6 +45,7 @@ var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
 	computev1.PowerState_POWER_STATE_SLEEP:       powerSleep,
 	computev1.PowerState_POWER_STATE_RESET:       powerReset,
 	computev1.PowerState_POWER_STATE_HIBERNATE:   powerHibernate,
+	computev1.PowerState_POWER_STATE_POWER_CYCLE: powerCycle,
 }
 
 type ID string
