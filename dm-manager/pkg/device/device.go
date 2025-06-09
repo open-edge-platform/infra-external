@@ -21,6 +21,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
+	inv_util "github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
@@ -178,7 +179,9 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 	return request.Ack()
 }
 
-func (dc *Controller) checkPowerState(ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource) rec_v2.Directive[ID] {
+func (dc *Controller) checkPowerState(
+	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
 	// due to latency and mps not returning responses instantly, it is not possible to check states like reboot.
 	// for SLEEP/HYBERNATE, it returns 2 (POWER_ON)
 	if invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_ON ||
@@ -195,8 +198,22 @@ func (dc *Controller) checkPowerState(ctx context.Context, request rec_v2.Reques
 				Msgf("expected to get 2XX, but got %v", currentPowerState.StatusCode())
 		}
 
+		//nolint: gosec // overflow is unlikely, correct values are <1000
 		powerStateCode := int32(*currentPowerState.JSON200.Powerstate)
 		if powerStateCode != int32(invHost.GetDesiredPowerState().Enum().Number()) {
+			log.Info().Msgf("%v host desired state is %v, but current power state is %v",
+				invHost.GetUuid(), invHost.GetDesiredPowerState().String(), computev1.PowerState(powerStateCode).String())
+
+			invHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+			if err != nil {
+				log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
+				// this error is unlikely, but in such case, set timestamp = 0
+				invHost.PowerStatusTimestamp = 0
+			}
+			invHost.PowerStatus = computev1.PowerState_name[powerStateCode]
+			invHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS
+			invHost.CurrentPowerState = computev1.PowerState(powerStateCode)
+
 			_, err = dc.InventoryRmClient.Update(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
 				&fieldmaskpb.FieldMask{Paths: []string{
 					computev1.HostResourceFieldCurrentPowerState,
@@ -205,12 +222,7 @@ func (dc *Controller) checkPowerState(ctx context.Context, request rec_v2.Reques
 					computev1.HostResourceFieldPowerStatusTimestamp,
 				}}, &inventoryv1.Resource{
 					Resource: &inventoryv1.Resource_Host{
-						Host: &computev1.HostResource{
-							PowerStatus:          computev1.PowerState_name[powerStateCode],
-							PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
-							PowerStatusTimestamp: uint64(time.Now().Unix()),
-							CurrentPowerState:    computev1.PowerState(powerStateCode),
-						},
+						Host: invHost,
 					},
 				})
 			if err != nil {
@@ -230,6 +242,19 @@ func (dc *Controller) checkPowerState(ctx context.Context, request rec_v2.Reques
 func (dc *Controller) updateState(
 	ctx context.Context, tenantID, hostID, powerStatus string, powerStatusIndicator statusv1.StatusIndication,
 ) (*inventoryv1.Resource, error) {
+	invHost := &computev1.HostResource{
+		PowerStatus:          powerStatus,
+		PowerStatusIndicator: powerStatusIndicator,
+	}
+
+	var err error
+	invHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+	if err != nil {
+		log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
+		// this error is unlikely, but in such case, set timestamp = 0
+		invHost.PowerStatusTimestamp = 0
+	}
+
 	return dc.InventoryAPIClient.Update(ctx, tenantID, hostID,
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldPowerStatus,
@@ -237,11 +262,7 @@ func (dc *Controller) updateState(
 			computev1.HostResourceFieldPowerStatusTimestamp,
 		}}, &inventoryv1.Resource{
 			Resource: &inventoryv1.Resource_Host{
-				Host: &computev1.HostResource{
-					PowerStatus:          powerStatus,
-					PowerStatusIndicator: powerStatusIndicator,
-					PowerStatusTimestamp: uint64(time.Now().Unix()),
-				},
+				Host: invHost,
 			},
 		})
 }
@@ -292,15 +313,7 @@ func (dc *Controller) handlePowerChange(
 		// due to incorrect start state. Most of actions require POWER_ON as start state.
 		// https://device-management-toolkit.github.io/docs/2.27/Reference/powerstates/
 		if strings.EqualFold(*powerAction.JSON200.Body.ReturnValueStr, "NOT_READY") {
-			powerAction, err = dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
-				mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
-					Action: powerMapping[computev1.PowerState_POWER_STATE_ON],
-				})
-			if err != nil {
-				log.Err(err).Msgf("failed to send power action to MPS")
-				return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
-			}
-			return request.Retry(errors.Errorf("powering on")).With(rec_v2.ExponentialBackoff(minDelay, maxDelay)), statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS, nil
+			return dc.forcePowerOn(ctx, request)
 		}
 
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
@@ -326,6 +339,16 @@ func (dc *Controller) handlePowerChange(
 		currentPowerState = computev1.PowerState_POWER_STATE_ON
 	}
 
+	invHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+	if err != nil {
+		log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
+		// this error is unlikely, but in such case, set timestamp = 0
+		invHost.PowerStatusTimestamp = 0
+	}
+	invHost.CurrentPowerState = currentPowerState
+	invHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IDLE
+	invHost.PowerStatus = invHost.GetDesiredPowerState().String()
+
 	_, err = dc.InventoryRmClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentPowerState,
@@ -334,12 +357,7 @@ func (dc *Controller) handlePowerChange(
 			computev1.HostResourceFieldPowerStatusTimestamp,
 		}}, &inventoryv1.Resource{
 			Resource: &inventoryv1.Resource_Host{
-				Host: &computev1.HostResource{
-					PowerStatus:          invHost.GetDesiredPowerState().String(),
-					PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
-					PowerStatusTimestamp: uint64(time.Now().Unix()),
-					CurrentPowerState:    currentPowerState,
-				},
+				Host: invHost,
 			},
 		})
 	if err != nil {
@@ -348,4 +366,27 @@ func (dc *Controller) handlePowerChange(
 	}
 
 	return request.Ack(), statusv1.StatusIndication_STATUS_INDICATION_IDLE, nil
+}
+
+func (dc *Controller) forcePowerOn(
+	ctx context.Context, request rec_v2.Request[ID],
+) (rec_v2.Directive[ID], statusv1.StatusIndication, error) {
+	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
+		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
+			Action: powerMapping[computev1.PowerState_POWER_STATE_ON],
+		})
+	if err != nil {
+		log.Err(err).Msgf("failed to send power action to MPS")
+		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
+	}
+
+	if powerAction.StatusCode() != http.StatusOK {
+		err = errors.Errorf("%v", string(powerAction.Body))
+		log.Err(err).
+			Msgf("expected to get 2XX, but got %v", powerAction.StatusCode())
+		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
+	}
+
+	return request.Retry(errors.Errorf("powering on")).With(
+		rec_v2.ExponentialBackoff(minDelay, maxDelay)), statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS, nil
 }
