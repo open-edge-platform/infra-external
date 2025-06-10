@@ -237,6 +237,7 @@ func (dc *Controller) syncPowerStatus(
 		err = errors.Errorf("%v", string(currentPowerState.Body))
 		log.Err(err).
 			Msgf("expected to get 2XX, but got %v", currentPowerState.StatusCode())
+		return request.Fail(err)
 	}
 
 	//nolint: gosec // overflow is unlikely, correct values are <1000
