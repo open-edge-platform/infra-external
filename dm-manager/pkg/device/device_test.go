@@ -58,8 +58,7 @@ func TestNewDeviceID(t *testing.T) {
 }
 
 func TestDeviceController_Reconcile_poweredOffSystemShouldTurnOn(t *testing.T) {
-	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t,
-		computev1.PowerState_POWER_STATE_ON, computev1.PowerState_POWER_STATE_OFF)
+	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
 
 	mpsMock.On("GetApiV1DevicesGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1DevicesGuidResponse{}, nil)
@@ -87,13 +86,13 @@ func TestDeviceController_Reconcile_poweredOffSystemShouldTurnOn(t *testing.T) {
 }
 
 func prepareEnv(
-	t *testing.T, desiredPowerState, currentPowerState computev1.PowerState,
+	t *testing.T, currentPowerState computev1.PowerState,
 ) (*inv_testing.InvResourceDAO, string, *mps.MockClientWithResponsesInterface, Controller) {
 	t.Helper()
 	dao := inv_testing.NewInvResourceDAOOrFail(t)
 	hostUUID := uuid.NewString()
 	host := dao.CreateHostWithOpts(t, client.FakeTenantID, true, func(c *computev1.HostResource) {
-		c.DesiredPowerState = desiredPowerState
+		c.DesiredPowerState = computev1.PowerState_POWER_STATE_ON
 		c.DesiredAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
 		c.Uuid = hostUUID
 	})
@@ -170,7 +169,7 @@ func TestDeviceController_Start(t *testing.T) {
 }
 
 func TestDeviceController_ReconcileAll_shouldContinueOnErrorInReconcile(t *testing.T) {
-	_, _, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_ON, computev1.PowerState_POWER_STATE_OFF)
+	_, _, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
 
 	powerHook := util.NewTestAssertHook("failed to send power action to MPS")
 	reconcileHook := util.NewTestAssertHook("reconciliation of devices is done")
@@ -188,8 +187,7 @@ func TestDeviceController_ReconcileAll_shouldContinueOnErrorInReconcile(t *testi
 func TestDeviceController_Start_shouldHandleEvents(t *testing.T) {
 	eventsWatcher := make(chan *client.WatchEvents, 10)
 	wg := &sync.WaitGroup{}
-	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(
-		t, computev1.PowerState_POWER_STATE_ON, computev1.PowerState_POWER_STATE_ON)
+	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_ON)
 
 	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
@@ -230,8 +228,7 @@ func TestDeviceController_Start_shouldHandleEvents(t *testing.T) {
 }
 
 func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenShouldForcePowerOn(t *testing.T) {
-	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(
-		t, computev1.PowerState_POWER_STATE_ON, computev1.PowerState_POWER_STATE_POWER_CYCLE)
+	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_POWER_CYCLE)
 
 	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
@@ -268,8 +265,7 @@ func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenS
 }
 
 func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenShouldDoNothing(t *testing.T) {
-	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(
-		t, computev1.PowerState_POWER_STATE_ON, computev1.PowerState_POWER_STATE_ON)
+	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_ON)
 
 	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{

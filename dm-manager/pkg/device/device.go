@@ -52,9 +52,40 @@ var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
 	computev1.PowerState_POWER_STATE_POWER_CYCLE: powerCycle,
 }
 
-var powerStateMapping = map[mps.PowerActionRequestAction]computev1.PowerState{
-	mps.PowerActionRequestActionN8: computev1.PowerState_POWER_STATE_OFF,
-	mps.PowerActionRequestActionN2: computev1.PowerState_POWER_STATE_ON,
+//nolint: godot // copied from swagger file
+/*
+2 = On - corresponding to ACPI state G0 or S0 or D0.
+3 = Sleep - Light, corresponding to ACPI state G1, S1/S2, or D1.
+4 = Sleep - Deep, corresponding to ACPI state G1, S3, or D2.
+6 = Off - Hard, corresponding to ACPI state G3, S5, or D3.
+7 = Hibernate (Off - Soft), corresponding to ACPI state S4,
+where the state of the managed element is preserved and will be recovered upon powering on.
+8 = Off - Soft, corresponding to ACPI state G2, S5, or D3.
+9 = Power Cycle (Off-Hard), corresponds to the managed element reaching the ACPI state G3 followed by ACPI state S0.
+13 = Off - Hard Graceful
+equivalent to Off Hard but preceded by a request to the managed element to perform an orderly shutdown.
+due to latency and mps not returning responses instantly, it is not always possible to check states like reboot.
+for SLEEP/HIBERNATE, as MPS it returns 2 (POWER_ON)
+*/
+var allowedPowerStates = map[computev1.PowerState][]int32{
+	computev1.PowerState_POWER_STATE_UNSPECIFIED: {},
+	computev1.PowerState_POWER_STATE_ON:          {2},
+	computev1.PowerState_POWER_STATE_OFF:         {6, 8, 13},
+	computev1.PowerState_POWER_STATE_SLEEP:       {2, 3, 4},
+	computev1.PowerState_POWER_STATE_RESET:       {2},
+	computev1.PowerState_POWER_STATE_HIBERNATE:   {2, 7},
+	computev1.PowerState_POWER_STATE_POWER_CYCLE: {2, 9},
+}
+
+var mpsPowerStateToInventoryPowerState = map[int32]computev1.PowerState{
+	2:  computev1.PowerState_POWER_STATE_ON,
+	3:  computev1.PowerState_POWER_STATE_SLEEP,
+	4:  computev1.PowerState_POWER_STATE_SLEEP,
+	6:  computev1.PowerState_POWER_STATE_OFF,
+	8:  computev1.PowerState_POWER_STATE_OFF,
+	13: computev1.PowerState_POWER_STATE_OFF,
+	7:  computev1.PowerState_POWER_STATE_HIBERNATE,
+	9:  computev1.PowerState_POWER_STATE_POWER_CYCLE,
 }
 
 type ID string
@@ -160,7 +191,7 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 		invHost.GetCurrentAmtState().String(), invHost.GetCurrentPowerState().String(), request.ID)
 
 	switch {
-	case invHost.GetDesiredAmtState() == invHost.GetCurrentAmtState() &&
+	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() == invHost.GetCurrentPowerState():
 		return dc.syncPowerStatus(ctx, request, invHost)
 
@@ -179,6 +210,8 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 		}
 
 		return req
+	default:
+		log.Debug().Msgf("device %v is in %v [%v]", request.ID, invHost.GetCurrentAmtState(), invHost.GetCurrentPowerState())
 	}
 
 	return request.Ack()
@@ -187,63 +220,56 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 func (dc *Controller) syncPowerStatus(
 	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
 ) rec_v2.Directive[ID] {
-	// due to latency and mps not returning responses instantly, it is not possible to check states like reboot.
-	// for SLEEP/HYBERNATE, it returns 2 (POWER_ON)
-	if invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_ON ||
-		invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_OFF {
-		currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(ctx, invHost.GetUuid())
+	currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(ctx, invHost.GetUuid())
+	if err != nil {
+		log.Err(err).Msgf("failed to check current power state for %v", invHost.GetUuid())
+		return request.Fail(err)
+	}
+
+	if currentPowerState.StatusCode() != http.StatusOK {
+		err = errors.Errorf("%v", string(currentPowerState.Body))
+		log.Err(err).
+			Msgf("expected to get 2XX, but got %v", currentPowerState.StatusCode())
+	}
+
+	//nolint: gosec // overflow is unlikely, correct values are <1000
+	powerStateCode := int32(*currentPowerState.JSON200.Powerstate)
+
+	if !contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) {
+		log.Info().Msgf("%v host desired state is %v, but current power state is %v",
+			invHost.GetUuid(), powerMapping[invHost.GetDesiredPowerState()], powerStateCode)
+
+		updateHost := &computev1.HostResource{}
+		updateHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
 		if err != nil {
-			log.Err(err).Msgf("failed to check current power state for %v", invHost.GetUuid())
+			log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
+			// this error is unlikely, but in such case, set timestamp = 0
+			updateHost.PowerStatusTimestamp = 0
+		}
+		updateHost.PowerStatus = "mismatch between desired and current power state"
+		updateHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS
+		updateHost.CurrentPowerState = mpsPowerStateToInventoryPowerState[powerStateCode]
+
+		_, err = dc.InventoryRmClient.Update(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
+			&fieldmaskpb.FieldMask{Paths: []string{
+				computev1.HostResourceFieldCurrentPowerState,
+				computev1.HostResourceFieldPowerStatus,
+				computev1.HostResourceFieldPowerStatusIndicator,
+				computev1.HostResourceFieldPowerStatusTimestamp,
+			}}, &inventoryv1.Resource{
+				Resource: &inventoryv1.Resource_Host{
+					Host: updateHost,
+				},
+			})
+		if err != nil {
+			log.Err(err).Msgf("failed to update device info")
 			return request.Fail(err)
 		}
-
-		if currentPowerState.StatusCode() != http.StatusOK {
-			err = errors.Errorf("%v", string(currentPowerState.Body))
-			log.Err(err).
-				Msgf("expected to get 2XX, but got %v", currentPowerState.StatusCode())
-		}
-
-		//nolint: gosec // overflow is unlikely, correct values are <1000
-		powerStateCode := int32(*currentPowerState.JSON200.Powerstate)
-		if powerStateCode != int32(invHost.GetDesiredPowerState().Enum().Number()) {
-			log.Info().Msgf("%v host desired state is %v, but current power state is %v",
-				invHost.GetUuid(), powerMapping[invHost.GetDesiredPowerState()], powerStateCode)
-
-			updateHost := &computev1.HostResource{}
-			updateHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
-			if err != nil {
-				log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
-				// this error is unlikely, but in such case, set timestamp = 0
-				updateHost.PowerStatusTimestamp = 0
-			}
-			updateHost.PowerStatus = "mismatch between desired and current power state"
-			updateHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS
-			updateHost.CurrentPowerState = powerStateMapping[mps.PowerActionRequestAction(powerStateCode)]
-
-			_, err = dc.InventoryRmClient.Update(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
-				&fieldmaskpb.FieldMask{Paths: []string{
-					computev1.HostResourceFieldCurrentPowerState,
-					computev1.HostResourceFieldPowerStatus,
-					computev1.HostResourceFieldPowerStatusIndicator,
-					computev1.HostResourceFieldPowerStatusTimestamp,
-				}}, &inventoryv1.Resource{
-					Resource: &inventoryv1.Resource_Host{
-						Host: updateHost,
-					},
-				})
-			if err != nil {
-				log.Err(err).Msgf("failed to update device info")
-				return request.Fail(err)
-			}
-			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
-		}
-
-		log.Debug().Msgf("%v host desired state is %v, which matches current power state",
-			invHost.GetResourceId(), invHost.GetDesiredPowerState().String())
-	} else {
-		log.Debug().Msgf("%v host desired state is %v, which cannot be verified in runtime",
-			invHost.GetResourceId(), invHost.GetDesiredPowerState().String())
+		return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 	}
+
+	log.Debug().Msgf("%v host desired state is %v, which matches current power state",
+		invHost.GetResourceId(), invHost.GetDesiredPowerState().String())
 
 	return request.Ack()
 }
@@ -381,10 +407,19 @@ func (dc *Controller) forcePowerOn(
 		rec_v2.ExponentialBackoff(minDelay, maxDelay)), statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS, nil
 }
 
+func contains[T ~int | ~int8 | ~int16 | ~int32 | ~int64](slice []T, elem T) bool {
+	for _, v := range slice {
+		if v == elem {
+			return true
+		}
+	}
+	return false
+}
+
 //
-//func (dc *Controller) updateHost(
-//	ctx context.Context, tenantID, invResourceID string, fields []string, invHost *computev1.HostResource,
-//) error {
+//  func (dc *Controller) updateHost(
+//	  ctx context.Context, tenantID, invResourceID string, fields []string, invHost *computev1.HostResource,
+//  ) error {
 //	if invHost == nil {
 //		err := errors.Errorfc(codes.InvalidArgument, "no resource provided")
 //		log.InfraSec().InfraErr(err).Msg("Empty resource is provided")
