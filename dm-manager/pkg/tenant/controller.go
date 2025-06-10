@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-package dm
+package tenant
 
 import (
 	"context"
@@ -48,7 +48,7 @@ type ReconcilerConfig struct {
 	RequestTimeout  time.Duration
 	ReconcilePeriod time.Duration
 }
-type TenantController struct {
+type Controller struct {
 	MpsClient        mps.ClientWithResponsesInterface
 	RpsClient        rps.ClientWithResponsesInterface
 	InventoryClient  client.TenantAwareInventoryClient
@@ -61,7 +61,7 @@ type TenantController struct {
 	TenantController *rec_v2.Controller[ReconcilerID]
 }
 
-func (tc *TenantController) Start() {
+func (tc *Controller) Start() {
 	ticker := time.NewTicker(tc.Config.ReconcilePeriod)
 	tc.ReadyChan <- true
 	log.Info().Msgf("Starting periodic reconciliation for Device Management Toolkit")
@@ -102,7 +102,7 @@ func (tc *TenantController) Start() {
 	}
 }
 
-func (tc *TenantController) handleTenantRemoval(ctx context.Context,
+func (tc *Controller) handleTenantRemoval(ctx context.Context,
 	tenantID string,
 ) error {
 	log.Info().Msgf("Handling tenant removal: %v", tenantID)
@@ -125,7 +125,7 @@ func (tc *TenantController) handleTenantRemoval(ctx context.Context,
 	return nil
 }
 
-func (tc *TenantController) handleTenantCreation(ctx context.Context,
+func (tc *Controller) handleTenantCreation(ctx context.Context,
 	tenantID string,
 ) error {
 	log.Info().Msgf("Handling tenant creation: %v", tenantID)
@@ -148,7 +148,7 @@ func (tc *TenantController) handleTenantCreation(ctx context.Context,
 	return nil
 }
 
-func (tc *TenantController) handleProfile(ctx context.Context, tenantID string) error {
+func (tc *Controller) handleProfile(ctx context.Context, tenantID string) error {
 	profile, err := tc.RpsClient.GetProfileWithResponse(ctx, tenantID)
 	if err != nil {
 		log.Err(err).Msgf("cannot get profile for %v tenant", tenantID)
@@ -203,7 +203,7 @@ func (tc *TenantController) handleProfile(ctx context.Context, tenantID string) 
 	return nil
 }
 
-func (tc *TenantController) handleCiraConfig(ctx context.Context, tenantID string, cert []byte) error {
+func (tc *Controller) handleCiraConfig(ctx context.Context, tenantID string, cert []byte) error {
 	ciraConfig, err := tc.RpsClient.GetCIRAConfigWithResponse(ctx, tenantID)
 	if err != nil {
 		log.Err(err).Msgf("cannot get CIRA config for %v tenant", tenantID)
@@ -245,11 +245,11 @@ func (tc *TenantController) handleCiraConfig(ctx context.Context, tenantID strin
 	return nil
 }
 
-func (tc *TenantController) Stop() {
+func (tc *Controller) Stop() {
 	tc.WaitGroup.Done()
 }
 
-func (tc *TenantController) ReconcileAll() {
+func (tc *Controller) ReconcileAll() {
 	ctx, cancel := context.WithTimeout(context.Background(), tc.Config.RequestTimeout)
 	defer cancel()
 	tenantsResp, err := tc.InventoryClient.ListAll(ctx, &inventoryv1.ResourceFilter{
@@ -274,7 +274,7 @@ func (tc *TenantController) ReconcileAll() {
 	tc.removeCIRAConfigs(ctx, tenants)
 }
 
-func (tc *TenantController) Reconcile(ctx context.Context, request rec_v2.Request[ReconcilerID]) rec_v2.Directive[ReconcilerID] {
+func (tc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ReconcilerID]) rec_v2.Directive[ReconcilerID] {
 	if request.ID.isCreate() {
 		if err := tc.handleTenantCreation(ctx, request.ID.GetTenantID()); err != nil {
 			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
@@ -287,7 +287,7 @@ func (tc *TenantController) Reconcile(ctx context.Context, request rec_v2.Reques
 	return request.Ack()
 }
 
-func (tc *TenantController) removeCIRAConfigs(ctx context.Context, tenants []string) {
+func (tc *Controller) removeCIRAConfigs(ctx context.Context, tenants []string) {
 	CIRAConfigsResp, err := tc.RpsClient.GetAllCIRAConfigsWithResponse(ctx, &rps.GetAllCIRAConfigsParams{})
 	if err != nil {
 		log.Err(err).Msgf("cannot list CIRA configs,continuing")
@@ -309,7 +309,7 @@ func (tc *TenantController) removeCIRAConfigs(ctx context.Context, tenants []str
 	}
 }
 
-func (tc *TenantController) removeProfiles(ctx context.Context, tenants []string) {
+func (tc *Controller) removeProfiles(ctx context.Context, tenants []string) {
 	profilesResp, err := tc.RpsClient.GetAllProfilesWithResponse(ctx, &rps.GetAllProfilesParams{})
 	if err != nil {
 		log.Err(err).Msgf("cannot list profiles, continuing")

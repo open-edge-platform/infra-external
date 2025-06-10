@@ -192,10 +192,10 @@ issues:
     - Error return value of `.*Stop` is not checked
 
   exclude-rules:
-    - path: pkg/dm/manager_test.go
+    - path: pkg/tenant/controller_test.go
       linters:
         - testpackage
-    - path: pkg/dm/utils_test.go
+    - path: pkg/tenant/utils_test.go
       linters:
         - testpackage
     - path: pkg/device/device_test.go

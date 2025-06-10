@@ -28,8 +28,8 @@ import (
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/device"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/flags"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/tenant"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/secrets"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
@@ -46,7 +46,7 @@ const (
 )
 
 var (
-	log = logging.GetLogger("TenantController")
+	log = logging.GetLogger("Controller")
 	wg  = &sync.WaitGroup{}
 
 	osChan    = make(chan os.Signal, 1)
@@ -77,8 +77,8 @@ var (
 
 func main() {
 	flag.Parse()
-	if !(strings.EqualFold(*passwordPolicy, dm.StaticPasswordPolicy) ||
-		strings.EqualFold(*passwordPolicy, dm.DynamicPasswordPolicy)) {
+	if !(strings.EqualFold(*passwordPolicy, tenant.StaticPasswordPolicy) ||
+		strings.EqualFold(*passwordPolicy, tenant.DynamicPasswordPolicy)) {
 		log.Error().Msgf("Invalid password policy: %s. It should be either 'static' or 'dynamic'", *passwordPolicy)
 		os.Exit(1)
 	}
@@ -124,7 +124,7 @@ func main() {
 	vsp := secrets.VaultSecretProvider{}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if initErr := vsp.Init(ctx, []string{dm.AmtPasswordSecretName}); initErr != nil {
+	if initErr := vsp.Init(ctx, []string{tenant.AmtPasswordSecretName}); initErr != nil {
 		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
 	}
 
@@ -144,15 +144,15 @@ func main() {
 	dmReconciler.Stop()
 	deviceReconciler.Stop()
 	wg.Wait()
-	log.Info().Msgf("Device Management TenantController successfully stopped")
+	log.Info().Msgf("Device Management Controller successfully stopped")
 }
 
 func getTenantController(
 	mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses, vsp secrets.VaultSecretProvider,
 	orchMpsHost string, orchMpsPort int32,
-) *dm.TenantController {
-	dmInvClient, dmEventsWatcher := prepareDmClients()
-	dmReconciler := &dm.TenantController{
+) *tenant.Controller {
+	dmInvClient, dmEventsWatcher := prepareTenantClients()
+	dmReconciler := &tenant.Controller{
 		MpsClient:       mpsClient,
 		RpsClient:       rpsClient,
 		InventoryClient: dmInvClient,
@@ -161,7 +161,7 @@ func getTenantController(
 		ReadyChan:       readyChan,
 		SecretProvider:  &vsp,
 		WaitGroup:       wg,
-		Config: &dm.ReconcilerConfig{
+		Config: &tenant.ReconcilerConfig{
 			MpsAddress:      orchMpsHost,
 			MpsPort:         orchMpsPort,
 			PasswordPolicy:  *passwordPolicy,
@@ -170,7 +170,7 @@ func getTenantController(
 		},
 	}
 
-	tenantController := rec_v2.NewController[dm.ReconcilerID](
+	tenantController := rec_v2.NewController[tenant.ReconcilerID](
 		dmReconciler.Reconcile,
 		rec_v2.WithParallelism(defaultParallelGoroutines),
 		rec_v2.WithTimeout(*requestTimeout))
@@ -242,7 +242,7 @@ func getMpsAddress(filepath string) (string, int32) {
 	return orchMpsHost, int32(orchMpsPort)
 }
 
-func prepareDmClients() (
+func prepareTenantClients() (
 	invTenantClient invClient.TenantAwareInventoryClient, eventsWatcher chan *invClient.WatchEvents,
 ) {
 	eventsWatcher = make(chan *invClient.WatchEvents, eventsWatcherBufSize)

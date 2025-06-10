@@ -162,13 +162,13 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 	switch {
 	case invHost.GetDesiredAmtState() == invHost.GetCurrentAmtState() &&
 		invHost.GetDesiredPowerState() == invHost.GetCurrentPowerState():
-		return dc.checkPowerState(ctx, request, invHost)
+		return dc.syncPowerStatus(ctx, request, invHost)
 
 	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState():
 		req, status, err := dc.handlePowerChange(ctx, request, invHost)
 		if err != nil {
-			_, updateError := dc.updateState(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+			_, updateError := dc.updateStatus(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 				err.Error(),
 				status,
 			)
@@ -184,7 +184,7 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 	return request.Ack()
 }
 
-func (dc *Controller) checkPowerState(
+func (dc *Controller) syncPowerStatus(
 	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
 ) rec_v2.Directive[ID] {
 	// due to latency and mps not returning responses instantly, it is not possible to check states like reboot.
@@ -248,7 +248,7 @@ func (dc *Controller) checkPowerState(
 	return request.Ack()
 }
 
-func (dc *Controller) updateState(
+func (dc *Controller) updateStatus(
 	ctx context.Context, tenantID, hostID, powerStatus string, powerStatusIndicator statusv1.StatusIndication,
 ) (*inventoryv1.Resource, error) {
 	invHost := &computev1.HostResource{
@@ -282,7 +282,7 @@ func (dc *Controller) handlePowerChange(
 	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID,
 		invHost.GetCurrentPowerState(), invHost.GetDesiredPowerState())
 
-	_, err := dc.updateState(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+	_, err := dc.updateStatus(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		invHost.GetDesiredPowerState().String(),
 		statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
 	)
@@ -328,26 +328,6 @@ func (dc *Controller) handlePowerChange(
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
-	currentPowerState := invHost.GetDesiredPowerState()
-	// prevent reboot loop on host
-	if invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_RESET {
-		_, err = dc.InventoryAPIClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
-			&fieldmaskpb.FieldMask{Paths: []string{
-				computev1.HostResourceFieldDesiredPowerState,
-			}}, &inventoryv1.Resource{
-				Resource: &inventoryv1.Resource_Host{
-					Host: &computev1.HostResource{
-						DesiredPowerState: computev1.PowerState_POWER_STATE_ON,
-					},
-				},
-			})
-		if err != nil {
-			log.Err(err).Msgf("failed to update device info")
-			return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
-		}
-		currentPowerState = computev1.PowerState_POWER_STATE_ON
-	}
-
 	updateHost := &computev1.HostResource{}
 	updateHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
 	if err != nil {
@@ -355,7 +335,7 @@ func (dc *Controller) handlePowerChange(
 		// this error is unlikely, but in such case, set timestamp = 0
 		invHost.PowerStatusTimestamp = 0
 	}
-	updateHost.CurrentPowerState = currentPowerState
+	updateHost.CurrentPowerState = invHost.GetDesiredPowerState()
 	updateHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IDLE
 	updateHost.PowerStatus = invHost.GetDesiredPowerState().String()
 
@@ -400,3 +380,47 @@ func (dc *Controller) forcePowerOn(
 	return request.Retry(errors.Errorf("powering on")).With(
 		rec_v2.ExponentialBackoff(minDelay, maxDelay)), statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS, nil
 }
+
+//
+//func (dc *Controller) updateHost(
+//	ctx context.Context, tenantID, invResourceID string, fields []string, invHost *computev1.HostResource,
+//) error {
+//	if invHost == nil {
+//		err := errors.Errorfc(codes.InvalidArgument, "no resource provided")
+//		log.InfraSec().InfraErr(err).Msg("Empty resource is provided")
+//		return err
+//	}
+//
+//	if len(fields) == 0 {
+//		log.InfraSec().Debug().
+//			Msgf("Skipping, no fields selected to update for an inventory resource: %v, tenantID=%s",
+//				invHost.GetResourceId(), tenantID)
+//		return nil
+//	}
+//
+//	resource := &inventoryv1.Resource{
+//		Resource: &inventoryv1.Resource_Host{
+//			Host: invHost,
+//		},
+//	}
+//
+//	fieldMask, err := fieldmaskpb.New(resource, fields...)
+//	if err != nil {
+//		log.InfraSec().InfraErr(err).Msg("Failed to construct a fieldmask")
+//		return errors.Wrap(err)
+//	}
+//
+//	err = inv_util.ValidateMaskAndFilterMessage(resource, fieldMask, true)
+//	if err != nil {
+//		log.InfraSec().InfraErr(err).Msg("Failed to validate a fieldmask and filter message")
+//		return err
+//	}
+//
+//	_, err = dc.InventoryRmClient.Update(ctx, tenantID, invResourceID, fieldMask, resource)
+//	if err != nil {
+//		log.InfraSec().InfraErr(err).Msgf("Failed to update resource (%s) for tenantID=%s", invResourceID, tenantID)
+//		return err
+//	}
+//
+//	return nil
+//}
