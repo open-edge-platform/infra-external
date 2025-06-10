@@ -146,14 +146,16 @@ func (dc *Controller) Start() {
 			}
 			log.Info().Msgf("received %v event for %v",
 				event.Event.GetEventKind().String(), event.Event.GetResource().GetHost().GetUuid())
-			if !(event.Event.GetResource().GetHost().GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS ||
-				event.Event.GetResource().GetHost().GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_ERROR) {
+			host := event.Event.GetResource().GetHost()
+			if !(host.GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS ||
+				host.GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_ERROR) {
 				err := dc.DeviceController.Reconcile(NewID(
 					event.Event.GetResource().GetHost().GetTenantId(),
 					event.Event.GetResource().GetHost().GetUuid()),
 				)
 				if err != nil {
-					log.Err(err).Msgf("failed to add event for %v to the reconciler", event.Event.GetResource().GetHost().GetUuid())
+					log.Err(err).Msgf("failed to add event for %v to the reconciler",
+						event.Event.GetResource().GetHost().GetUuid())
 				}
 			}
 		}
@@ -204,7 +206,7 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 
 	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState():
-		req, status, err := dc.handlePowerChange(ctx, request, invHost)
+		req, status, err := dc.handlePowerChange(ctx, request, invHost, invHost.GetDesiredPowerState())
 		if err != nil {
 			_, updateError := dc.updateStatus(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 				err.Error(),
@@ -311,13 +313,13 @@ func (dc *Controller) updateStatus(
 }
 
 func (dc *Controller) handlePowerChange(
-	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
+	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource, desiredPowerState computev1.PowerState,
 ) (rec_v2.Directive[ID], statusv1.StatusIndication, error) {
 	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID,
-		invHost.GetCurrentPowerState(), invHost.GetDesiredPowerState())
+		invHost.GetCurrentPowerState(), desiredPowerState)
 
 	_, err := dc.updateStatus(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
-		invHost.GetDesiredPowerState().String(),
+		desiredPowerState.String(),
 		statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
 	)
 	if err != nil {
@@ -329,10 +331,13 @@ func (dc *Controller) handlePowerChange(
 	// https://en.wikipedia.org/wiki/Intel_AMT_versions
 	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
 		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
-			Action: powerMapping[invHost.GetDesiredPowerState()],
+			Action: powerMapping[desiredPowerState],
 		})
 	if err != nil {
 		log.Err(err).Msgf("failed to send power action to MPS")
+		if strings.Contains(err.Error(), "context deadline exceeded") {
+			err = errors.Errorf("timeout while waiting for MPS response")
+		}
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
@@ -340,9 +345,16 @@ func (dc *Controller) handlePowerChange(
 		powerAction.HTTPResponse, string(powerAction.Body))
 
 	if powerAction.StatusCode() != http.StatusOK {
-		err = errors.Errorf("%v", string(powerAction.Body))
+		switch {
+		case strings.Contains(string(powerAction.Body), "Device not found/connected"):
+			err = errors.Errorf("Device not found/connected")
+		default:
+			err = errors.Errorf("%v", string(powerAction.Body))
+		}
+
 		log.Err(err).
 			Msgf("expected to get 2XX, but got %v", powerAction.StatusCode())
+
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
@@ -356,7 +368,7 @@ func (dc *Controller) handlePowerChange(
 		// due to incorrect start state. Most of actions require POWER_ON as start state.
 		// https://device-management-toolkit.github.io/docs/2.27/Reference/powerstates/
 		if strings.EqualFold(*powerAction.JSON200.Body.ReturnValueStr, "NOT_READY") {
-			return dc.forcePowerOn(ctx, request)
+			return dc.handlePowerChange(ctx, request, invHost, computev1.PowerState_POWER_STATE_ON)
 		}
 
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
@@ -369,9 +381,9 @@ func (dc *Controller) handlePowerChange(
 		// this error is unlikely, but in such case, set timestamp = 0
 		invHost.PowerStatusTimestamp = 0
 	}
-	updateHost.CurrentPowerState = invHost.GetDesiredPowerState()
+	updateHost.CurrentPowerState = desiredPowerState
 	updateHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IDLE
-	updateHost.PowerStatus = invHost.GetDesiredPowerState().String()
+	updateHost.PowerStatus = desiredPowerState.String()
 
 	_, err = dc.InventoryRmClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
@@ -390,29 +402,6 @@ func (dc *Controller) handlePowerChange(
 	}
 
 	return request.Ack(), statusv1.StatusIndication_STATUS_INDICATION_IDLE, nil
-}
-
-func (dc *Controller) forcePowerOn(
-	ctx context.Context, request rec_v2.Request[ID],
-) (rec_v2.Directive[ID], statusv1.StatusIndication, error) {
-	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
-		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
-			Action: powerMapping[computev1.PowerState_POWER_STATE_ON],
-		})
-	if err != nil {
-		log.Err(err).Msgf("failed to send power action to MPS")
-		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
-	}
-
-	if powerAction.StatusCode() != http.StatusOK {
-		err = errors.Errorf("%v", string(powerAction.Body))
-		log.Err(err).
-			Msgf("expected to get 2XX, but got %v", powerAction.StatusCode())
-		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
-	}
-
-	return request.Retry(errors.Errorf("powering on")).With(
-		rec_v2.ExponentialBackoff(minDelay, maxDelay)), statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS, nil
 }
 
 func contains[T ~int | ~int8 | ~int16 | ~int32 | ~int64](slice []T, elem T) bool {

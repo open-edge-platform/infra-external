@@ -17,8 +17,10 @@ import (
 	invClient "github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 )
 
+const powerOn = 2
+
 var (
-	desiredState = flag.Int("desiredState", 2, "Desired state of the host for update command")
+	desiredState = flag.Int("desiredState", powerOn, "Desired state of the host for update command")
 	tenantID     = flag.String("tenantID", "91000763-23a2-4a2b-984a-37f69989b7e0",
 		"Tenant ID to use for the inventory client")
 	hostUUID       = flag.String("hostUUID", "874873cd-d715-d223-66fa-88aedd715d23", "Host UUID to use for the inventory client")
@@ -136,7 +138,7 @@ func updateHost(apiClient invClient.TenantAwareInventoryClient) {
 		&inventoryv1.Resource{
 			Resource: &inventoryv1.Resource_Host{
 				Host: &computev1.HostResource{
-					DesiredPowerState: computev1.PowerState(*desiredState),
+					DesiredPowerState: computev1.PowerState(*desiredState), //nolint:gosec // supported command <10
 					DesiredAmtState:   computev1.AmtState_AMT_STATE_PROVISIONED,
 				},
 			},
