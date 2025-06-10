@@ -39,7 +39,7 @@ const (
 	infraConfigPath           = "/etc/infra-config/config.yaml"
 	dmName                    = "dm-manager"
 	eventsWatcherBufSize      = 10
-	defaultRequestTimeout     = 10 * time.Second
+	defaultRequestTimeout     = 30 * time.Second
 	defaultParallelGoroutines = 10
 
 	numberOfControllers = 2

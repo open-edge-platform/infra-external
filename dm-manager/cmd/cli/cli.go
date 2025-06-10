@@ -18,7 +18,8 @@ import (
 )
 
 var (
-	tenantID = flag.String("tenantID", "91000763-23a2-4a2b-984a-37f69989b7e0",
+	desiredState = flag.Int("desiredState", 2, "Desired state of the host for update command")
+	tenantID     = flag.String("tenantID", "91000763-23a2-4a2b-984a-37f69989b7e0",
 		"Tenant ID to use for the inventory client")
 	hostUUID       = flag.String("hostUUID", "874873cd-d715-d223-66fa-88aedd715d23", "Host UUID to use for the inventory client")
 	amtSku         = flag.String("amtSku", "AMT Pro Corporate", "AMT SKU to use for the host")
@@ -135,7 +136,7 @@ func updateHost(apiClient invClient.TenantAwareInventoryClient) {
 		&inventoryv1.Resource{
 			Resource: &inventoryv1.Resource_Host{
 				Host: &computev1.HostResource{
-					DesiredPowerState: computev1.PowerState_POWER_STATE_RESET,
+					DesiredPowerState: computev1.PowerState(*desiredState),
 					DesiredAmtState:   computev1.AmtState_AMT_STATE_PROVISIONED,
 				},
 			},

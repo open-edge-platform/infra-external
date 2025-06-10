@@ -62,17 +62,19 @@ var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
 where the state of the managed element is preserved and will be recovered upon powering on.
 8 = Off - Soft, corresponding to ACPI state G2, S5, or D3.
 9 = Power Cycle (Off-Hard), corresponds to the managed element reaching the ACPI state G3 followed by ACPI state S0.
+12	Power down/off (soft)	Powered up/on	Transition to a very minimal power state	G2/S5
 13 = Off - Hard Graceful
 equivalent to Off Hard but preceded by a request to the managed element to perform an orderly shutdown.
 due to latency and mps not returning responses instantly, it is not always possible to check states like reboot.
 for SLEEP/HIBERNATE, as MPS it returns 2 (POWER_ON)
+14	Soft reset	Powered up/on	Perform a shutdown and then a hardware reset	N/A
 */
 var allowedPowerStates = map[computev1.PowerState][]int32{
 	computev1.PowerState_POWER_STATE_UNSPECIFIED: {},
 	computev1.PowerState_POWER_STATE_ON:          {2},
-	computev1.PowerState_POWER_STATE_OFF:         {6, 8, 13},
+	computev1.PowerState_POWER_STATE_OFF:         {6, 8, 12, 13},
 	computev1.PowerState_POWER_STATE_SLEEP:       {2, 3, 4},
-	computev1.PowerState_POWER_STATE_RESET:       {2},
+	computev1.PowerState_POWER_STATE_RESET:       {2, 14},
 	computev1.PowerState_POWER_STATE_HIBERNATE:   {2, 7},
 	computev1.PowerState_POWER_STATE_POWER_CYCLE: {2, 9},
 }
@@ -83,9 +85,11 @@ var mpsPowerStateToInventoryPowerState = map[int32]computev1.PowerState{
 	4:  computev1.PowerState_POWER_STATE_SLEEP,
 	6:  computev1.PowerState_POWER_STATE_OFF,
 	8:  computev1.PowerState_POWER_STATE_OFF,
+	12: computev1.PowerState_POWER_STATE_OFF,
 	13: computev1.PowerState_POWER_STATE_OFF,
 	7:  computev1.PowerState_POWER_STATE_HIBERNATE,
 	9:  computev1.PowerState_POWER_STATE_POWER_CYCLE,
+	14: computev1.PowerState_POWER_STATE_RESET,
 }
 
 type ID string
@@ -142,12 +146,15 @@ func (dc *Controller) Start() {
 			}
 			log.Info().Msgf("received %v event for %v",
 				event.Event.GetEventKind().String(), event.Event.GetResource().GetHost().GetUuid())
-			err := dc.DeviceController.Reconcile(NewID(
-				event.Event.GetResource().GetHost().GetTenantId(),
-				event.Event.GetResource().GetHost().GetUuid()),
-			)
-			if err != nil {
-				log.Err(err).Msgf("failed to add event for %v to the reconciler", event.Event.GetResource().GetHost().GetUuid())
+			if !(event.Event.GetResource().GetHost().GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS ||
+				event.Event.GetResource().GetHost().GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_ERROR) {
+				err := dc.DeviceController.Reconcile(NewID(
+					event.Event.GetResource().GetHost().GetTenantId(),
+					event.Event.GetResource().GetHost().GetUuid()),
+				)
+				if err != nil {
+					log.Err(err).Msgf("failed to add event for %v to the reconciler", event.Event.GetResource().GetHost().GetUuid())
+				}
 			}
 		}
 	}
