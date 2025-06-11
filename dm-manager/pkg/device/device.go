@@ -8,13 +8,13 @@ package device
 import (
 	"context"
 	"fmt"
-	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
@@ -52,6 +52,16 @@ var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
 	computev1.PowerState_POWER_STATE_RESET:       powerReset,
 	computev1.PowerState_POWER_STATE_HIBERNATE:   powerHibernate,
 	computev1.PowerState_POWER_STATE_POWER_CYCLE: powerCycle,
+}
+
+var powerMappingToInProgressState = map[computev1.PowerState]string{
+	computev1.PowerState_POWER_STATE_UNSPECIFIED: "Unspecified",
+	computev1.PowerState_POWER_STATE_ON:          "Powering on",
+	computev1.PowerState_POWER_STATE_OFF:         "Powering off",
+	computev1.PowerState_POWER_STATE_SLEEP:       "Sleeping",
+	computev1.PowerState_POWER_STATE_RESET:       "Resetting",
+	computev1.PowerState_POWER_STATE_HIBERNATE:   "Hibernating",
+	computev1.PowerState_POWER_STATE_POWER_CYCLE: "Power cycling",
 }
 
 //nolint: godot // copied from swagger file
@@ -399,8 +409,12 @@ func (dc *Controller) updateHost(
 		// this error is unlikely, but in such case, set timestamp = 0
 		invHost.PowerStatusTimestamp = 0
 	}
-	if contains(fieldMask.Paths, computev1.HostResourceFieldPowerStatusTimestamp) {
+	if !contains(fieldMask.Paths, computev1.HostResourceFieldPowerStatusTimestamp) {
 		fieldMask.Paths = append(fieldMask.Paths, computev1.HostResourceFieldPowerStatusTimestamp)
+	}
+
+	if invHost.PowerStatusIndicator == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS {
+		invHost.PowerStatus = powerMappingToInProgressState[invHost.GetDesiredPowerState()]
 	}
 
 	resCopy := proto.Clone(invHost)
