@@ -179,18 +179,17 @@ func getTenantController(
 }
 
 func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
-	rmClient, apiClient, deviceEventsWatcher := prepareDevicesClients()
+	rmClient, deviceEventsWatcher := prepareDevicesClients()
 
 	deviceReconciler := device.Controller{
-		MpsClient:          mpsClient,
-		WaitGroup:          wg,
-		TermChan:           termChan,
-		ReadyChan:          readyChan,
-		InventoryRmClient:  rmClient,
-		InventoryAPIClient: apiClient,
-		ReconcilePeriod:    *reconcilePeriod,
-		RequestTimeout:     *requestTimeout,
-		EventsWatcher:      deviceEventsWatcher,
+		MpsClient:         mpsClient,
+		WaitGroup:         wg,
+		TermChan:          termChan,
+		ReadyChan:         readyChan,
+		InventoryRmClient: rmClient,
+		ReconcilePeriod:   *reconcilePeriod,
+		RequestTimeout:    *requestTimeout,
+		EventsWatcher:     deviceEventsWatcher,
 	}
 	deviceController := rec_v2.NewController[device.ID](
 		deviceReconciler.Reconcile,
@@ -272,7 +271,7 @@ func prepareTenantClients() (
 }
 
 func prepareDevicesClients() (
-	rmClient invClient.TenantAwareInventoryClient, apiClient invClient.TenantAwareInventoryClient,
+	rmClient invClient.TenantAwareInventoryClient,
 	eventsWatcher chan *invClient.WatchEvents,
 ) {
 	eventsWatcher = make(chan *invClient.WatchEvents, eventsWatcherBufSize)
@@ -300,28 +299,7 @@ func prepareDevicesClients() (
 		log.Fatal().Err(err).Msgf("cannot create inventory client")
 	}
 
-	apiClient, err = invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
-		Name:                      "DM API manager",
-		Address:                   *inventoryAddress,
-		EnableRegisterRetry:       false,
-		AbortOnUnknownClientError: true,
-		SecurityCfg: &invClient.SecurityConfig{
-			CaPath:   *caCertPath,
-			CertPath: *tlsCertPath,
-			KeyPath:  *tlsKeyPath,
-			Insecure: *insecureGrpc,
-		},
-		Events:        eventsWatcher,
-		ClientKind:    inventoryv1.ClientKind_CLIENT_KIND_API,
-		Wg:            wg,
-		EnableTracing: *enableTracing,
-		EnableMetrics: *enableMetrics,
-	})
-	if err != nil {
-		log.Fatal().Err(err).Msgf("cannot create inventory client")
-	}
-
-	return rmClient, apiClient, eventsWatcher
+	return rmClient, eventsWatcher
 }
 
 func setupOamServer(enableTracing bool, oamservaddr string) {

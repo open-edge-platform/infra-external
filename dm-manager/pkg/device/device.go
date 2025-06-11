@@ -133,14 +133,13 @@ func NewID(tenantID, hostUUID string) ID {
 }
 
 type Controller struct {
-	MpsClient          mps.ClientWithResponsesInterface
-	InventoryRmClient  client.TenantAwareInventoryClient // manages Current* fields
-	InventoryAPIClient client.TenantAwareInventoryClient // manages Desired* fields
-	TermChan           chan bool
-	ReadyChan          chan bool
-	EventsWatcher      chan *client.WatchEvents
-	WaitGroup          *sync.WaitGroup
-	DeviceController   *rec_v2.Controller[ID]
+	MpsClient         mps.ClientWithResponsesInterface
+	InventoryRmClient client.TenantAwareInventoryClient
+	TermChan          chan bool
+	ReadyChan         chan bool
+	EventsWatcher     chan *client.WatchEvents
+	WaitGroup         *sync.WaitGroup
+	DeviceController  *rec_v2.Controller[ID]
 
 	ReconcilePeriod time.Duration
 	RequestTimeout  time.Duration
@@ -350,7 +349,7 @@ func (dc *Controller) handlePowerChange(
 			Msgf("expected to get 2XX, but got %v", powerAction.StatusCode())
 
 		return request.Fail(err),
-			statusv1.StatusIndication_STATUS_INDICATION_ERROR, toUserFriendlyError(string(powerAction.Body))
+			statusv1.StatusIndication_STATUS_INDICATION_ERROR, errors.Errorf("%v", toUserFriendlyError(string(powerAction.Body)))
 	}
 
 	// intentionally comparing whole body, as there are cases where MPS defines variable as lowercase
@@ -387,16 +386,16 @@ func (dc *Controller) handlePowerChange(
 	return request.Ack(), statusv1.StatusIndication_STATUS_INDICATION_IDLE, nil
 }
 
-func toUserFriendlyError(err string) error {
+func toUserFriendlyError(err string) string {
 	switch {
 	case strings.Contains(err, "context deadline exceeded"):
-		return errors.Errorf("timeout while waiting response")
+		return "timeout while waiting response"
 	case strings.Contains(err, "Device not found/connected"):
-		return errors.Errorf("Device not found/connected")
+		return "Device not found/connected"
 	case strings.Contains(err, "NOT_READY"):
-		return errors.Errorf("Device must be powered on first")
+		return "Device must be powered on first"
 	default:
-		return errors.Errorf("%v", err)
+		return err
 	}
 }
 
@@ -439,14 +438,15 @@ func (dc *Controller) updateHost(
 
 	switch invHost.PowerStatusIndicator {
 	case statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS:
-		invHost.PowerStatus = powerMappingToInProgressState[invHost.GetDesiredPowerState()]
+		invHost.PowerStatus = powerMappingToInProgressState[invHost.GetCurrentPowerState()]
 	case statusv1.StatusIndication_STATUS_INDICATION_IDLE:
-		invHost.PowerStatus = powerMappingToIdleState[invHost.GetDesiredPowerState()]
+		invHost.PowerStatus = powerMappingToIdleState[invHost.GetCurrentPowerState()]
 	case statusv1.StatusIndication_STATUS_INDICATION_ERROR:
-		invHost.PowerStatus = toUserFriendlyError(invHost.PowerStatus).Error()
+		invHost.PowerStatus = toUserFriendlyError(invHost.PowerStatus)
 	default:
 		invHost.PowerStatus = "Unknown"
 	}
+	fieldMask.Paths = append(fieldMask.Paths, computev1.HostResourceFieldPowerStatus)
 
 	resCopy := proto.Clone(invHost)
 	fieldMask, err = fieldmaskpb.New(resCopy, fieldMask.Paths...)
