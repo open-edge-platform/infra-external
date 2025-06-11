@@ -8,11 +8,13 @@ package device
 import (
 	"context"
 	"fmt"
+	"google.golang.org/protobuf/proto"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
@@ -208,10 +210,14 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState():
 		req, status, err := dc.handlePowerChange(ctx, request, invHost, invHost.GetDesiredPowerState())
 		if err != nil {
-			_, updateError := dc.updateStatus(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
-				err.Error(),
-				status,
-			)
+			updateError := dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+				&fieldmaskpb.FieldMask{Paths: []string{
+					computev1.HostResourceFieldPowerStatus,
+					computev1.HostResourceFieldPowerStatusIndicator,
+				}}, &computev1.HostResource{
+					PowerStatus:          toUserFriendlyError(err.Error()).Error(),
+					PowerStatusIndicator: status,
+				})
 			if updateError != nil {
 				log.Err(updateError).Msgf("failed to update device status")
 				return request.Fail(updateError)
@@ -249,27 +255,15 @@ func (dc *Controller) syncPowerStatus(
 		log.Info().Msgf("%v host desired state is %v, but current power state is %v",
 			invHost.GetUuid(), powerMapping[invHost.GetDesiredPowerState()], powerStateCode)
 
-		updateHost := &computev1.HostResource{}
-		updateHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
-		if err != nil {
-			log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
-			// this error is unlikely, but in such case, set timestamp = 0
-			updateHost.PowerStatusTimestamp = 0
-		}
-		updateHost.PowerStatus = "mismatch between desired and current power state"
-		updateHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS
-		updateHost.CurrentPowerState = mpsPowerStateToInventoryPowerState[powerStateCode]
-
-		_, err = dc.InventoryRmClient.Update(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
+		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
 			&fieldmaskpb.FieldMask{Paths: []string{
 				computev1.HostResourceFieldCurrentPowerState,
 				computev1.HostResourceFieldPowerStatus,
 				computev1.HostResourceFieldPowerStatusIndicator,
-				computev1.HostResourceFieldPowerStatusTimestamp,
-			}}, &inventoryv1.Resource{
-				Resource: &inventoryv1.Resource_Host{
-					Host: updateHost,
-				},
+			}}, &computev1.HostResource{
+				PowerStatus:          "mismatch between desired and current power state",
+				PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
+				CurrentPowerState:    mpsPowerStateToInventoryPowerState[powerStateCode],
 			})
 		if err != nil {
 			log.Err(err).Msgf("failed to update device info")
@@ -284,44 +278,20 @@ func (dc *Controller) syncPowerStatus(
 	return request.Ack()
 }
 
-func (dc *Controller) updateStatus(
-	ctx context.Context, tenantID, hostID, powerStatus string, powerStatusIndicator statusv1.StatusIndication,
-) (*inventoryv1.Resource, error) {
-	invHost := &computev1.HostResource{
-		PowerStatus:          powerStatus,
-		PowerStatusIndicator: powerStatusIndicator,
-	}
-
-	var err error
-	invHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
-	if err != nil {
-		log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
-		// this error is unlikely, but in such case, set timestamp = 0
-		invHost.PowerStatusTimestamp = 0
-	}
-
-	return dc.InventoryAPIClient.Update(ctx, tenantID, hostID,
-		&fieldmaskpb.FieldMask{Paths: []string{
-			computev1.HostResourceFieldPowerStatus,
-			computev1.HostResourceFieldPowerStatusIndicator,
-			computev1.HostResourceFieldPowerStatusTimestamp,
-		}}, &inventoryv1.Resource{
-			Resource: &inventoryv1.Resource_Host{
-				Host: invHost,
-			},
-		})
-}
-
 func (dc *Controller) handlePowerChange(
 	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource, desiredPowerState computev1.PowerState,
 ) (rec_v2.Directive[ID], statusv1.StatusIndication, error) {
 	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID,
 		invHost.GetCurrentPowerState(), desiredPowerState)
 
-	_, err := dc.updateStatus(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
-		desiredPowerState.String(),
-		statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
-	)
+	err := dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+		&fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldPowerStatus,
+			computev1.HostResourceFieldPowerStatusIndicator,
+		}}, &computev1.HostResource{
+			PowerStatus:          desiredPowerState.String(),
+			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
+		})
 	if err != nil {
 		log.Err(err).Msgf("failed to update device info")
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
@@ -335,27 +305,19 @@ func (dc *Controller) handlePowerChange(
 		})
 	if err != nil {
 		log.Err(err).Msgf("failed to send power action to MPS")
-		if strings.Contains(err.Error(), "context deadline exceeded") {
-			err = errors.Errorf("timeout while waiting for MPS response")
-		}
-		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
+		return request.Fail(toUserFriendlyError(err.Error())),
+			statusv1.StatusIndication_STATUS_INDICATION_ERROR, toUserFriendlyError(err.Error())
 	}
 
 	log.Debug().Msgf("power action response for %v with status code %v - %v", request.ID.GetHostUUID(),
 		powerAction.HTTPResponse, string(powerAction.Body))
 
 	if powerAction.StatusCode() != http.StatusOK {
-		switch {
-		case strings.Contains(string(powerAction.Body), "Device not found/connected"):
-			err = errors.Errorf("Device not found/connected")
-		default:
-			err = errors.Errorf("%v", string(powerAction.Body))
-		}
-
 		log.Err(err).
 			Msgf("expected to get 2XX, but got %v", powerAction.StatusCode())
 
-		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
+		return request.Fail(err),
+			statusv1.StatusIndication_STATUS_INDICATION_ERROR, toUserFriendlyError(string(powerAction.Body))
 	}
 
 	// intentionally comparing whole body, as there are cases where MPS defines variable as lowercase
@@ -374,27 +336,15 @@ func (dc *Controller) handlePowerChange(
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
-	updateHost := &computev1.HostResource{}
-	updateHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
-	if err != nil {
-		log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
-		// this error is unlikely, but in such case, set timestamp = 0
-		invHost.PowerStatusTimestamp = 0
-	}
-	updateHost.CurrentPowerState = desiredPowerState
-	updateHost.PowerStatusIndicator = statusv1.StatusIndication_STATUS_INDICATION_IDLE
-	updateHost.PowerStatus = desiredPowerState.String()
-
-	_, err = dc.InventoryRmClient.Update(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+	err = dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentPowerState,
 			computev1.HostResourceFieldPowerStatus,
 			computev1.HostResourceFieldPowerStatusIndicator,
-			computev1.HostResourceFieldPowerStatusTimestamp,
-		}}, &inventoryv1.Resource{
-			Resource: &inventoryv1.Resource_Host{
-				Host: updateHost,
-			},
+		}}, &computev1.HostResource{
+			CurrentPowerState:    desiredPowerState,
+			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+			PowerStatus:          desiredPowerState.String(),
 		})
 	if err != nil {
 		log.Err(err).Msgf("failed to update device info")
@@ -404,7 +354,20 @@ func (dc *Controller) handlePowerChange(
 	return request.Ack(), statusv1.StatusIndication_STATUS_INDICATION_IDLE, nil
 }
 
-func contains[T ~int | ~int8 | ~int16 | ~int32 | ~int64](slice []T, elem T) bool {
+func toUserFriendlyError(err string) error {
+	switch {
+	case strings.Contains(err, "context deadline exceeded"):
+		return errors.Errorf("timeout while waiting response")
+	case strings.Contains(err, "Device not found/connected"):
+		return errors.Errorf("Device not found/connected")
+	case strings.Contains(err, "NOT_READY"):
+		return errors.Errorf("Device must be powered on first")
+	default:
+		return errors.Errorf("%v", err)
+	}
+}
+
+func contains[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~string](slice []T, elem T) bool {
 	for _, v := range slice {
 		if v == elem {
 			return true
@@ -413,46 +376,55 @@ func contains[T ~int | ~int8 | ~int16 | ~int32 | ~int64](slice []T, elem T) bool
 	return false
 }
 
-//
-//  func (dc *Controller) updateHost(
-//	  ctx context.Context, tenantID, invResourceID string, fields []string, invHost *computev1.HostResource,
-//  ) error {
-//	if invHost == nil {
-//		err := errors.Errorfc(codes.InvalidArgument, "no resource provided")
-//		log.InfraSec().InfraErr(err).Msg("Empty resource is provided")
-//		return err
-//	}
-//
-//	if len(fields) == 0 {
-//		log.InfraSec().Debug().
-//			Msgf("Skipping, no fields selected to update for an inventory resource: %v, tenantID=%s",
-//				invHost.GetResourceId(), tenantID)
-//		return nil
-//	}
-//
-//	resource := &inventoryv1.Resource{
-//		Resource: &inventoryv1.Resource_Host{
-//			Host: invHost,
-//		},
-//	}
-//
-//	fieldMask, err := fieldmaskpb.New(resource, fields...)
-//	if err != nil {
-//		log.InfraSec().InfraErr(err).Msg("Failed to construct a fieldmask")
-//		return errors.Wrap(err)
-//	}
-//
-//	err = inv_util.ValidateMaskAndFilterMessage(resource, fieldMask, true)
-//	if err != nil {
-//		log.InfraSec().InfraErr(err).Msg("Failed to validate a fieldmask and filter message")
-//		return err
-//	}
-//
-//	_, err = dc.InventoryRmClient.Update(ctx, tenantID, invResourceID, fieldMask, resource)
-//	if err != nil {
-//		log.InfraSec().InfraErr(err).Msgf("Failed to update resource (%s) for tenantID=%s", invResourceID, tenantID)
-//		return err
-//	}
-//
-//	return nil
-//}
+func (dc *Controller) updateHost(
+	ctx context.Context, tenantID, invResourceID string, fieldMask *fieldmaskpb.FieldMask, invHost *computev1.HostResource,
+) error {
+	if invHost == nil {
+		err := errors.Errorfc(codes.InvalidArgument, "no resource provided")
+		log.InfraSec().InfraErr(err).Msg("Empty resource is provided")
+		return err
+	}
+
+	if len(fieldMask.Paths) == 0 {
+		log.InfraSec().Debug().
+			Msgf("Skipping, no fields selected to update for an inventory resource: %v, tenantID=%s",
+				invHost.GetResourceId(), tenantID)
+		return nil
+	}
+
+	var err error
+	invHost.PowerStatusTimestamp, err = inv_util.Int64ToUint64(time.Now().Unix())
+	if err != nil {
+		log.InfraSec().InfraErr(err).Msgf("failed to parse current time")
+		// this error is unlikely, but in such case, set timestamp = 0
+		invHost.PowerStatusTimestamp = 0
+	}
+	if contains(fieldMask.Paths, computev1.HostResourceFieldPowerStatusTimestamp) {
+		fieldMask.Paths = append(fieldMask.Paths, computev1.HostResourceFieldPowerStatusTimestamp)
+	}
+
+	resCopy := proto.Clone(invHost)
+	fieldMask, err = fieldmaskpb.New(resCopy, fieldMask.Paths...)
+	if err != nil {
+		log.InfraSec().InfraErr(err).Msg("Failed to construct a fieldmask")
+		return errors.Wrap(err)
+	}
+
+	err = inv_util.ValidateMaskAndFilterMessage(resCopy, fieldMask, true)
+	if err != nil {
+		log.InfraSec().InfraErr(err).Msg("Failed to validate a fieldMask and filter message")
+		return err
+	}
+
+	_, err = dc.InventoryRmClient.Update(ctx, tenantID, invResourceID, fieldMask, &inventoryv1.Resource{
+		Resource: &inventoryv1.Resource_Host{
+			Host: invHost,
+		},
+	})
+	if err != nil {
+		log.InfraSec().InfraErr(err).Msgf("Failed to update resource (%s) for tenantID=%s", invResourceID, tenantID)
+		return err
+	}
+
+	return nil
+}
