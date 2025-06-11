@@ -235,7 +235,7 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 					computev1.HostResourceFieldPowerStatus,
 					computev1.HostResourceFieldPowerStatusIndicator,
 				}}, &computev1.HostResource{
-					PowerStatus:          toUserFriendlyError(err.Error()).Error(),
+					PowerStatus:          err.Error(),
 					PowerStatusIndicator: status,
 				})
 			if updateError != nil {
@@ -295,6 +295,19 @@ func (dc *Controller) syncPowerStatus(
 	log.Debug().Msgf("%v host desired state is %v, which matches current power state",
 		invHost.GetResourceId(), invHost.GetDesiredPowerState().String())
 
+	err = dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+		&fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldPowerStatus,
+			computev1.HostResourceFieldPowerStatusIndicator,
+		}}, &computev1.HostResource{
+			PowerStatus:          invHost.GetPowerStatus(),
+			PowerStatusIndicator: invHost.GetPowerStatusIndicator(),
+		})
+	if err != nil {
+		log.Err(err).Msgf("failed to update device info")
+		return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
+	}
+
 	return request.Ack()
 }
 
@@ -325,8 +338,8 @@ func (dc *Controller) handlePowerChange(
 		})
 	if err != nil {
 		log.Err(err).Msgf("failed to send power action to MPS")
-		return request.Fail(toUserFriendlyError(err.Error())),
-			statusv1.StatusIndication_STATUS_INDICATION_ERROR, toUserFriendlyError(err.Error())
+		return request.Fail(err),
+			statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
 	log.Debug().Msgf("power action response for %v with status code %v - %v", request.ID.GetHostUUID(),
@@ -396,6 +409,7 @@ func contains[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~string](slice []T, el
 	return false
 }
 
+//nolint:cyclop // all checks are necessary
 func (dc *Controller) updateHost(
 	ctx context.Context, tenantID, invResourceID string, fieldMask *fieldmaskpb.FieldMask, invHost *computev1.HostResource,
 ) error {
@@ -423,11 +437,15 @@ func (dc *Controller) updateHost(
 		fieldMask.Paths = append(fieldMask.Paths, computev1.HostResourceFieldPowerStatusTimestamp)
 	}
 
-	switch {
-	case invHost.PowerStatusIndicator == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS:
+	switch invHost.PowerStatusIndicator {
+	case statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS:
 		invHost.PowerStatus = powerMappingToInProgressState[invHost.GetDesiredPowerState()]
-	case invHost.PowerStatusIndicator == statusv1.StatusIndication_STATUS_INDICATION_IDLE:
+	case statusv1.StatusIndication_STATUS_INDICATION_IDLE:
 		invHost.PowerStatus = powerMappingToIdleState[invHost.GetDesiredPowerState()]
+	case statusv1.StatusIndication_STATUS_INDICATION_ERROR:
+		invHost.PowerStatus = toUserFriendlyError(invHost.PowerStatus).Error()
+	default:
+		invHost.PowerStatus = "Unknown"
 	}
 
 	resCopy := proto.Clone(invHost)
