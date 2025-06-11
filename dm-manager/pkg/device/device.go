@@ -64,6 +64,16 @@ var powerMappingToInProgressState = map[computev1.PowerState]string{
 	computev1.PowerState_POWER_STATE_POWER_CYCLE: "Power cycling",
 }
 
+var powerMappingToIdleState = map[computev1.PowerState]string{
+	computev1.PowerState_POWER_STATE_UNSPECIFIED: "Unspecified",
+	computev1.PowerState_POWER_STATE_ON:          "Powered on",
+	computev1.PowerState_POWER_STATE_OFF:         "Powered off",
+	computev1.PowerState_POWER_STATE_SLEEP:       "Sleep state",
+	computev1.PowerState_POWER_STATE_RESET:       "Reset successful",
+	computev1.PowerState_POWER_STATE_HIBERNATE:   "Hibernate state",
+	computev1.PowerState_POWER_STATE_POWER_CYCLE: "Power cycle successful",
+}
+
 //nolint: godot // copied from swagger file
 /*
 2 = On - corresponding to ACPI state G0 or S0 or D0.
@@ -413,8 +423,11 @@ func (dc *Controller) updateHost(
 		fieldMask.Paths = append(fieldMask.Paths, computev1.HostResourceFieldPowerStatusTimestamp)
 	}
 
-	if invHost.PowerStatusIndicator == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS {
+	switch {
+	case invHost.PowerStatusIndicator == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS:
 		invHost.PowerStatus = powerMappingToInProgressState[invHost.GetDesiredPowerState()]
+	case invHost.PowerStatusIndicator == statusv1.StatusIndication_STATUS_INDICATION_IDLE:
+		invHost.PowerStatus = powerMappingToIdleState[invHost.GetDesiredPowerState()]
 	}
 
 	resCopy := proto.Clone(invHost)
