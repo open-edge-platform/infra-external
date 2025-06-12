@@ -265,6 +265,9 @@ func (dc *Controller) syncPowerStatus(
 		err = errors.Errorf("%v", string(currentPowerState.Body))
 		log.Err(err).
 			Msgf("expected to get 2XX, but got %v", currentPowerState.StatusCode())
+		if currentPowerState.StatusCode() == http.StatusNotFound {
+			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
+		}
 		return request.Fail(err)
 	}
 
