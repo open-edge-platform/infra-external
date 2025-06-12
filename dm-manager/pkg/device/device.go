@@ -303,6 +303,7 @@ func (dc *Controller) syncPowerStatus(
 			computev1.HostResourceFieldPowerStatus,
 			computev1.HostResourceFieldPowerStatusIndicator,
 		}}, &computev1.HostResource{
+			CurrentPowerState:    invHost.GetCurrentPowerState(),
 			PowerStatus:          invHost.GetPowerStatus(),
 			PowerStatusIndicator: invHost.GetPowerStatusIndicator(),
 		})
@@ -325,6 +326,7 @@ func (dc *Controller) handlePowerChange(
 			computev1.HostResourceFieldPowerStatus,
 			computev1.HostResourceFieldPowerStatusIndicator,
 		}}, &computev1.HostResource{
+			CurrentPowerState:    invHost.GetCurrentPowerState(),
 			PowerStatus:          desiredPowerState.String(),
 			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
 		})
@@ -442,7 +444,13 @@ func (dc *Controller) updateHost(
 
 	switch invHost.PowerStatusIndicator {
 	case statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS:
-		invHost.PowerStatus = powerMappingToInProgressState[invHost.GetCurrentPowerState()]
+		invResource, err := dc.InventoryRmClient.Get(ctx, tenantID, invResourceID)
+		if err != nil {
+			log.Err(err).Msgf("couldn't get device from inventory")
+			return err
+		}
+
+		invHost.PowerStatus = powerMappingToInProgressState[invResource.GetResource().GetHost().GetDesiredPowerState()]
 	case statusv1.StatusIndication_STATUS_INDICATION_IDLE:
 		invHost.PowerStatus = powerMappingToIdleState[invHost.GetCurrentPowerState()]
 	case statusv1.StatusIndication_STATUS_INDICATION_ERROR:
