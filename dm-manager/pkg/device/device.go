@@ -163,6 +163,7 @@ func (dc *Controller) Start() {
 			if !ok {
 				ticker.Stop()
 				dc.Stop()
+				log.InfraSec().Fatal().Msg("gRPC stream with Inventory closed")
 				return
 			}
 			log.Info().Msgf("received %v event for %v",
@@ -348,6 +349,12 @@ func (dc *Controller) handlePowerChange(
 		log.Err(err).
 			Msgf("expected to get 2XX, but got %v", powerAction.StatusCode())
 
+		if powerAction.StatusCode() == http.StatusNotFound {
+			err = errors.Errorf("Device not found/connected")
+			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay)),
+				statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
+		}
+
 		return request.Fail(err),
 			statusv1.StatusIndication_STATUS_INDICATION_ERROR, errors.Errorf("%v", toUserFriendlyError(string(powerAction.Body)))
 	}
@@ -357,13 +364,7 @@ func (dc *Controller) handlePowerChange(
 	if !strings.EqualFold(*powerAction.JSON200.Body.ReturnValueStr, "SUCCESS") {
 		log.Err(errors.Errorf("power request sent successfully, but received unexpected response")).
 			Msgf("expected to receive SUCCESS, but got %s", string(powerAction.Body))
-
-		// NOT_READY is returned when device is powered off but someone tries to reboot it
-		// due to incorrect start state. Most of actions require POWER_ON as start state.
-		// https://device-management-toolkit.github.io/docs/2.27/Reference/powerstates/
-		if strings.EqualFold(*powerAction.JSON200.Body.ReturnValueStr, "NOT_READY") {
-			return dc.handlePowerChange(ctx, request, invHost, computev1.PowerState_POWER_STATE_ON)
-		}
+		err = errors.Errorf("%v", string(powerAction.Body))
 
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
@@ -371,16 +372,15 @@ func (dc *Controller) handlePowerChange(
 	err = dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentPowerState,
-			computev1.HostResourceFieldPowerStatus,
 			computev1.HostResourceFieldPowerStatusIndicator,
 		}}, &computev1.HostResource{
 			CurrentPowerState:    desiredPowerState,
 			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
-			PowerStatus:          desiredPowerState.String(),
 		})
 	if err != nil {
 		log.Err(err).Msgf("failed to update device info")
-		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
+		return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay)),
+			statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
 	return request.Ack(), statusv1.StatusIndication_STATUS_INDICATION_IDLE, nil
@@ -395,7 +395,8 @@ func toUserFriendlyError(err string) string {
 	case strings.Contains(err, "NOT_READY"):
 		return "Device must be powered on first"
 	default:
-		return err
+		log.Error().Msgf("unknown error occurred: %s", err)
+		return "Unknown error occurred. Check logs for more details."
 	}
 }
 

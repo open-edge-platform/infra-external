@@ -114,12 +114,11 @@ func prepareEnv(
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 
 	deviceReconciller := Controller{
-		MpsClient:          mpsMock,
-		InventoryRmClient:  dao.GetRMClient(),
-		InventoryAPIClient: dao.GetAPIClient(),
-		RequestTimeout:     time.Second,
-		ReconcilePeriod:    time.Minute,
-		ReadyChan:          make(chan bool, 1),
+		MpsClient:         mpsMock,
+		InventoryRmClient: dao.GetRMClient(),
+		RequestTimeout:    time.Second,
+		ReconcilePeriod:   time.Minute,
+		ReadyChan:         make(chan bool, 1),
 	}
 	deviceController := rec_v2.NewController[ID](
 		deviceReconciller.Reconcile)
@@ -132,13 +131,12 @@ func TestDeviceController_Start(t *testing.T) {
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}
 	dc := &Controller{
-		InventoryAPIClient: inv_testing.TestClients[inv_testing.APIClient].GetTenantAwareInventoryClient(),
-		InventoryRmClient:  inv_testing.TestClients[inv_testing.RMClient].GetTenantAwareInventoryClient(),
-		TermChan:           termChan,
-		ReadyChan:          readyChan,
-		ReconcilePeriod:    time.Minute,
-		RequestTimeout:     time.Second,
-		WaitGroup:          wg,
+		InventoryRmClient: inv_testing.TestClients[inv_testing.RMClient].GetTenantAwareInventoryClient(),
+		TermChan:          termChan,
+		ReadyChan:         readyChan,
+		ReconcilePeriod:   time.Minute,
+		RequestTimeout:    time.Second,
+		WaitGroup:         wg,
 	}
 
 	wg.Add(1)

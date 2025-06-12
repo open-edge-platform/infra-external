@@ -128,11 +128,11 @@ func main() {
 		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
 	}
 
-	dmReconciler := getTenantController(mpsClient, rpsClient, vsp, orchMpsHost, orchMpsPort)
+	tenantReconciler := getTenantController(mpsClient, rpsClient, vsp, orchMpsHost, orchMpsPort)
 	deviceReconciler := getDeviceController(mpsClient)
 
 	wg.Add(1)
-	go dmReconciler.Start()
+	go tenantReconciler.Start()
 
 	wg.Add(1)
 	go deviceReconciler.Start()
@@ -141,7 +141,7 @@ func main() {
 
 	close(osChan)
 	close(termChan)
-	dmReconciler.Stop()
+	tenantReconciler.Stop()
 	deviceReconciler.Stop()
 	wg.Wait()
 	log.Info().Msgf("Device Management Controller successfully stopped")
