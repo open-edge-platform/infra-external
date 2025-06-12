@@ -290,3 +290,29 @@ func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenSh
 	assert.NoError(t, err)
 	assert.Equal(t, computev1.PowerState_POWER_STATE_ON, invHost.CurrentPowerState)
 }
+
+func TestController_checkPowerState_ifDeviceIsNotConnectedThenShouldRetryReconcile(t *testing.T) {
+	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_ON)
+
+	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
+		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
+			HTTPResponse: &http.Response{
+				StatusCode: http.StatusNotFound,
+			},
+		}, nil)
+
+	invHost, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
+	assert.NoError(t, err)
+	assert.Equal(t, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED, invHost.PowerStatusIndicator)
+
+	powerHook := util.NewTestAssertHook("expected to get 2XX, but got 404")
+	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(powerHook)}
+
+	deviceReconciller.syncPowerStatus(context.Background(),
+		rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)}, invHost)
+
+	powerHook.AssertWithTimeout(t, time.Second)
+	invHost, err = dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
+	assert.NoError(t, err)
+	assert.Equal(t, computev1.PowerState_POWER_STATE_ON, invHost.CurrentPowerState)
+}
