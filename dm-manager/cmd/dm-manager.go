@@ -151,7 +151,7 @@ func getTenantController(
 	mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses, vsp secrets.VaultSecretProvider,
 	orchMpsHost string, orchMpsPort int32,
 ) *tenant.Controller {
-	dmInvClient, dmEventsWatcher := prepareTenantClients()
+	dmInvClient, dmEventsWatcher := prepareTenantAwareClient()
 	dmReconciler := &tenant.Controller{
 		MpsClient:       mpsClient,
 		RpsClient:       rpsClient,
@@ -179,7 +179,7 @@ func getTenantController(
 }
 
 func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
-	rmClient, deviceEventsWatcher := prepareDevicesClients()
+	rmClient, deviceEventsWatcher := prepareInventoryClients()
 
 	deviceReconciler := device.Controller{
 		MpsClient:         mpsClient,
@@ -241,7 +241,7 @@ func getMpsAddress(filepath string) (string, int32) {
 	return orchMpsHost, int32(orchMpsPort)
 }
 
-func prepareTenantClients() (
+func prepareTenantAwareClient() (
 	invTenantClient invClient.TenantAwareInventoryClient, eventsWatcher chan *invClient.WatchEvents,
 ) {
 	eventsWatcher = make(chan *invClient.WatchEvents, eventsWatcherBufSize)
@@ -270,7 +270,7 @@ func prepareTenantClients() (
 	return invTenantClient, eventsWatcher
 }
 
-func prepareDevicesClients() (
+func prepareInventoryClients() (
 	rmClient invClient.TenantAwareInventoryClient,
 	eventsWatcher chan *invClient.WatchEvents,
 ) {

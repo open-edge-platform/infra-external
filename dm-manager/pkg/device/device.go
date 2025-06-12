@@ -298,20 +298,6 @@ func (dc *Controller) syncPowerStatus(
 	log.Debug().Msgf("%v host desired state is %v, which matches current power state",
 		invHost.GetResourceId(), invHost.GetDesiredPowerState().String())
 
-	err = dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
-		&fieldmaskpb.FieldMask{Paths: []string{
-			computev1.HostResourceFieldPowerStatus,
-			computev1.HostResourceFieldPowerStatusIndicator,
-		}}, &computev1.HostResource{
-			CurrentPowerState:    invHost.GetCurrentPowerState(),
-			PowerStatus:          invHost.GetPowerStatus(),
-			PowerStatusIndicator: invHost.GetPowerStatusIndicator(),
-		})
-	if err != nil {
-		log.Err(err).Msgf("failed to update device info")
-		return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
-	}
-
 	return request.Ack()
 }
 

@@ -79,6 +79,7 @@ func (tc *Controller) Start() {
 			if !ok {
 				ticker.Stop()
 				tc.Stop()
+				log.InfraSec().Fatal().Msg("gRPC stream with Inventory closed")
 				return
 			}
 			if event.Event.GetEventKind() == inventoryv1.SubscribeEventsResponse_EVENT_KIND_CREATED {
