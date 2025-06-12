@@ -444,10 +444,10 @@ func (dc *Controller) updateHost(
 
 	switch invHost.PowerStatusIndicator {
 	case statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS:
-		invResource, err := dc.InventoryRmClient.Get(ctx, tenantID, invResourceID)
-		if err != nil {
-			log.Err(err).Msgf("couldn't get device from inventory")
-			return err
+		invResource, getErr := dc.InventoryRmClient.Get(ctx, tenantID, invResourceID)
+		if getErr != nil {
+			log.Err(getErr).Msgf("couldn't get device from inventory")
+			return getErr
 		}
 
 		invHost.PowerStatus = powerMappingToInProgressState[invResource.GetResource().GetHost().GetDesiredPowerState()]
