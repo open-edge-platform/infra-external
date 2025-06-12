@@ -6,8 +6,10 @@ package device
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -315,4 +317,49 @@ func TestController_checkPowerState_ifDeviceIsNotConnectedThenShouldRetryReconci
 	invHost, err = dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
 	assert.NoError(t, err)
 	assert.Equal(t, computev1.PowerState_POWER_STATE_ON, invHost.CurrentPowerState)
+}
+
+func TestDeviceController_Reconcile_ifReceivedNotFoundDuringRequestThenShouldRetryRequest(t *testing.T) {
+	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
+
+	mpsMock.On("GetApiV1DevicesGuidWithResponse", mock.Anything, mock.Anything).
+		Return(&mps.GetApiV1DevicesGuidResponse{}, nil)
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
+		Return(&mps.PostApiV1AmtPowerActionGuidResponse{
+			HTTPResponse: &http.Response{
+				StatusCode: http.StatusNotFound,
+			},
+		}, nil)
+
+	powerHook := util.NewTestAssertHook("expected to get 2XX, but got 404")
+	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(powerHook)}
+
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
+
+	powerHook.AssertWithTimeout(t, time.Second)
+}
+
+func TestDeviceController_Reconcile_ifResponseHasNotReadyThenShouldFailRequest(t *testing.T) {
+	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
+
+	mpsMock.On("GetApiV1DevicesGuidWithResponse", mock.Anything, mock.Anything).
+		Return(&mps.GetApiV1DevicesGuidResponse{}, nil)
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
+		Return(&mps.PostApiV1AmtPowerActionGuidResponse{
+			HTTPResponse: &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(`{"ReturnValue":2,"ReturnValueStr":"NOT_READY"}`)),
+			},
+			JSON200: &mps.PowerActionResponse{Body: &struct {
+				ReturnValue    *int    `json:"ReturnValue,omitempty"`
+				ReturnValueStr *string `json:"ReturnValueStr,omitempty"`
+			}{ReturnValue: tenant.Ptr(2), ReturnValueStr: tenant.Ptr("NOT_READY")}},
+		}, nil)
+
+	powerHook := util.NewTestAssertHook("expected to receive SUCCESS, but got")
+	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(powerHook)}
+
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
+
+	powerHook.AssertWithTimeout(t, time.Second)
 }
