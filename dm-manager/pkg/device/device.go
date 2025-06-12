@@ -166,19 +166,13 @@ func (dc *Controller) Start() {
 				log.InfraSec().Fatal().Msg("gRPC stream with Inventory closed")
 				return
 			}
-			log.Info().Msgf("received %v event for %v",
-				event.Event.GetEventKind().String(), event.Event.GetResource().GetHost().GetUuid())
+
 			host := event.Event.GetResource().GetHost()
-			if !(host.GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS ||
-				host.GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_ERROR) {
-				err := dc.DeviceController.Reconcile(NewID(
-					event.Event.GetResource().GetHost().GetTenantId(),
-					event.Event.GetResource().GetHost().GetUuid()),
-				)
-				if err != nil {
-					log.Err(err).Msgf("failed to add event for %v to the reconciler",
-						event.Event.GetResource().GetHost().GetUuid())
-				}
+			log.Info().Msgf("received %v event for %v", event.Event.GetEventKind().String(), host.GetUuid())
+			err := dc.DeviceController.Reconcile(NewID(host.GetTenantId(), host.GetUuid()))
+			if err != nil {
+				log.Err(err).Msgf("failed to add event for %v to the reconciler",
+					host.GetUuid())
 			}
 		}
 	}
