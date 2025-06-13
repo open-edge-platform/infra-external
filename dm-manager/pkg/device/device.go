@@ -286,7 +286,7 @@ func (dc *Controller) syncPowerStatus(
 			log.Err(err).Msgf("failed to update device info")
 			return request.Fail(err)
 		}
-		return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
+		return request.Requeue()
 	}
 
 	log.Debug().Msgf("%v host desired state is %v, which matches current power state",
