@@ -7,10 +7,13 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
+
+const hookTickDuration = 10 * time.Millisecond
 
 // TestAssertHook Hook that acts as assert for string in log output.
 // Used when some of the functions do not return error (e.g. resource already exists) but we want to test specific test path.
@@ -33,6 +36,22 @@ func (h TestAssertHook) Assert(t *testing.T) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	assert.True(t, *h.caughtMessage)
+}
+
+func (h TestAssertHook) AssertWithTimeout(t *testing.T, timeout time.Duration) {
+	t.Helper()
+
+	ticker := time.NewTicker(hookTickDuration)
+	select {
+	case <-ticker.C:
+		h.mutex.Lock()
+		if *h.caughtMessage {
+			assert.True(t, *h.caughtMessage)
+		}
+		h.mutex.Unlock()
+	case <-time.After(timeout):
+		assert.Fail(t, "Expected message not caught within timeout", h.expectedMessage)
+	}
 }
 
 func NewTestAssertHook(message string) *TestAssertHook {

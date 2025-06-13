@@ -3219,11 +3219,16 @@
           "returnValueStr": "SUCCESS"
         },
         "properties": {
-          "returnValue": {
-            "type": "integer"
-          },
-          "returnValueStr": {
-            "type": "string"
+          "Body": {
+            "type": "object",
+            "properties": {
+              "ReturnValue": {
+                "type": "integer"
+              },
+              "ReturnValueStr": {
+                "type": "string"
+              }
+            }
           }
         }
       },

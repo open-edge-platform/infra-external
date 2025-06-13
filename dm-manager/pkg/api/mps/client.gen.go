@@ -680,8 +680,10 @@ type PowerActionRequestAction int
 
 // PowerActionResponse defines model for PowerActionResponse.
 type PowerActionResponse struct {
-	ReturnValue    *int    `json:"returnValue,omitempty"`
-	ReturnValueStr *string `json:"returnValueStr,omitempty"`
+	Body *struct {
+		ReturnValue    *int    `json:"ReturnValue,omitempty"`
+		ReturnValueStr *string `json:"ReturnValueStr,omitempty"`
+	} `json:"Body,omitempty"`
 }
 
 // PowerCapabilitiesResponse defines model for PowerCapabilitiesResponse.
