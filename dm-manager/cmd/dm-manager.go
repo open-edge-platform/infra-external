@@ -58,13 +58,16 @@ var (
 	reconcilePeriod = flag.Duration(flags.ReconcilePeriodFlag, time.Minute, flags.ReconcilePeriodDescription)
 	requestTimeout  = flag.Duration(flags.RequestTimeoutFlag, defaultRequestTimeout,
 		flags.RequestTimeoutDescription)
+	statusChangeGracePeriod = flag.Duration(flags.StatusChangeGracePeriodFlag, time.Minute,
+		flags.StatusChangeGracePeriodDescription)
 	passwordPolicy = flag.String(flags.PasswordPolicyFlag, "static", flags.PasswordPolicyDescription)
 	oamservaddr    = flag.String(oam.OamServerAddress, "", oam.OamServerAddressDescription)
 	enableTracing  = flag.Bool(tracing.EnableTracing, false, tracing.EnableTracingDescription)
 	enableMetrics  = flag.Bool(metrics.EnableMetrics, false, metrics.EnableMetricsDescription)
 	traceURL       = flag.String(tracing.TraceURL, "", tracing.TraceURLDescription)
-	metricsAddress = flag.String(metrics.MetricsAddress, metrics.MetricsAddressDefault, metrics.MetricsAddressDescription)
-	mpsAddress     = flag.String(flags.MpsAddressFlag, "http://mps.orch-infra.svc:3000",
+	metricsAddress = flag.String(metrics.MetricsAddress, metrics.MetricsAddressDefault,
+		metrics.MetricsAddressDescription)
+	mpsAddress = flag.String(flags.MpsAddressFlag, "http://mps.orch-infra.svc:3000",
 		flags.MpsAddressDescription)
 	rpsAddress = flag.String(flags.RpsAddressFlag, "http://rps.orch-infra.svc:8081",
 		flags.RpsAddressDescription)
@@ -182,14 +185,15 @@ func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
 	rmClient, deviceEventsWatcher := prepareInventoryClients()
 
 	deviceReconciler := device.Controller{
-		MpsClient:         mpsClient,
-		WaitGroup:         wg,
-		TermChan:          termChan,
-		ReadyChan:         readyChan,
-		InventoryRmClient: rmClient,
-		ReconcilePeriod:   *reconcilePeriod,
-		RequestTimeout:    *requestTimeout,
-		EventsWatcher:     deviceEventsWatcher,
+		MpsClient:               mpsClient,
+		WaitGroup:               wg,
+		TermChan:                termChan,
+		ReadyChan:               readyChan,
+		InventoryRmClient:       rmClient,
+		ReconcilePeriod:         *reconcilePeriod,
+		RequestTimeout:          *requestTimeout,
+		StatusChangeGracePeriod: *statusChangeGracePeriod,
+		EventsWatcher:           deviceEventsWatcher,
 	}
 	deviceController := rec_v2.NewController[device.ID](
 		deviceReconciler.Reconcile,

@@ -96,6 +96,8 @@ func prepareEnv(
 	host := dao.CreateHostWithOpts(t, client.FakeTenantID, true, func(c *computev1.HostResource) {
 		c.DesiredPowerState = computev1.PowerState_POWER_STATE_ON
 		c.DesiredAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
+		//nolint: gosec // overflow is not going to happen
+		c.PowerStatusTimestamp = uint64(time.Unix(1750058683, 0).Unix()) // Ensuring that status in tests will always be updated
 		c.Uuid = hostUUID
 	})
 
@@ -229,6 +231,7 @@ func TestDeviceController_Start_shouldHandleEvents(t *testing.T) {
 
 func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenShouldForcePowerOn(t *testing.T) {
 	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_POWER_CYCLE)
+	deviceReconciller.StatusChangeGracePeriod = 0
 
 	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
@@ -260,11 +263,11 @@ func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenS
 	powerHook.AssertWithTimeout(t, time.Second)
 	invHost, err = dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
 	assert.NoError(t, err)
-	assert.Equal(t, computev1.PowerState_POWER_STATE_OFF, invHost.CurrentPowerState)
-	assert.Equal(t, statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS, invHost.PowerStatusIndicator)
+	assert.Equal(t, computev1.PowerState_POWER_STATE_OFF.String(), invHost.CurrentPowerState.String())
+	assert.Equal(t, statusv1.StatusIndication_STATUS_INDICATION_ERROR.String(), invHost.PowerStatusIndicator.String())
 }
 
-func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenShouldDoNothing(t *testing.T) {
+func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenShouldChangeStatusToIdle(t *testing.T) {
 	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_ON)
 
 	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
@@ -284,6 +287,8 @@ func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenSh
 	powerHook := util.NewTestAssertHook("which matches current power state")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(powerHook)}
 
+	assert.Equal(t, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED.String(), invHost.GetPowerStatusIndicator().String())
+
 	deviceReconciller.syncPowerStatus(context.Background(),
 		rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)}, invHost)
 
@@ -291,6 +296,7 @@ func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenSh
 	invHost, err = dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
 	assert.NoError(t, err)
 	assert.Equal(t, computev1.PowerState_POWER_STATE_ON, invHost.CurrentPowerState)
+	assert.Equal(t, statusv1.StatusIndication_STATUS_INDICATION_IDLE.String(), invHost.GetPowerStatusIndicator().String())
 }
 
 func TestController_checkPowerState_ifDeviceIsNotConnectedThenShouldRetryReconcile(t *testing.T) {

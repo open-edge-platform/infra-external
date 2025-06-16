@@ -141,8 +141,9 @@ type Controller struct {
 	WaitGroup         *sync.WaitGroup
 	DeviceController  *rec_v2.Controller[ID]
 
-	ReconcilePeriod time.Duration
-	RequestTimeout  time.Duration
+	ReconcilePeriod         time.Duration
+	RequestTimeout          time.Duration
+	StatusChangeGracePeriod time.Duration
 }
 
 func (dc *Controller) Start() {
@@ -267,8 +268,9 @@ func (dc *Controller) syncPowerStatus(
 
 	//nolint: gosec // overflow is unlikely, correct values are <1000
 	powerStateCode := int32(*currentPowerState.JSON200.Powerstate)
-
-	if !contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) {
+	//nolint: gosec // time operations
+	afterGracePeriod := invHost.GetPowerStatusTimestamp()+uint64(dc.StatusChangeGracePeriod.Seconds()) < uint64(time.Now().Unix())
+	if !contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) && afterGracePeriod {
 		log.Info().Msgf("%v host desired state is %v, but current power state is %v",
 			invHost.GetUuid(), powerMapping[invHost.GetDesiredPowerState()], powerStateCode)
 
@@ -279,14 +281,27 @@ func (dc *Controller) syncPowerStatus(
 				computev1.HostResourceFieldPowerStatusIndicator,
 			}}, &computev1.HostResource{
 				PowerStatus:          "mismatch between desired and current power state",
-				PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
+				PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
 				CurrentPowerState:    mpsPowerStateToInventoryPowerState[powerStateCode],
 			})
 		if err != nil {
 			log.Err(err).Msgf("failed to update device info")
 			return request.Fail(err)
 		}
-		return request.Requeue()
+		return request.Ack()
+	}
+	if contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) &&
+		invHost.GetPowerStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE {
+		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
+			&fieldmaskpb.FieldMask{Paths: []string{
+				computev1.HostResourceFieldPowerStatusIndicator,
+			}}, &computev1.HostResource{
+				PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+			})
+		if err != nil {
+			log.Err(err).Msgf("failed to update device info")
+			return request.Fail(err)
+		}
 	}
 
 	log.Debug().Msgf("%v host desired state is %v, which matches current power state",
@@ -357,10 +372,8 @@ func (dc *Controller) handlePowerChange(
 	err = dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentPowerState,
-			computev1.HostResourceFieldPowerStatusIndicator,
 		}}, &computev1.HostResource{
-			CurrentPowerState:    desiredPowerState,
-			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+			CurrentPowerState: desiredPowerState,
 		})
 	if err != nil {
 		log.Err(err).Msgf("failed to update device info")
@@ -368,7 +381,7 @@ func (dc *Controller) handlePowerChange(
 			statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
-	return request.Ack(), statusv1.StatusIndication_STATUS_INDICATION_IDLE, nil
+	return request.Ack(), statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS, nil
 }
 
 func toUserFriendlyError(err string) string {
