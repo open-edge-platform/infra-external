@@ -3,7 +3,7 @@
 
 module github.com/open-edge-platform/infra-external/dm-manager
 
-go 1.24.1
+go 1.24.4
 
 require (
 	github.com/oapi-codegen/runtime v1.1.1
