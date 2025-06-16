@@ -27,40 +27,47 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/tracing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/dm"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/device"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/flags"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/tenant"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/secrets"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
 const (
-	orchMpsHostKey        = "orchMPSHost"
-	infraConfigPath       = "/etc/infra-config/config.yaml"
-	dmName                = "dm-manager"
-	eventsWatcherBufSize  = 10
-	defaultRequestTimeout = 10 * time.Second
+	orchMpsHostKey            = "orchMPSHost"
+	infraConfigPath           = "/etc/infra-config/config.yaml"
+	dmName                    = "dm-manager"
+	eventsWatcherBufSize      = 10
+	defaultRequestTimeout     = 30 * time.Second
+	defaultParallelGoroutines = 10
+
+	numberOfControllers = 2
 )
 
 var (
-	log = logging.GetLogger("Manager")
+	log = logging.GetLogger("Controller")
 	wg  = &sync.WaitGroup{}
 
 	osChan    = make(chan os.Signal, 1)
 	termChan  = make(chan bool, 1)
-	readyChan = make(chan bool, 1)
+	readyChan = make(chan bool, numberOfControllers)
 
 	inventoryAddress = flag.String(invClient.InventoryAddress,
 		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
 	reconcilePeriod = flag.Duration(flags.ReconcilePeriodFlag, time.Minute, flags.ReconcilePeriodDescription)
 	requestTimeout  = flag.Duration(flags.RequestTimeoutFlag, defaultRequestTimeout,
 		flags.RequestTimeoutDescription)
+	statusChangeGracePeriod = flag.Duration(flags.StatusChangeGracePeriodFlag, time.Minute,
+		flags.StatusChangeGracePeriodDescription)
 	passwordPolicy = flag.String(flags.PasswordPolicyFlag, "static", flags.PasswordPolicyDescription)
 	oamservaddr    = flag.String(oam.OamServerAddress, "", oam.OamServerAddressDescription)
 	enableTracing  = flag.Bool(tracing.EnableTracing, false, tracing.EnableTracingDescription)
 	enableMetrics  = flag.Bool(metrics.EnableMetrics, false, metrics.EnableMetricsDescription)
 	traceURL       = flag.String(tracing.TraceURL, "", tracing.TraceURLDescription)
-	metricsAddress = flag.String(metrics.MetricsAddress, metrics.MetricsAddressDefault, metrics.MetricsAddressDescription)
-	mpsAddress     = flag.String(flags.MpsAddressFlag, "http://mps.orch-infra.svc:3000",
+	metricsAddress = flag.String(metrics.MetricsAddress, metrics.MetricsAddressDefault,
+		metrics.MetricsAddressDescription)
+	mpsAddress = flag.String(flags.MpsAddressFlag, "http://mps.orch-infra.svc:3000",
 		flags.MpsAddressDescription)
 	rpsAddress = flag.String(flags.RpsAddressFlag, "http://rps.orch-infra.svc:8081",
 		flags.RpsAddressDescription)
@@ -73,8 +80,8 @@ var (
 
 func main() {
 	flag.Parse()
-	if !(strings.EqualFold(*passwordPolicy, dm.StaticPasswordPolicy) ||
-		strings.EqualFold(*passwordPolicy, dm.DynamicPasswordPolicy)) {
+	if !(strings.EqualFold(*passwordPolicy, tenant.StaticPasswordPolicy) ||
+		strings.EqualFold(*passwordPolicy, tenant.DynamicPasswordPolicy)) {
 		log.Error().Msgf("Invalid password policy: %s. It should be either 'static' or 'dynamic'", *passwordPolicy)
 		os.Exit(1)
 	}
@@ -99,26 +106,65 @@ func main() {
 		}
 	}
 
-	mpsClient, rpsClient, invTenantClient, eventsWatcher := prepareClients(transport)
-	vsp := secrets.VaultSecretProvider{}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	if initErr := vsp.Init(ctx, []string{dm.AmtPasswordSecretName}); initErr != nil {
-		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
+	mpsClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
+		apiClient.Client = &http.Client{Transport: transport}
+		return nil
+	})
+	if err != nil {
+		log.Fatal().Err(err).Msgf("cannot create client")
+	}
+
+	rpsClient, err := rps.NewClientWithResponses(*rpsAddress, func(apiClient *rps.Client) error {
+		apiClient.Client = &http.Client{Transport: transport}
+		return nil
+	})
+	if err != nil {
+		log.Fatal().Err(err).Msgf("cannot create client")
 	}
 
 	orchMpsHost, orchMpsPort := getMpsAddress(infraConfigPath)
 
-	dmReconciler := &dm.Manager{
+	vsp := secrets.VaultSecretProvider{}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if initErr := vsp.Init(ctx, []string{tenant.AmtPasswordSecretName}); initErr != nil {
+		log.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
+	}
+
+	tenantReconciler := getTenantController(mpsClient, rpsClient, vsp, orchMpsHost, orchMpsPort)
+	deviceReconciler := getDeviceController(mpsClient)
+
+	wg.Add(1)
+	go tenantReconciler.Start()
+
+	wg.Add(1)
+	go deviceReconciler.Start()
+	<-osChan
+	termChan <- true
+
+	close(osChan)
+	close(termChan)
+	tenantReconciler.Stop()
+	deviceReconciler.Stop()
+	wg.Wait()
+	log.Info().Msgf("Device Management Controller successfully stopped")
+}
+
+func getTenantController(
+	mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses, vsp secrets.VaultSecretProvider,
+	orchMpsHost string, orchMpsPort int32,
+) *tenant.Controller {
+	dmInvClient, dmEventsWatcher := prepareTenantAwareClient()
+	dmReconciler := &tenant.Controller{
 		MpsClient:       mpsClient,
 		RpsClient:       rpsClient,
-		InventoryClient: invTenantClient,
-		EventsWatcher:   eventsWatcher,
+		InventoryClient: dmInvClient,
+		EventsWatcher:   dmEventsWatcher,
 		TermChan:        termChan,
 		ReadyChan:       readyChan,
 		SecretProvider:  &vsp,
 		WaitGroup:       wg,
-		Config: &dm.ReconcilerConfig{
+		Config: &tenant.ReconcilerConfig{
 			MpsAddress:      orchMpsHost,
 			MpsPort:         orchMpsPort,
 			PasswordPolicy:  *passwordPolicy,
@@ -127,24 +173,34 @@ func main() {
 		},
 	}
 
-	const defaultParallelGoroutines = 10
-	tenantController := rec_v2.NewController[dm.ReconcilerID](
+	tenantController := rec_v2.NewController[tenant.ReconcilerID](
 		dmReconciler.Reconcile,
 		rec_v2.WithParallelism(defaultParallelGoroutines),
 		rec_v2.WithTimeout(*requestTimeout))
 	dmReconciler.TenantController = tenantController
+	return dmReconciler
+}
 
-	wg.Add(1)
-	go dmReconciler.Start()
+func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
+	rmClient, deviceEventsWatcher := prepareInventoryClients()
 
-	<-osChan
-	termChan <- true
-
-	close(osChan)
-	close(termChan)
-	dmReconciler.Stop()
-	wg.Wait()
-	log.Info().Msgf("Device Management Manager successfully stopped")
+	deviceReconciler := device.Controller{
+		MpsClient:               mpsClient,
+		WaitGroup:               wg,
+		TermChan:                termChan,
+		ReadyChan:               readyChan,
+		InventoryRmClient:       rmClient,
+		ReconcilePeriod:         *reconcilePeriod,
+		RequestTimeout:          *requestTimeout,
+		StatusChangeGracePeriod: *statusChangeGracePeriod,
+		EventsWatcher:           deviceEventsWatcher,
+	}
+	deviceController := rec_v2.NewController[device.ID](
+		deviceReconciler.Reconcile,
+		rec_v2.WithParallelism(defaultParallelGoroutines),
+		rec_v2.WithTimeout(*requestTimeout))
+	deviceReconciler.DeviceController = deviceController
+	return deviceReconciler
 }
 
 //nolint:gocritic // named results mean additional assignment/typecast.
@@ -189,29 +245,42 @@ func getMpsAddress(filepath string) (string, int32) {
 	return orchMpsHost, int32(orchMpsPort)
 }
 
-func prepareClients(transport *http.Transport) (
-	mpsClient *mps.ClientWithResponses, rpsClient *rps.ClientWithResponses,
+func prepareTenantAwareClient() (
 	invTenantClient invClient.TenantAwareInventoryClient, eventsWatcher chan *invClient.WatchEvents,
 ) {
-	mpsClient, err := mps.NewClientWithResponses(*mpsAddress, func(apiClient *mps.Client) error {
-		apiClient.Client = &http.Client{Transport: transport}
-		return nil
-	})
-	if err != nil {
-		log.Fatal().Err(err).Msgf("cannot create client")
-	}
-
-	rpsClient, err = rps.NewClientWithResponses(*rpsAddress, func(apiClient *rps.Client) error {
-		apiClient.Client = &http.Client{Transport: transport}
-		return nil
-	})
-	if err != nil {
-		log.Fatal().Err(err).Msgf("cannot create client")
-	}
-
 	eventsWatcher = make(chan *invClient.WatchEvents, eventsWatcherBufSize)
-	invTenantClient, err = invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
-		Name:                      "DM manager",
+	invTenantClient, err := invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
+		Name:                      "DM DMT manager",
+		Address:                   *inventoryAddress,
+		EnableRegisterRetry:       false,
+		AbortOnUnknownClientError: true,
+		SecurityCfg: &invClient.SecurityConfig{
+			CaPath:   *caCertPath,
+			CertPath: *tlsCertPath,
+			KeyPath:  *tlsKeyPath,
+			Insecure: *insecureGrpc,
+		},
+		Events:        eventsWatcher,
+		ClientKind:    inventoryv1.ClientKind_CLIENT_KIND_API,
+		ResourceKinds: []inventoryv1.ResourceKind{},
+		Wg:            wg,
+		EnableTracing: *enableTracing,
+		EnableMetrics: *enableMetrics,
+	})
+	if err != nil {
+		log.Fatal().Err(err).Msgf("cannot create inventory client")
+	}
+
+	return invTenantClient, eventsWatcher
+}
+
+func prepareInventoryClients() (
+	rmClient invClient.TenantAwareInventoryClient,
+	eventsWatcher chan *invClient.WatchEvents,
+) {
+	eventsWatcher = make(chan *invClient.WatchEvents, eventsWatcherBufSize)
+	rmClient, err := invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
+		Name:                      "DM RM manager",
 		Address:                   *inventoryAddress,
 		EnableRegisterRetry:       false,
 		AbortOnUnknownClientError: true,
@@ -222,9 +291,9 @@ func prepareClients(transport *http.Transport) (
 			Insecure: *insecureGrpc,
 		},
 		Events:     eventsWatcher,
-		ClientKind: inventoryv1.ClientKind_CLIENT_KIND_TENANT_CONTROLLER,
+		ClientKind: inventoryv1.ClientKind_CLIENT_KIND_RESOURCE_MANAGER,
 		ResourceKinds: []inventoryv1.ResourceKind{
-			inventoryv1.ResourceKind_RESOURCE_KIND_TENANT,
+			inventoryv1.ResourceKind_RESOURCE_KIND_HOST,
 		},
 		Wg:            wg,
 		EnableTracing: *enableTracing,
@@ -233,7 +302,8 @@ func prepareClients(transport *http.Transport) (
 	if err != nil {
 		log.Fatal().Err(err).Msgf("cannot create inventory client")
 	}
-	return mpsClient, rpsClient, invTenantClient, eventsWatcher
+
+	return rmClient, eventsWatcher
 }
 
 func setupOamServer(enableTracing bool, oamservaddr string) {
