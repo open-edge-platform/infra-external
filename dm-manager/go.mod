@@ -7,7 +7,7 @@ go 1.24.4
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/oapi-codegen/runtime v1.1.1
+	github.com/oapi-codegen/runtime v1.1.2
 	github.com/open-edge-platform/infra-core/inventory/v2 v2.28.0
 	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.19.0
 	github.com/open-edge-platform/orch-library/go v0.6.1
