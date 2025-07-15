@@ -1,0 +1,72 @@
+// SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+package device_management;
+
+option go_package = "dm-manager/pkg/api/dm-manager;dm_manager";
+
+// Enum for operation type
+enum OperationType {
+    ACTIVATE = 0;   
+    DEACTIVATE = 1;
+}
+
+// Enum for AMT status
+enum AMTStatus {
+    ENABLED = 0;
+    DISABLED = 1;
+}
+
+// Enum for activation result status.
+enum ActivationStatus {
+    PROVISIONED = 0;
+    FAILED = 1;
+}
+
+// Service for Device Management.
+service DeviceManagement {
+    // PMA reports AMT status to dm manager.
+    rpc ReportAMTStatus(AMTStatusRequest) returns (AMTStatusResponse);
+
+    // PMA sends activation request to dm manager.
+    rpc SendActivationRequest(ActivationRequest) returns (ActivationDetailsResponse);
+
+    // PMA sends activation result back to dm manager.
+    rpc ReportActivationResult(ActivationResultRequest) returns (ActivationResultResponse);
+}
+
+// AMTStatus Report from PMA to dm manager.
+message AMTStatusRequest {
+    string host_id = 1;    // Host identifier (e.g., GUID)
+    AMTStatus status = 2;  // AMT status (e.g., Enabled, Disabled)
+    string version = 3;    // AMT version
+}
+
+// TODO: Response may not be needed here. To be removed when the workflow is verified. 
+message AMTStatusResponse {
+    string status = 1;     // Response status (e.g., Success, Failure)
+}
+
+// Activation Request from PMA to dm manager.
+message ActivationRequest {
+    string host_id = 1;          // Host identifier (e.g., GUID)
+    OperationType operation = 2; // Activate or Deactivate
+}
+
+message ActivationDetailsResponse {
+    string host_id = 1;        // Host identifier (e.g., GUID)
+    string profile_name = 2;   // Profile name for activation
+}
+
+// Activation Result from PMA to dm manager.
+message ActivationResultRequest {
+    string host_id = 1;                     // Host identifier (e.g., GUID)
+    ActivationStatus activation_status = 2; // Status (e.g., Provisioned, Failed)
+}
+
+// TODO: Response may not be needed here. To be removed when the workflow is verified. 
+message ActivationResultResponse {
+    string status = 1;  // Response status (e.g., "Received")
+}
