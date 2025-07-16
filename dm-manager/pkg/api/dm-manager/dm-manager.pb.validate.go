@@ -163,8 +163,6 @@ func (m *AMTStatusResponse) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Status
-
 	if len(errors) > 0 {
 		return AMTStatusResponseMultiError(errors)
 	}
@@ -271,6 +269,8 @@ func (m *ActivationRequest) validate(all bool) error {
 
 	// no validation rules for Operation
 
+	// no validation rules for ProfileName
+
 	if len(errors) > 0 {
 		return ActivationRequestMultiError(errors)
 	}
@@ -351,128 +351,22 @@ var _ interface {
 	ErrorName() string
 } = ActivationRequestValidationError{}
 
-// Validate checks the field values on ActivationDetailsResponse with the rules
+// Validate checks the field values on ActivationResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ActivationDetailsResponse) Validate() error {
+func (m *ActivationResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ActivationDetailsResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// ActivationDetailsResponseMultiError, or nil if none found.
-func (m *ActivationDetailsResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *ActivationDetailsResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for HostId
-
-	// no validation rules for ProfileName
-
-	if len(errors) > 0 {
-		return ActivationDetailsResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// ActivationDetailsResponseMultiError is an error wrapping multiple validation
-// errors returned by ActivationDetailsResponse.ValidateAll() if the
-// designated constraints aren't met.
-type ActivationDetailsResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m ActivationDetailsResponseMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m ActivationDetailsResponseMultiError) AllErrors() []error { return m }
-
-// ActivationDetailsResponseValidationError is the validation error returned by
-// ActivationDetailsResponse.Validate if the designated constraints aren't met.
-type ActivationDetailsResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ActivationDetailsResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ActivationDetailsResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ActivationDetailsResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ActivationDetailsResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ActivationDetailsResponseValidationError) ErrorName() string {
-	return "ActivationDetailsResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e ActivationDetailsResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sActivationDetailsResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ActivationDetailsResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ActivationDetailsResponseValidationError{}
-
-// Validate checks the field values on ActivationResultRequest with the rules
+// ValidateAll checks the field values on ActivationResponse with the rules
 // defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ActivationResultRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on ActivationResultRequest with the
-// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ActivationResultRequestMultiError, or nil if none found.
-func (m *ActivationResultRequest) ValidateAll() error {
+// ActivationResponseMultiError, or nil if none found.
+func (m *ActivationResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ActivationResultRequest) validate(all bool) error {
+func (m *ActivationResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -483,20 +377,22 @@ func (m *ActivationResultRequest) validate(all bool) error {
 
 	// no validation rules for ActivationStatus
 
+	// no validation rules for Message
+
 	if len(errors) > 0 {
-		return ActivationResultRequestMultiError(errors)
+		return ActivationResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// ActivationResultRequestMultiError is an error wrapping multiple validation
-// errors returned by ActivationResultRequest.ValidateAll() if the designated
-// constraints aren't met.
-type ActivationResultRequestMultiError []error
+// ActivationResponseMultiError is an error wrapping multiple validation errors
+// returned by ActivationResponse.ValidateAll() if the designated constraints
+// aren't met.
+type ActivationResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ActivationResultRequestMultiError) Error() string {
+func (m ActivationResponseMultiError) Error() string {
 	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -505,11 +401,11 @@ func (m ActivationResultRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ActivationResultRequestMultiError) AllErrors() []error { return m }
+func (m ActivationResponseMultiError) AllErrors() []error { return m }
 
-// ActivationResultRequestValidationError is the validation error returned by
-// ActivationResultRequest.Validate if the designated constraints aren't met.
-type ActivationResultRequestValidationError struct {
+// ActivationResponseValidationError is the validation error returned by
+// ActivationResponse.Validate if the designated constraints aren't met.
+type ActivationResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -517,24 +413,24 @@ type ActivationResultRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e ActivationResultRequestValidationError) Field() string { return e.field }
+func (e ActivationResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ActivationResultRequestValidationError) Reason() string { return e.reason }
+func (e ActivationResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ActivationResultRequestValidationError) Cause() error { return e.cause }
+func (e ActivationResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ActivationResultRequestValidationError) Key() bool { return e.key }
+func (e ActivationResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ActivationResultRequestValidationError) ErrorName() string {
-	return "ActivationResultRequestValidationError"
+func (e ActivationResponseValidationError) ErrorName() string {
+	return "ActivationResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ActivationResultRequestValidationError) Error() string {
+func (e ActivationResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -546,14 +442,14 @@ func (e ActivationResultRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sActivationResultRequest.%s: %s%s",
+		"invalid %sActivationResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ActivationResultRequestValidationError{}
+var _ error = ActivationResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -561,108 +457,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ActivationResultRequestValidationError{}
-
-// Validate checks the field values on ActivationResultResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ActivationResultResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on ActivationResultResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// ActivationResultResponseMultiError, or nil if none found.
-func (m *ActivationResultResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *ActivationResultResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Status
-
-	if len(errors) > 0 {
-		return ActivationResultResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// ActivationResultResponseMultiError is an error wrapping multiple validation
-// errors returned by ActivationResultResponse.ValidateAll() if the designated
-// constraints aren't met.
-type ActivationResultResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m ActivationResultResponseMultiError) Error() string {
-	msgs := make([]string, 0, len(m))
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m ActivationResultResponseMultiError) AllErrors() []error { return m }
-
-// ActivationResultResponseValidationError is the validation error returned by
-// ActivationResultResponse.Validate if the designated constraints aren't met.
-type ActivationResultResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ActivationResultResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ActivationResultResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ActivationResultResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ActivationResultResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ActivationResultResponseValidationError) ErrorName() string {
-	return "ActivationResultResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e ActivationResultResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sActivationResultResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ActivationResultResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ActivationResultResponseValidationError{}
+} = ActivationResponseValidationError{}

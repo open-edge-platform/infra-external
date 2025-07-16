@@ -30,11 +30,8 @@ service DeviceManagement {
     // PMA reports AMT status to dm manager.
     rpc ReportAMTStatus(AMTStatusRequest) returns (AMTStatusResponse);
 
-    // PMA sends activation request to dm manager.
-    rpc SendActivationRequest(ActivationRequest) returns (ActivationDetailsResponse);
-
-    // PMA sends activation result back to dm manager.
-    rpc ReportActivationResult(ActivationResultRequest) returns (ActivationResultResponse);
+    // DM manager sends activation request to PMA.
+    rpc SendActivationRequest(ActivationRequest) returns (ActivationResponse);
 }
 
 // AMTStatus Report from PMA to dm manager.
@@ -44,29 +41,17 @@ message AMTStatusRequest {
     string version = 3;    // AMT version
 }
 
-// TODO: Response may not be needed here. To be removed when the workflow is verified. 
-message AMTStatusResponse {
-    string status = 1;     // Response status (e.g., Success, Failure)
-}
+message AMTStatusResponse {}
 
-// Activation Request from PMA to dm manager.
+// Activation Request from dm manager to PMA.
 message ActivationRequest {
     string host_id = 1;          // Host identifier (e.g., GUID)
     OperationType operation = 2; // Activate or Deactivate
+    string profile_name = 3;     // Profile name for activation
 }
 
-message ActivationDetailsResponse {
-    string host_id = 1;        // Host identifier (e.g., GUID)
-    string profile_name = 2;   // Profile name for activation
-}
-
-// Activation Result from PMA to dm manager.
-message ActivationResultRequest {
+message ActivationResponse {
     string host_id = 1;                     // Host identifier (e.g., GUID)
     ActivationStatus activation_status = 2; // Status (e.g., Provisioned, Failed)
-}
-
-// TODO: Response may not be needed here. To be removed when the workflow is verified. 
-message ActivationResultResponse {
-    string status = 1;  // Response status (e.g., "Received")
+    string message = 3;                     // Success or Failure message
 }
