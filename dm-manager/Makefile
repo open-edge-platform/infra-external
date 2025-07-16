@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 .DEFAULT_GOAL := help
-.PHONY: help build test lint
+.PHONY: help build test lint generate-proto
 
 #### Variables ####
 
@@ -66,3 +66,10 @@ generate:
 	mockery
 
 oasdiff-breaking: common-oasdiff-breaking ## Check for breaking changes in openapi using oasdiff
+
+generate-proto:
+	protoc --proto_path=pkg/api/dm-manager \
+		--go_out=paths=source_relative:pkg/api/dm-manager \
+		--go-grpc_out=paths=source_relative:pkg/api/dm-manager \
+		--validate_out=lang=go,paths=source_relative:pkg/api/dm-manager \
+		pkg/api/dm-manager/dm-manager.proto
