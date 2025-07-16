@@ -24,7 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Enum for operation type
+// Enum for operation type.
 type OperationType int32
 
 const (
@@ -71,7 +71,7 @@ func (OperationType) EnumDescriptor() ([]byte, []int) {
 	return file_dm_manager_proto_rawDescGZIP(), []int{0}
 }
 
-// Enum for AMT status
+// Enum for AMT status.
 type AMTStatus int32
 
 const (
@@ -165,11 +165,11 @@ func (ActivationStatus) EnumDescriptor() ([]byte, []int) {
 	return file_dm_manager_proto_rawDescGZIP(), []int{2}
 }
 
-// AMTStatus Report from PMA to dm manager.
+// AMTStatusRequest reports AMT status to dm manager.
 type AMTStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	HostId        string                 `protobuf:"bytes,1,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`                     // Host identifier (e.g., GUID)
-	Status        AMTStatus              `protobuf:"varint,2,opt,name=status,proto3,enum=device_management.AMTStatus" json:"status,omitempty"` // AMT status (e.g., Enabled, Disabled)
+	HostId        string                 `protobuf:"bytes,1,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`                     // Host identifier
+	Status        AMTStatus              `protobuf:"varint,2,opt,name=status,proto3,enum=device_management.AMTStatus" json:"status,omitempty"` // AMT status (e.g. Enabled, Disabled)
 	Version       string                 `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`                                 // AMT version
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -262,12 +262,10 @@ func (*AMTStatusResponse) Descriptor() ([]byte, []int) {
 	return file_dm_manager_proto_rawDescGZIP(), []int{1}
 }
 
-// Activation Request from dm manager to PMA.
+// ActivationRequest requests for activation details from dm manager.
 type ActivationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	HostId        string                 `protobuf:"bytes,1,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`                               // Host identifier (e.g., GUID)
-	Operation     OperationType          `protobuf:"varint,2,opt,name=operation,proto3,enum=device_management.OperationType" json:"operation,omitempty"` // Activate or Deactivate
-	ProfileName   string                 `protobuf:"bytes,3,opt,name=profile_name,json=profileName,proto3" json:"profile_name,omitempty"`                // Profile name for activation
+	HostId        string                 `protobuf:"bytes,1,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"` // Host identifier
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -309,43 +307,30 @@ func (x *ActivationRequest) GetHostId() string {
 	return ""
 }
 
-func (x *ActivationRequest) GetOperation() OperationType {
-	if x != nil {
-		return x.Operation
-	}
-	return OperationType_ACTIVATE
+// ActivationDetailsResponse reports the activation details to PMA.
+type ActivationDetailsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HostId        string                 `protobuf:"bytes,1,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`                               // Host identifier
+	Operation     OperationType          `protobuf:"varint,2,opt,name=operation,proto3,enum=device_management.OperationType" json:"operation,omitempty"` // Activate or Deactivate
+	ProfileName   string                 `protobuf:"bytes,3,opt,name=profile_name,json=profileName,proto3" json:"profile_name,omitempty"`                // Profile name for activation
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ActivationRequest) GetProfileName() string {
-	if x != nil {
-		return x.ProfileName
-	}
-	return ""
-}
-
-type ActivationResponse struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	HostId           string                 `protobuf:"bytes,1,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`                                                                        // Host identifier (e.g., GUID)
-	ActivationStatus ActivationStatus       `protobuf:"varint,2,opt,name=activation_status,json=activationStatus,proto3,enum=device_management.ActivationStatus" json:"activation_status,omitempty"` // Status (e.g., Provisioned, Failed)
-	Message          string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`                                                                                    // Success or Failure message
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *ActivationResponse) Reset() {
-	*x = ActivationResponse{}
+func (x *ActivationDetailsResponse) Reset() {
+	*x = ActivationDetailsResponse{}
 	mi := &file_dm_manager_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ActivationResponse) String() string {
+func (x *ActivationDetailsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ActivationResponse) ProtoMessage() {}
+func (*ActivationDetailsResponse) ProtoMessage() {}
 
-func (x *ActivationResponse) ProtoReflect() protoreflect.Message {
+func (x *ActivationDetailsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_dm_manager_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -357,30 +342,127 @@ func (x *ActivationResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ActivationResponse.ProtoReflect.Descriptor instead.
-func (*ActivationResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ActivationDetailsResponse.ProtoReflect.Descriptor instead.
+func (*ActivationDetailsResponse) Descriptor() ([]byte, []int) {
 	return file_dm_manager_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ActivationResponse) GetHostId() string {
+func (x *ActivationDetailsResponse) GetHostId() string {
 	if x != nil {
 		return x.HostId
 	}
 	return ""
 }
 
-func (x *ActivationResponse) GetActivationStatus() ActivationStatus {
+func (x *ActivationDetailsResponse) GetOperation() OperationType {
+	if x != nil {
+		return x.Operation
+	}
+	return OperationType_ACTIVATE
+}
+
+func (x *ActivationDetailsResponse) GetProfileName() string {
+	if x != nil {
+		return x.ProfileName
+	}
+	return ""
+}
+
+// ActivationResultRequest reports activation results back to dm manager.
+type ActivationResultRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	HostId           string                 `protobuf:"bytes,1,opt,name=host_id,json=hostId,proto3" json:"host_id,omitempty"`                                                                        // Host identifier
+	ActivationStatus ActivationStatus       `protobuf:"varint,2,opt,name=activation_status,json=activationStatus,proto3,enum=device_management.ActivationStatus" json:"activation_status,omitempty"` // Status (e.g., Provisioned, Failed)
+	Message          string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`                                                                                    // Success or Failure message
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ActivationResultRequest) Reset() {
+	*x = ActivationResultRequest{}
+	mi := &file_dm_manager_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActivationResultRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActivationResultRequest) ProtoMessage() {}
+
+func (x *ActivationResultRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_dm_manager_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActivationResultRequest.ProtoReflect.Descriptor instead.
+func (*ActivationResultRequest) Descriptor() ([]byte, []int) {
+	return file_dm_manager_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ActivationResultRequest) GetHostId() string {
+	if x != nil {
+		return x.HostId
+	}
+	return ""
+}
+
+func (x *ActivationResultRequest) GetActivationStatus() ActivationStatus {
 	if x != nil {
 		return x.ActivationStatus
 	}
 	return ActivationStatus_PROVISIONED
 }
 
-func (x *ActivationResponse) GetMessage() string {
+func (x *ActivationResultRequest) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
+}
+
+type ActivationResultResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ActivationResultResponse) Reset() {
+	*x = ActivationResultResponse{}
+	mi := &file_dm_manager_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActivationResultResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActivationResultResponse) ProtoMessage() {}
+
+func (x *ActivationResultResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_dm_manager_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActivationResultResponse.ProtoReflect.Descriptor instead.
+func (*ActivationResultResponse) Descriptor() ([]byte, []int) {
+	return file_dm_manager_proto_rawDescGZIP(), []int{5}
 }
 
 var File_dm_manager_proto protoreflect.FileDescriptor
@@ -392,15 +474,18 @@ const file_dm_manager_proto_rawDesc = "" +
 	"\ahost_id\x18\x01 \x01(\tR\x06hostId\x124\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x1c.device_management.AMTStatusR\x06status\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\tR\aversion\"\x13\n" +
-	"\x11AMTStatusResponse\"\x8f\x01\n" +
+	"\x11AMTStatusResponse\",\n" +
 	"\x11ActivationRequest\x12\x17\n" +
+	"\ahost_id\x18\x01 \x01(\tR\x06hostId\"\x97\x01\n" +
+	"\x19ActivationDetailsResponse\x12\x17\n" +
 	"\ahost_id\x18\x01 \x01(\tR\x06hostId\x12>\n" +
 	"\toperation\x18\x02 \x01(\x0e2 .device_management.OperationTypeR\toperation\x12!\n" +
-	"\fprofile_name\x18\x03 \x01(\tR\vprofileName\"\x99\x01\n" +
-	"\x12ActivationResponse\x12\x17\n" +
+	"\fprofile_name\x18\x03 \x01(\tR\vprofileName\"\x9e\x01\n" +
+	"\x17ActivationResultRequest\x12\x17\n" +
 	"\ahost_id\x18\x01 \x01(\tR\x06hostId\x12P\n" +
 	"\x11activation_status\x18\x02 \x01(\x0e2#.device_management.ActivationStatusR\x10activationStatus\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage*-\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"\x1a\n" +
+	"\x18ActivationResultResponse*-\n" +
 	"\rOperationType\x12\f\n" +
 	"\bACTIVATE\x10\x00\x12\x0e\n" +
 	"\n" +
@@ -411,10 +496,11 @@ const file_dm_manager_proto_rawDesc = "" +
 	"\x10ActivationStatus\x12\x0f\n" +
 	"\vPROVISIONED\x10\x00\x12\n" +
 	"\n" +
-	"\x06FAILED\x10\x012\xd6\x01\n" +
+	"\x06FAILED\x10\x012\xd5\x02\n" +
 	"\x10DeviceManagement\x12\\\n" +
-	"\x0fReportAMTStatus\x12#.device_management.AMTStatusRequest\x1a$.device_management.AMTStatusResponse\x12d\n" +
-	"\x15SendActivationRequest\x12$.device_management.ActivationRequest\x1a%.device_management.ActivationResponseB*Z(dm-manager/pkg/api/dm-manager;dm_managerb\x06proto3"
+	"\x0fReportAMTStatus\x12#.device_management.AMTStatusRequest\x1a$.device_management.AMTStatusResponse\x12o\n" +
+	"\x19RetrieveActivationDetails\x12$.device_management.ActivationRequest\x1a,.device_management.ActivationDetailsResponse\x12r\n" +
+	"\x17ReportActivationResults\x12*.device_management.ActivationResultRequest\x1a+.device_management.ActivationResultResponseB*Z(dm-manager/pkg/api/dm-manager;dm_managerb\x06proto3"
 
 var (
 	file_dm_manager_proto_rawDescOnce sync.Once
@@ -429,26 +515,30 @@ func file_dm_manager_proto_rawDescGZIP() []byte {
 }
 
 var file_dm_manager_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_dm_manager_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_dm_manager_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_dm_manager_proto_goTypes = []any{
-	(OperationType)(0),         // 0: device_management.OperationType
-	(AMTStatus)(0),             // 1: device_management.AMTStatus
-	(ActivationStatus)(0),      // 2: device_management.ActivationStatus
-	(*AMTStatusRequest)(nil),   // 3: device_management.AMTStatusRequest
-	(*AMTStatusResponse)(nil),  // 4: device_management.AMTStatusResponse
-	(*ActivationRequest)(nil),  // 5: device_management.ActivationRequest
-	(*ActivationResponse)(nil), // 6: device_management.ActivationResponse
+	(OperationType)(0),                // 0: device_management.OperationType
+	(AMTStatus)(0),                    // 1: device_management.AMTStatus
+	(ActivationStatus)(0),             // 2: device_management.ActivationStatus
+	(*AMTStatusRequest)(nil),          // 3: device_management.AMTStatusRequest
+	(*AMTStatusResponse)(nil),         // 4: device_management.AMTStatusResponse
+	(*ActivationRequest)(nil),         // 5: device_management.ActivationRequest
+	(*ActivationDetailsResponse)(nil), // 6: device_management.ActivationDetailsResponse
+	(*ActivationResultRequest)(nil),   // 7: device_management.ActivationResultRequest
+	(*ActivationResultResponse)(nil),  // 8: device_management.ActivationResultResponse
 }
 var file_dm_manager_proto_depIdxs = []int32{
 	1, // 0: device_management.AMTStatusRequest.status:type_name -> device_management.AMTStatus
-	0, // 1: device_management.ActivationRequest.operation:type_name -> device_management.OperationType
-	2, // 2: device_management.ActivationResponse.activation_status:type_name -> device_management.ActivationStatus
+	0, // 1: device_management.ActivationDetailsResponse.operation:type_name -> device_management.OperationType
+	2, // 2: device_management.ActivationResultRequest.activation_status:type_name -> device_management.ActivationStatus
 	3, // 3: device_management.DeviceManagement.ReportAMTStatus:input_type -> device_management.AMTStatusRequest
-	5, // 4: device_management.DeviceManagement.SendActivationRequest:input_type -> device_management.ActivationRequest
-	4, // 5: device_management.DeviceManagement.ReportAMTStatus:output_type -> device_management.AMTStatusResponse
-	6, // 6: device_management.DeviceManagement.SendActivationRequest:output_type -> device_management.ActivationResponse
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
+	5, // 4: device_management.DeviceManagement.RetrieveActivationDetails:input_type -> device_management.ActivationRequest
+	7, // 5: device_management.DeviceManagement.ReportActivationResults:input_type -> device_management.ActivationResultRequest
+	4, // 6: device_management.DeviceManagement.ReportAMTStatus:output_type -> device_management.AMTStatusResponse
+	6, // 7: device_management.DeviceManagement.RetrieveActivationDetails:output_type -> device_management.ActivationDetailsResponse
+	8, // 8: device_management.DeviceManagement.ReportActivationResults:output_type -> device_management.ActivationResultResponse
+	6, // [6:9] is the sub-list for method output_type
+	3, // [3:6] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
 	3, // [3:3] is the sub-list for extension extendee
 	0, // [0:3] is the sub-list for field type_name
@@ -465,7 +555,7 @@ func file_dm_manager_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_dm_manager_proto_rawDesc), len(file_dm_manager_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

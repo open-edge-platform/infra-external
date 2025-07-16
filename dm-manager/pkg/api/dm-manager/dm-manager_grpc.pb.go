@@ -22,8 +22,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DeviceManagement_ReportAMTStatus_FullMethodName       = "/device_management.DeviceManagement/ReportAMTStatus"
-	DeviceManagement_SendActivationRequest_FullMethodName = "/device_management.DeviceManagement/SendActivationRequest"
+	DeviceManagement_ReportAMTStatus_FullMethodName           = "/device_management.DeviceManagement/ReportAMTStatus"
+	DeviceManagement_RetrieveActivationDetails_FullMethodName = "/device_management.DeviceManagement/RetrieveActivationDetails"
+	DeviceManagement_ReportActivationResults_FullMethodName   = "/device_management.DeviceManagement/ReportActivationResults"
 )
 
 // DeviceManagementClient is the client API for DeviceManagement service.
@@ -32,10 +33,12 @@ const (
 //
 // Service for Device Management.
 type DeviceManagementClient interface {
-	// PMA reports AMT status to dm manager.
+	// API for PMA to report AMT status to dm manager.
 	ReportAMTStatus(ctx context.Context, in *AMTStatusRequest, opts ...grpc.CallOption) (*AMTStatusResponse, error)
-	// DM manager sends activation request to PMA.
-	SendActivationRequest(ctx context.Context, in *ActivationRequest, opts ...grpc.CallOption) (*ActivationResponse, error)
+	// API for PMA to request activation details from dm manager.
+	RetrieveActivationDetails(ctx context.Context, in *ActivationRequest, opts ...grpc.CallOption) (*ActivationDetailsResponse, error)
+	// API for PMA to report activation results back to dm manager.
+	ReportActivationResults(ctx context.Context, in *ActivationResultRequest, opts ...grpc.CallOption) (*ActivationResultResponse, error)
 }
 
 type deviceManagementClient struct {
@@ -56,10 +59,20 @@ func (c *deviceManagementClient) ReportAMTStatus(ctx context.Context, in *AMTSta
 	return out, nil
 }
 
-func (c *deviceManagementClient) SendActivationRequest(ctx context.Context, in *ActivationRequest, opts ...grpc.CallOption) (*ActivationResponse, error) {
+func (c *deviceManagementClient) RetrieveActivationDetails(ctx context.Context, in *ActivationRequest, opts ...grpc.CallOption) (*ActivationDetailsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ActivationResponse)
-	err := c.cc.Invoke(ctx, DeviceManagement_SendActivationRequest_FullMethodName, in, out, cOpts...)
+	out := new(ActivationDetailsResponse)
+	err := c.cc.Invoke(ctx, DeviceManagement_RetrieveActivationDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *deviceManagementClient) ReportActivationResults(ctx context.Context, in *ActivationResultRequest, opts ...grpc.CallOption) (*ActivationResultResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ActivationResultResponse)
+	err := c.cc.Invoke(ctx, DeviceManagement_ReportActivationResults_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -72,10 +85,12 @@ func (c *deviceManagementClient) SendActivationRequest(ctx context.Context, in *
 //
 // Service for Device Management.
 type DeviceManagementServer interface {
-	// PMA reports AMT status to dm manager.
+	// API for PMA to report AMT status to dm manager.
 	ReportAMTStatus(context.Context, *AMTStatusRequest) (*AMTStatusResponse, error)
-	// DM manager sends activation request to PMA.
-	SendActivationRequest(context.Context, *ActivationRequest) (*ActivationResponse, error)
+	// API for PMA to request activation details from dm manager.
+	RetrieveActivationDetails(context.Context, *ActivationRequest) (*ActivationDetailsResponse, error)
+	// API for PMA to report activation results back to dm manager.
+	ReportActivationResults(context.Context, *ActivationResultRequest) (*ActivationResultResponse, error)
 	mustEmbedUnimplementedDeviceManagementServer()
 }
 
@@ -89,8 +104,11 @@ type UnimplementedDeviceManagementServer struct{}
 func (UnimplementedDeviceManagementServer) ReportAMTStatus(context.Context, *AMTStatusRequest) (*AMTStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportAMTStatus not implemented")
 }
-func (UnimplementedDeviceManagementServer) SendActivationRequest(context.Context, *ActivationRequest) (*ActivationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SendActivationRequest not implemented")
+func (UnimplementedDeviceManagementServer) RetrieveActivationDetails(context.Context, *ActivationRequest) (*ActivationDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RetrieveActivationDetails not implemented")
+}
+func (UnimplementedDeviceManagementServer) ReportActivationResults(context.Context, *ActivationResultRequest) (*ActivationResultResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReportActivationResults not implemented")
 }
 func (UnimplementedDeviceManagementServer) mustEmbedUnimplementedDeviceManagementServer() {}
 func (UnimplementedDeviceManagementServer) testEmbeddedByValue()                          {}
@@ -131,20 +149,38 @@ func _DeviceManagement_ReportAMTStatus_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DeviceManagement_SendActivationRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DeviceManagement_RetrieveActivationDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ActivationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DeviceManagementServer).SendActivationRequest(ctx, in)
+		return srv.(DeviceManagementServer).RetrieveActivationDetails(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: DeviceManagement_SendActivationRequest_FullMethodName,
+		FullMethod: DeviceManagement_RetrieveActivationDetails_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DeviceManagementServer).SendActivationRequest(ctx, req.(*ActivationRequest))
+		return srv.(DeviceManagementServer).RetrieveActivationDetails(ctx, req.(*ActivationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DeviceManagement_ReportActivationResults_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActivationResultRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DeviceManagementServer).ReportActivationResults(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DeviceManagement_ReportActivationResults_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DeviceManagementServer).ReportActivationResults(ctx, req.(*ActivationResultRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -161,8 +197,12 @@ var DeviceManagement_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DeviceManagement_ReportAMTStatus_Handler,
 		},
 		{
-			MethodName: "SendActivationRequest",
-			Handler:    _DeviceManagement_SendActivationRequest_Handler,
+			MethodName: "RetrieveActivationDetails",
+			Handler:    _DeviceManagement_RetrieveActivationDetails_Handler,
+		},
+		{
+			MethodName: "ReportActivationResults",
+			Handler:    _DeviceManagement_ReportActivationResults_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -7,13 +7,13 @@ package device_management;
 
 option go_package = "dm-manager/pkg/api/dm-manager;dm_manager";
 
-// Enum for operation type
+// Enum for operation type.
 enum OperationType {
     ACTIVATE = 0;   
     DEACTIVATE = 1;
 }
 
-// Enum for AMT status
+// Enum for AMT status.
 enum AMTStatus {
     ENABLED = 0;
     DISABLED = 1;
@@ -27,31 +27,42 @@ enum ActivationStatus {
 
 // Service for Device Management.
 service DeviceManagement {
-    // PMA reports AMT status to dm manager.
+    // API for PMA to report AMT status to dm manager.
     rpc ReportAMTStatus(AMTStatusRequest) returns (AMTStatusResponse);
 
-    // DM manager sends activation request to PMA.
-    rpc SendActivationRequest(ActivationRequest) returns (ActivationResponse);
+    // API for PMA to request activation details from dm manager.
+    rpc RetrieveActivationDetails(ActivationRequest) returns (ActivationDetailsResponse);
+
+    // API for PMA to report activation results back to dm manager.
+    rpc ReportActivationResults(ActivationResultRequest) returns (ActivationResultResponse);
 }
 
-// AMTStatus Report from PMA to dm manager.
+// AMTStatusRequest reports AMT status to dm manager.
 message AMTStatusRequest {
-    string host_id = 1;    // Host identifier (e.g., GUID)
-    AMTStatus status = 2;  // AMT status (e.g., Enabled, Disabled)
+    string host_id = 1;    // Host identifier
+    AMTStatus status = 2;  // AMT status (e.g. Enabled, Disabled)
     string version = 3;    // AMT version
 }
 
 message AMTStatusResponse {}
 
-// Activation Request from dm manager to PMA.
+// ActivationRequest requests for activation details from dm manager.
 message ActivationRequest {
-    string host_id = 1;          // Host identifier (e.g., GUID)
+    string host_id = 1;          // Host identifier
+}
+
+// ActivationDetailsResponse reports the activation details to PMA.
+message ActivationDetailsResponse {
+    string host_id = 1;          // Host identifier
     OperationType operation = 2; // Activate or Deactivate
     string profile_name = 3;     // Profile name for activation
 }
 
-message ActivationResponse {
-    string host_id = 1;                     // Host identifier (e.g., GUID)
+// ActivationResultRequest reports activation results back to dm manager.
+message ActivationResultRequest {
+    string host_id = 1;                     // Host identifier
     ActivationStatus activation_status = 2; // Status (e.g., Provisioned, Failed)
     string message = 3;                     // Success or Failure message
 }
+
+message ActivationResultResponse {}
