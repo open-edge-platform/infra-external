@@ -29,6 +29,9 @@ docker-build-rps:
 	docker build . -f build/Dockerfile.rps \
 	-t $(PROJECT_NAME_RPS):$(VERSION) $(DOCKER_BUILD_ARGS)
 
+docker-build: docker-build-mps docker-build-rps
+	@echo "Built both dmt-mps and dmt-rps images."
+
 lint: license hadolint mdlint
 
 test:
@@ -54,3 +57,6 @@ license:
 
 hadolint:
 	@echo "Hadolint: no Dockerfile linter implemented."
+
+mdlint:
+	@echo "Markdown lint: no markdown linter implemented."

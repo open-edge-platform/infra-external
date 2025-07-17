@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Dockerfile for Intel RPS with AWS and GCP root CA certificates
-FROM docker.io/intel/oact-rps:v2.14.2
+FROM docker.io/intel/oact-rps:v2.24.0
 
 # Add AWS and GCP root CA certificates to a writable location
 ADD https://www.amazontrust.com/repository/AmazonRootCA1.pem /usr/local/share/ca-certificates/AmazonRootCA1.crt
