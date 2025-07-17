@@ -51,3 +51,6 @@ dependency-check:
 
 license:
 	@echo "License check: no license check implemented."
+
+hadolint:
+	@echo "Hadolint: no Dockerfile linter implemented."
