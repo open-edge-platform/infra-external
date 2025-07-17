@@ -46,3 +46,5 @@ help:
 	@echo "  lint               Run linters (stub)"
 	@echo "  test               Run tests (stub)"
 
+dependency-check:
+	@echo "Dependency check: no dependencies to verify in this project."
