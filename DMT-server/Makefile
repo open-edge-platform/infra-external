@@ -48,3 +48,6 @@ help:
 
 dependency-check:
 	@echo "Dependency check: no dependencies to verify in this project."
+
+license:
+	@echo "License check: no license check implemented."
