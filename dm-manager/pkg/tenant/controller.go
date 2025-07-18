@@ -5,6 +5,7 @@ package tenant
 
 import (
 	"context"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -108,14 +109,20 @@ func (tc *Controller) handleTenantRemoval(ctx context.Context,
 ) error {
 	log.Info().Msgf("Handling tenant removal: %v", tenantID)
 
-	profileResp, err := tc.RpsClient.RemoveProfileWithResponse(ctx, tenantID)
+	updatedCtx := context.WithValue(ctx, "tenantId", tenantID)
+	callbackFunc := func(ctx context.Context, req *http.Request) error {
+		req.Header.Add("ActiveProjectId", ctx.Value("tenantId").(string))
+		return nil
+	}
+
+	profileResp, err := tc.RpsClient.RemoveProfileWithResponse(updatedCtx, tenantID, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("cannot remove profile for %v tenant", tenantID)
 		return err
 	}
 	log.Debug().Msgf("profile removal response: %v", string(profileResp.Body))
 
-	ciraResp, err := tc.RpsClient.RemoveCIRAConfigWithResponse(ctx, tenantID)
+	ciraResp, err := tc.RpsClient.RemoveCIRAConfigWithResponse(updatedCtx, tenantID, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("cannot remove CIRA config for %v tenant", tenantID)
 		return err
@@ -131,17 +138,23 @@ func (tc *Controller) handleTenantCreation(ctx context.Context,
 ) error {
 	log.Info().Msgf("Handling tenant creation: %v", tenantID)
 
-	cert, err := tc.MpsClient.GetApiV1CiracertWithResponse(ctx)
+	updatedCtx := context.WithValue(ctx, "tenantId", tenantID)
+	callbackFunc := func(ctx context.Context, req *http.Request) error {
+		req.Header.Add("ActiveProjectId", ctx.Value("tenantId").(string))
+		return nil
+	}
+
+	cert, err := tc.MpsClient.GetApiV1CiracertWithResponse(updatedCtx, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("cannot get CIRA cert")
 		return err
 	}
 
-	if err := tc.handleCiraConfig(ctx, tenantID, cert.Body); err != nil {
+	if err := tc.handleCiraConfig(updatedCtx, tenantID, cert.Body, callbackFunc); err != nil {
 		return err
 	}
 
-	if err := tc.handleProfile(ctx, tenantID); err != nil {
+	if err := tc.handleProfile(updatedCtx, tenantID, callbackFunc); err != nil {
 		return err
 	}
 
@@ -149,8 +162,8 @@ func (tc *Controller) handleTenantCreation(ctx context.Context,
 	return nil
 }
 
-func (tc *Controller) handleProfile(ctx context.Context, tenantID string) error {
-	profile, err := tc.RpsClient.GetProfileWithResponse(ctx, tenantID)
+func (tc *Controller) handleProfile(ctx context.Context, tenantID string, callbackFunc func(ctx context.Context, req *http.Request) error) error {
+	profile, err := tc.RpsClient.GetProfileWithResponse(ctx, tenantID, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("cannot get profile for %v tenant", tenantID)
 		return err
@@ -188,7 +201,7 @@ func (tc *Controller) handleProfile(ctx context.Context, tenantID string) error 
 			postProfileBody.GenerateRandomMEBxPassword = true
 		}
 
-		profilePostResponse, err := tc.RpsClient.CreateProfileWithResponse(ctx, postProfileBody)
+		profilePostResponse, err := tc.RpsClient.CreateProfileWithResponse(ctx, postProfileBody, callbackFunc)
 		if err != nil {
 			log.Err(err).Msgf("cannot create profile for %v tenant", tenantID)
 			return err
@@ -204,8 +217,8 @@ func (tc *Controller) handleProfile(ctx context.Context, tenantID string) error 
 	return nil
 }
 
-func (tc *Controller) handleCiraConfig(ctx context.Context, tenantID string, cert []byte) error {
-	ciraConfig, err := tc.RpsClient.GetCIRAConfigWithResponse(ctx, tenantID)
+func (tc *Controller) handleCiraConfig(ctx context.Context, tenantID string, cert []byte, callbackFunc func(ctx context.Context, req *http.Request) error) error {
+	ciraConfig, err := tc.RpsClient.GetCIRAConfigWithResponse(ctx, tenantID, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("cannot get CIRA config for %v tenant", tenantID)
 		return err
@@ -230,7 +243,7 @@ func (tc *Controller) handleCiraConfig(ctx context.Context, tenantID string, cer
 			ProxyDetails:        "", // TODO: pass proxy from config
 			Username:            "admin",
 			Password:            &amtPassword,
-		})
+		}, callbackFunc)
 		if err != nil {
 			log.Err(err).Msgf("cannot create CIRA config for %v tenant", tenantID)
 			return err

@@ -250,7 +250,14 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 func (dc *Controller) syncPowerStatus(
 	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
 ) rec_v2.Directive[ID] {
-	currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(ctx, invHost.GetUuid())
+
+	updatedCtx := context.WithValue(ctx, "tenantId", request.ID.GetTenantID())
+	callbackFunc := func(ctx context.Context, req *http.Request) error {
+		req.Header.Add("ActiveProjectId", ctx.Value("tenantId").(string))
+		return nil
+	}
+
+	currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(updatedCtx, invHost.GetUuid(), callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("failed to check current power state for %v", invHost.GetUuid())
 		return request.Fail(err)
@@ -274,7 +281,7 @@ func (dc *Controller) syncPowerStatus(
 		log.Info().Msgf("%v host desired state is %v, but current power state is %v",
 			invHost.GetUuid(), powerMapping[invHost.GetDesiredPowerState()], powerStateCode)
 
-		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
+		err = dc.updateHost(updatedCtx, invHost.GetTenantId(), invHost.GetResourceId(),
 			&fieldmaskpb.FieldMask{Paths: []string{
 				computev1.HostResourceFieldCurrentPowerState,
 				computev1.HostResourceFieldPowerStatus,
@@ -292,7 +299,7 @@ func (dc *Controller) syncPowerStatus(
 	}
 	if contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) &&
 		invHost.GetPowerStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE {
-		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
+		err = dc.updateHost(updatedCtx, invHost.GetTenantId(), invHost.GetResourceId(),
 			&fieldmaskpb.FieldMask{Paths: []string{
 				computev1.HostResourceFieldPowerStatusIndicator,
 			}}, &computev1.HostResource{
@@ -332,10 +339,15 @@ func (dc *Controller) handlePowerChange(
 
 	// assumption is that we don't have to check if power actions are supported, as AMT supports it since 1.0.0
 	// https://en.wikipedia.org/wiki/Intel_AMT_versions
-	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
+	updatedCtx := context.WithValue(ctx, "tenantId", request.ID.GetTenantID())
+	callbackFunc := func(ctx context.Context, req *http.Request) error {
+		req.Header.Add("ActiveProjectId", ctx.Value("tenantId").(string))
+		return nil
+	}
+	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(updatedCtx, request.ID.GetHostUUID(),
 		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
 			Action: powerMapping[desiredPowerState],
-		})
+		}, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("failed to send power action to MPS")
 		return request.Fail(err),
@@ -369,7 +381,7 @@ func (dc *Controller) handlePowerChange(
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
 
-	err = dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+	err = dc.updateHost(updatedCtx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentPowerState,
 		}}, &computev1.HostResource{
