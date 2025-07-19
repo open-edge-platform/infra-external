@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/grpc/metadata"
+
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
@@ -17,6 +19,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/secretprovider"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/auth"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -109,9 +112,20 @@ func (tc *Controller) handleTenantRemoval(ctx context.Context,
 ) error {
 	log.Info().Msgf("Handling tenant removal: %v", tenantID)
 
-	updatedCtx := context.WithValue(ctx, "tenantId", tenantID)
+	updatedCtx := metadata.AppendToOutgoingContext(ctx, "tenantId", tenantID)
 	callbackFunc := func(ctx context.Context, req *http.Request) error {
-		req.Header.Add("ActiveProjectId", ctx.Value("tenantId").(string))
+		tenant, ok := ctx.Value("tenantId").(string)
+		if !ok {
+			req.Header.Add("ActiveProjectId", "")
+		} else {
+			req.Header.Add("ActiveProjectId", tenant)
+		}
+		authorization, ok := ctx.Value("Authorization").(string)
+		if !ok {
+			req.Header.Add("Authorization", "")
+		} else {
+			req.Header.Add("Authorization", authorization)
+		}
 		return nil
 	}
 
@@ -138,9 +152,20 @@ func (tc *Controller) handleTenantCreation(ctx context.Context,
 ) error {
 	log.Info().Msgf("Handling tenant creation: %v", tenantID)
 
-	updatedCtx := context.WithValue(ctx, "tenantId", tenantID)
+	updatedCtx := metadata.AppendToOutgoingContext(ctx, "tenantId", tenantID)
 	callbackFunc := func(ctx context.Context, req *http.Request) error {
-		req.Header.Add("ActiveProjectId", ctx.Value("tenantId").(string))
+		tenant, ok := ctx.Value("tenantId").(string)
+		if !ok {
+			req.Header.Add("ActiveProjectId", "")
+		} else {
+			req.Header.Add("ActiveProjectId", tenant)
+		}
+		authorization, ok := ctx.Value("Authorization").(string)
+		if !ok {
+			req.Header.Add("Authorization", "")
+		} else {
+			req.Header.Add("Authorization", authorization)
+		}
 		return nil
 	}
 
@@ -162,7 +187,9 @@ func (tc *Controller) handleTenantCreation(ctx context.Context,
 	return nil
 }
 
-func (tc *Controller) handleProfile(ctx context.Context, tenantID string, callbackFunc func(ctx context.Context, req *http.Request) error) error {
+func (tc *Controller) handleProfile(ctx context.Context, tenantID string,
+	callbackFunc func(ctx context.Context, req *http.Request) error,
+) error {
 	profile, err := tc.RpsClient.GetProfileWithResponse(ctx, tenantID, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("cannot get profile for %v tenant", tenantID)
@@ -217,7 +244,9 @@ func (tc *Controller) handleProfile(ctx context.Context, tenantID string, callba
 	return nil
 }
 
-func (tc *Controller) handleCiraConfig(ctx context.Context, tenantID string, cert []byte, callbackFunc func(ctx context.Context, req *http.Request) error) error {
+func (tc *Controller) handleCiraConfig(ctx context.Context, tenantID string, cert []byte,
+	callbackFunc func(ctx context.Context, req *http.Request) error,
+) error {
 	ciraConfig, err := tc.RpsClient.GetCIRAConfigWithResponse(ctx, tenantID, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("cannot get CIRA config for %v tenant", tenantID)
@@ -274,6 +303,12 @@ func (tc *Controller) ReconcileAll() {
 		return
 	}
 
+	updatedCtx, err := auth.GetToken(ctx)
+	if err != nil {
+		log.Err(err).Msgf("failed to retrieve token")
+		return
+	}
+
 	tenants := []string{}
 	for _, tenant := range tenantsResp {
 		tenants = append(tenants, tenant.GetTenant().GetTenantId())
@@ -284,18 +319,27 @@ func (tc *Controller) ReconcileAll() {
 		}
 	}
 
-	tc.removeProfiles(ctx, tenants)
-	tc.removeCIRAConfigs(ctx, tenants)
+	tc.removeProfiles(updatedCtx, tenants)
+	tc.removeCIRAConfigs(updatedCtx, tenants)
 }
 
 func (tc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ReconcilerID]) rec_v2.Directive[ReconcilerID] {
+	var err error
+	var updatedCtx context.Context
+	if token := ctx.Value("Authorization"); token == nil {
+		updatedCtx, err = auth.GetToken(ctx)
+		if err != nil {
+			log.Err(err).Msgf("failed to retrieve token")
+			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
+		}
+	}
 	if request.ID.isCreate() {
-		if err := tc.handleTenantCreation(ctx, request.ID.GetTenantID()); err != nil {
+		if err = tc.handleTenantCreation(updatedCtx, request.ID.GetTenantID()); err != nil {
 			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 		}
 		return request.Ack()
 	}
-	if err := tc.handleTenantRemoval(ctx, request.ID.GetTenantID()); err != nil {
+	if err = tc.handleTenantRemoval(updatedCtx, request.ID.GetTenantID()); err != nil {
 		return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 	}
 	return request.Ack()
