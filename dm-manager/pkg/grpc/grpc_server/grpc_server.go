@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/intel-innersource/frameworks.edge.one-intel-edge.maestro-infra.services.inventory/v2/pkg/logging"
+	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	inv_errors "github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/policy/rbac"
@@ -30,6 +31,27 @@ type (
 	}
 )
 
+func CopyNodeReqToNodeData(req *pb.AMTStatusRequest, tenantID string) (*computev1.HostResource, error) {
+	if req == nil {
+		return nil, inv_errors.Errorf("AMTStatusRequest is nil")
+	}
+
+	if req.HostId == "" {
+		return nil, inv_errors.Errorf("HostId is required in AMTStatusRequest")
+	}
+
+	hostres := &computev1.HostResource{
+		Uuid:      req.HostId, // Using HostId as UUID
+		AmtStatus: req.Status.String(),
+		TenantId:  tenantID,
+		// You can add more fields here based on your requirements
+	}
+
+	zlog.Debug().Msgf("Adding HostResource: %v", hostres)
+
+	return hostres, nil
+}
+
 func NewDeviceManagementService(invClient *client.TenantAwareInventoryClient,
 	inventoryAdr string, enableTracing bool,
 	enableAuth bool, rbacRules string) (*DeviceManagementService, error) {
@@ -48,11 +70,22 @@ func NewDeviceManagementService(invClient *client.TenantAwareInventoryClient,
 		}
 	}
 
+	if inventoryAdr == "" {
+		zlog.Warn().Msg("inventoryAdr is empty")
+	}
+
+	return &DeviceManagementService{
+		InventoryClientService: InventoryClientService{
+			invClient: *invClient,
+		},
+		rbac:        rbacPolicy,
+		authEnabled: enableAuth,
+	}, nil
 }
 
 func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb.AMTStatusRequest) (*pb.AMTStatusResponse, error) {
 
-	zlog.Info().Msgf("CreateNodes")
+	zlog.Info().Msgf("ReportAMTStatus")
 
 	if dms.authEnabled {
 		// checking if JWT contains write permission
@@ -69,6 +102,24 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 		zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
 		return nil, err
 	}
-	zlog.Debug().Msgf("CreateNodes: tenantID=%s", tenantID)
+	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
+
+	hostresdata, err := CopyNodeReqToNodeData(req, tenantID)
+	if err != nil {
+		zlog.InfraSec().InfraErr(err).Msgf("CopyNodeReqToNodeData error: %v", err)
+		return nil, err
+	}
+
+	var hostInv *computev1.HostResource
+	hostInv, err = dms.invClient.GetHostByUUID(ctx, tenantID, hostresdata.Uuid)
+	switch {
+	case inv_errors.IsNotFound(err):
+		zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
+			hostresdata.Uuid, tenantID)
+	case err == nil:
+		hostInv.AmtStatus = hostresdata.AmtStatus
+
+	}
+	return &pb.AMTStatusResponse{}, nil
 
 }
