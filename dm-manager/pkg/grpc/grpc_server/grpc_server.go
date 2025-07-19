@@ -104,22 +104,73 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 	}
 	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
 
-	hostresdata, err := CopyNodeReqToNodeData(req, tenantID)
-	if err != nil {
-		zlog.InfraSec().InfraErr(err).Msgf("CopyNodeReqToNodeData error: %v", err)
-		return nil, err
+	host := &computev1.HostResource{
+		Uuid:      req.HostId, // Using HostId as UUID
+		AmtStatus: req.Status.String(),
+		TenantId:  tenantID,
+		// You can add more fields here based on your requirements
 	}
 
 	var hostInv *computev1.HostResource
-	hostInv, err = dms.invClient.GetHostByUUID(ctx, tenantID, hostresdata.Uuid)
+	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, host.Uuid)
 	switch {
 	case inv_errors.IsNotFound(err):
 		zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
-			hostresdata.Uuid, tenantID)
+			host.Uuid, tenantID)
 	case err == nil:
-		hostInv.AmtStatus = hostresdata.AmtStatus
+		hostInv.AmtStatus = host.AmtStatus
 
 	}
 	return &pb.AMTStatusResponse{}, nil
+
+}
+
+func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Context, req *pb.ActivationRequest) (*pb.ActivationDetailsResponse, error) {
+
+	zlog.Info().Msgf("RetrieveActivationDetails")
+
+	if dms.authEnabled {
+		// checking if JWT contains write permission
+		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
+			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
+			zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
+			return nil, err
+		}
+	}
+
+	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
+	if !present {
+		err := inv_errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
+		zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
+		return nil, err
+	}
+	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
+
+	host := &computev1.HostResource{
+		Uuid:     req.HostId, // Using HostId as UUID
+		TenantId: tenantID,
+		// You can add more fields here based on your requirements
+	}
+	host.CurrentAmtState = computev1.AmtState_AMT_STATE_UNPROVISIONED
+	host.DesiredAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
+
+	var hostInv *computev1.HostResource
+	var response *pb.ActivationDetailsResponse
+	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, host.Uuid)
+	switch {
+	case inv_errors.IsNotFound(err):
+		zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
+			host.Uuid, tenantID)
+	case err == nil:
+		if hostInv.AmtStatus == pb.AMTStatus_ENABLED.String() {
+			zlog.Debug().Msgf("Host %s AMT is enabled", host.Uuid)
+			response.HostId = host.Uuid
+			response.Operation = pb.OperationType_ACTIVATE
+			response.ProfileName = host.TenantId
+			hostInv.CurrentAmtState = host.CurrentAmtState
+			hostInv.DesiredAmtState = host.DesiredAmtState
+		}
+	}
+	return response, nil
 
 }
