@@ -5,12 +5,11 @@ import (
 
 	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
 	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
+	grpcServer "github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc/grpc_server"
 
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/metrics"
-	grpcServer "github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc/grpc_server/grpcserver"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -33,14 +32,14 @@ type DMHandlerConfig struct {
 }
 
 type DMHandler struct {
-	invClient client.TenantAwareInventoryClient
+	invClient *client.TenantAwareInventoryClient
 	cfg       DMHandlerConfig
 
 	lis    net.Listener
 	server *grpc.Server
 }
 
-func NewDMHandler(invClient client.TenantAwareInventoryClient, config DMHandlerConfig) (*DMHandler, error) {
+func NewDMHandler(invClient *client.TenantAwareInventoryClient, config DMHandlerConfig) (*DMHandler, error) {
 	lis, err := net.Listen("tcp", config.ServerAddress)
 	if err != nil {
 		return nil, err
@@ -50,7 +49,7 @@ func NewDMHandler(invClient client.TenantAwareInventoryClient, config DMHandlerC
 }
 
 func NewDMHandlerWithListener(listener net.Listener,
-	invClient client.TenantAwareInventoryClient,
+	invClient *client.TenantAwareInventoryClient,
 	config DMHandlerConfig,
 ) *DMHandler {
 	return &DMHandler{
