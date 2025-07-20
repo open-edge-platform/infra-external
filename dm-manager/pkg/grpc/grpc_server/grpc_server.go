@@ -174,3 +174,49 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 	return response, nil
 
 }
+
+func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context, req *pb.ActivationResultRequest) (*pb.ActivationResultResponse, error) {
+
+	zlog.Info().Msgf("ReportActivationResults")
+
+	if dms.authEnabled {
+		// checking if JWT contains write permission
+		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
+			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
+			zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
+			return nil, err
+		}
+	}
+
+	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
+	if !present {
+		err := inv_errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
+		zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
+		return nil, err
+	}
+	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
+
+	host := &computev1.HostResource{
+		Uuid:     req.HostId, // Using HostId as UUID
+		TenantId: tenantID,
+		// You can add more fields here based on your requirements
+	}
+	host.CurrentAmtState = computev1.AmtState_AMT_STATE_UNPROVISIONED
+	host.DesiredAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
+
+	var hostInv *computev1.HostResource
+	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, host.Uuid)
+	switch {
+	case inv_errors.IsNotFound(err):
+		zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
+			host.Uuid, tenantID)
+	case err == nil:
+		if req.ActivationStatus.String() == computev1.AmtState_AMT_STATE_PROVISIONED.String() {
+			zlog.Debug().Msgf("Host %s AMT is enabled", host.Uuid)
+			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
+
+		}
+	}
+	return &pb.ActivationResultResponse{}, nil
+
+}
