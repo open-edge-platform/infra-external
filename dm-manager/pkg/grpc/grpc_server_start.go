@@ -69,8 +69,8 @@ func (dmh *DMHandler) Start() error {
 	}
 	var srvOpts []grpc.ServerOption
 	var unaryInter []grpc.UnaryServerInterceptor
-	// need to ask for approprite roles for DM service.
-	// Do we need to enable metric for DM service?
+	// TODO:need to ask for approprite roles for DM service.
+	// TODO:Do we need to enable metric for DM service?
 	unaryInter = append(unaryInter, inv_tenant.GetExtractTenantIDInterceptor(inv_tenant.GetOnboardingRoles()))
 	srvMetrics := metrics.GetServerMetricsWithLatency()
 	cliMetrics := metrics.GetClientMetricsWithLatency()

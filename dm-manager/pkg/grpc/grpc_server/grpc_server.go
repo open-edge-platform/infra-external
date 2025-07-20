@@ -215,7 +215,11 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 		if req.ActivationStatus.String() == computev1.AmtState_AMT_STATE_PROVISIONED.String() {
 			zlog.Debug().Msgf("Host %s AMT is enabled", host.Uuid)
 			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
+			//TODO: what will be the desired state after activation?
 
+		} else {
+			zlog.Debug().Msgf("Host %s AMT is not Unprovisioned", host.Uuid)
+			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_UNPROVISIONED
 		}
 	}
 	return &pb.ActivationResultResponse{}, nil
