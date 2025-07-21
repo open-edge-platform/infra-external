@@ -10,8 +10,8 @@ path = [
 
     "*.md",
     "pkg/auth/testdata/k8stoken",
-    "pkg/api/*",
-    "pkg/mocks/*"
+    "pkg/api/**",
+    "pkg/mocks/**"
 ]
 
 SPDX-FileCopyrightText = "2025 Intel Corporation"
