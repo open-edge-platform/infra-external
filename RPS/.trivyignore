@@ -1,10 +1,9 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-CVE-2024-12797 
-CVE-2025-5222
+CVE-2024-12797
+CVE-2025-31498   
+CVE-2025-5222   
 CVE-2025-23166
 CVE-2025-29087
-
-# Ignore specific vulnerabilities
-AVD-DS-0002 # dnsmasq must start as a root but will drop privileges
+AVD-DS-0002
