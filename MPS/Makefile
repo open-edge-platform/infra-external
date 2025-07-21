@@ -18,10 +18,14 @@ DOCKER_BUILD_ARGS = \
 	--build-arg REVISION="$(LABEL_REVISION)" \
 	--build-arg BUILD_DATE="$(LABEL_BUILD_DATE)"
 
+include ../common.mk
+
 # Build MPS image
 docker-build-mps:
+	cp ../common.mk ../version.mk .
 	docker build . -f build/Dockerfile.mps \
 	-t $(PROJECT_NAME_MPS):$(VERSION) $(DOCKER_BUILD_ARGS)
+	@rm -rf common.mk version.mk
 
 docker-build: docker-build-mps
 	@echo "Built dmt-mps images."
@@ -53,3 +57,7 @@ hadolint:
 
 mdlint:
 	@echo "Markdown lint: no markdown linter implemented."
+
+go-dependency-check:
+	@echo "No go dependency check implemented for this project."
+
