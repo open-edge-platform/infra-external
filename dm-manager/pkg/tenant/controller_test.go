@@ -41,6 +41,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestManager_Start(t *testing.T) {
+	err := os.Setenv("USE_M2M_TOKEN", "false")
+	assert.NoError(t, err)
 	termChan := make(chan bool, 1)
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}
@@ -83,6 +85,8 @@ func TestManager_Start(t *testing.T) {
 }
 
 func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
+	err := os.Setenv("USE_M2M_TOKEN", "false")
+	assert.NoError(t, err)
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	config := ReconcilerConfig{
@@ -131,7 +135,7 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 		JSON201: &rps.ProfileResponse{},
 	}, nil)
 
-	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
+	err = dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
 	assert.NoError(t, err)
 	assertHook.Assert(t)
@@ -140,6 +144,8 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 }
 
 func TestReconciler_handleTenantCreation_whenCannotGetCertShouldReturnError(t *testing.T) {
+	err := os.Setenv("USE_M2M_TOKEN", "false")
+	assert.NoError(t, err)
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	dmr := &Controller{
@@ -157,13 +163,15 @@ func TestReconciler_handleTenantCreation_whenCannotGetCertShouldReturnError(t *t
 		Body: []byte(cert),
 	}, errors.Errorf("mocked error"))
 
-	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
+	err = dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
 	assert.ErrorContains(t, err, "mocked error")
 	assertHook.Assert(t)
 }
 
 func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnError(t *testing.T) {
+	err := os.Setenv("USE_M2M_TOKEN", "false")
+	assert.NoError(t, err)
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	dmr := &Controller{
@@ -184,13 +192,15 @@ func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnErro
 		JSON404: &rps.APIResponse{},
 	}, errors.Errorf("mocked error"))
 
-	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
+	err = dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
 	assert.ErrorContains(t, err, "mocked error")
 	assertHook.Assert(t)
 }
 
 func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnError(t *testing.T) {
+	err := os.Setenv("USE_M2M_TOKEN", "false")
+	assert.NoError(t, err)
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	msp := mocks.MockSecretProvider{}
@@ -217,13 +227,15 @@ func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnE
 		JSON201: &rps.CIRAConfigResponse{},
 	}, errors.Errorf("mocked error"))
 
-	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
+	err = dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
 	assert.ErrorContains(t, err, "mocked error")
 	assertHook.Assert(t)
 }
 
 func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t *testing.T) {
+	err := os.Setenv("USE_M2M_TOKEN", "false")
+	assert.NoError(t, err)
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	msp := mocks.MockSecretProvider{}
@@ -254,13 +266,15 @@ func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t
 		JSON404: &rps.APIResponse{},
 	}, errors.Errorf("mocked error"))
 
-	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
+	err = dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
 	assert.ErrorContains(t, err, "mocked error")
 	assertHook.Assert(t)
 }
 
 func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnError(t *testing.T) {
+	err := os.Setenv("USE_M2M_TOKEN", "false")
+	assert.NoError(t, err)
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	msp := mocks.MockSecretProvider{}
@@ -294,13 +308,15 @@ func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnErro
 		JSON201: &rps.ProfileResponse{},
 	}, errors.Errorf("mocked error"))
 
-	err := dmr.handleTenantCreation(context.Background(), "mock-tenant")
+	err = dmr.handleTenantCreation(context.Background(), "mock-tenant")
 
 	assert.ErrorContains(t, err, "mocked error")
 	assertHook.Assert(t)
 }
 
 func TestReconciler_handleTenantRemoval_happyPath(t *testing.T) {
+	err := os.Setenv("USE_M2M_TOKEN", "false")
+	assert.NoError(t, err)
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	dmr := &Controller{
@@ -317,13 +333,15 @@ func TestReconciler_handleTenantRemoval_happyPath(t *testing.T) {
 	assertHook := util.NewTestAssertHook("Finished tenant removal")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook)}
 
-	err := dmr.handleTenantRemoval(context.Background(), "mock-tenant")
+	err = dmr.handleTenantRemoval(context.Background(), "mock-tenant")
 
 	assert.NoError(t, err)
 	assertHook.Assert(t)
 }
 
 func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
+	err := os.Setenv("USE_M2M_TOKEN", "false")
+	assert.NoError(t, err)
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	dmr := &Controller{
@@ -342,13 +360,15 @@ func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
 	profileHook := util.NewTestAssertHook("cannot remove profile")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(profileHook)}
 
-	err := dmr.handleTenantRemoval(context.Background(), "mock-tenant")
+	err = dmr.handleTenantRemoval(context.Background(), "mock-tenant")
 
 	assert.ErrorContains(t, err, "mock error")
 	profileHook.Assert(t)
 }
 
 func TestReconciler_ReconcileAll_shouldRemoveExcessiveConfigs(t *testing.T) {
+	err := os.Setenv("USE_M2M_TOKEN", "false")
+	assert.NoError(t, err)
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
 	profileHook := util.NewTestAssertHook("willBeRemoved profile doesn't have matching tenant ")

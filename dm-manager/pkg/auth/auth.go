@@ -6,6 +6,7 @@ package auth
 import (
 	"context"
 	"os"
+	"strconv"
 
 	"google.golang.org/grpc/metadata"
 
@@ -13,6 +14,11 @@ import (
 )
 
 func GetToken(ctx context.Context) (context.Context, error) {
+	requireTokenStr := os.Getenv("USE_M2M_TOKEN")
+	requireToken, err := strconv.ParseBool(requireTokenStr)
+	if err != nil || !requireToken {
+		return ctx, nil //nolint: nilerr // no need to return error if USE_M2M_TOKEN is not set, just skip token retrieval
+	}
 	keycloakServer := os.Getenv("KEYCLOAK_SERVER")
 	vaultServer := os.Getenv("VAULT_SERVER")
 	serviceAcct := os.Getenv("SERVICE_ACCOUNT")

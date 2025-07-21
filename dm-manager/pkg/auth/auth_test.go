@@ -24,9 +24,7 @@ const (
 	vaultK8STokenFile  = `/var/run/secrets/kubernetes.io/serviceaccount/token` // #nosec G101
 )
 
-var (
-	K8STokenFile = vaultK8STokenFile
-)
+var K8STokenFile = vaultK8STokenFile
 
 type AuthTestSuite struct {
 	suite.Suite
