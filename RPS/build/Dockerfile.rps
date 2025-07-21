@@ -10,5 +10,9 @@ ADD https://pki.goog/roots.pem /usr/local/share/ca-certificates/GoogleRootCA.crt
 
 # Switch to root to install packages and update CA certificates
 USER root
-RUN apk add --no-cache ca-certificates && update-ca-certificates
+RUN apk update && \
+    apk add --no-cache ca-certificates && \
+    apk upgrade c-ares icu-data-en icu-libs nodejs sqlite-libs && \
+    update-ca-certificates && \
+    rm -rf /var/cache/apk/*
 
