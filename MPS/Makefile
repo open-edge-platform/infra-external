@@ -2,13 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 .DEFAULT_GOAL := help
-.PHONY: lint test clean docker-build-mps docker-build-rps help
+.PHONY: lint test clean docker-build-mps help
 
-all: lint test docker-build-mps docker-build-rps
+all: lint test docker-build-mps
 
 # Variables
 PROJECT_NAME_MPS := dmt-mps
-PROJECT_NAME_RPS := dmt-rps
 VERSION := $(shell cat VERSION)
 DOCKER_BUILD_ARGS = \
 	--build-arg http_proxy="$(http_proxy)" --build-arg HTTP_PROXY="$(HTTP_PROXY)" \
@@ -24,13 +23,8 @@ docker-build-mps:
 	docker build . -f build/Dockerfile.mps \
 	-t $(PROJECT_NAME_MPS):$(VERSION) $(DOCKER_BUILD_ARGS)
 
-# Build RPS image
-docker-build-rps:
-	docker build . -f build/Dockerfile.rps \
-	-t $(PROJECT_NAME_RPS):$(VERSION) $(DOCKER_BUILD_ARGS)
-
-docker-build: docker-build-mps docker-build-rps
-	@echo "Built both dmt-mps and dmt-rps images."
+docker-build: docker-build-mps
+	@echo "Built dmt-mps images."
 
 lint: license hadolint mdlint
 
@@ -45,7 +39,6 @@ help:
 	@echo "Available targets:"
 	@echo "  all                Run lint, test, and build both images"
 	@echo "  docker-build-mps   Build the dmt-mps image"
-	@echo "  docker-build-rps   Build the dmt-rps image"
 	@echo "  lint               Run linters (stub)"
 	@echo "  test               Run tests (stub)"
 
