@@ -39,7 +39,7 @@ func GetToken(ctx context.Context) (context.Context, error) {
 	}
 	if tokenStr == "" {
 		fmt.Printf("tokenStr empty")
-		return ctx, nil
+		return ctx, fmt.Errorf("tokenStr empty")
 	}
 
 	updatedCtx := metadata.AppendToOutgoingContext(ctx, "Authorization", "Bearer "+tokenStr)
