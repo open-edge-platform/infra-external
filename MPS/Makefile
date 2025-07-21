@@ -57,3 +57,7 @@ hadolint:
 
 mdlint:
 	@echo "Markdown lint: no markdown linter implemented."
+
+go-dependency-check:
+	@echo "No go dependency check implemented for this project."
+
