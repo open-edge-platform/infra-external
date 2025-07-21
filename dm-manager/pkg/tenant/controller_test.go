@@ -397,7 +397,7 @@ func TestReconciler_ReconcileAll_shouldRemoveExcessiveConfigs(t *testing.T) {
 	dmr.TenantController = tenantController
 
 	tenantID := inv_testing.CreateTenant(t, inv_testing.TenantDesiredState(tenantv1.TenantState_TENANT_STATE_CREATED)).TenantId
-	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything).
+	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1CiracertResponse{}, errors.Errorf("mocked error"))
 
 	rpsMock.On("GetAllProfilesWithResponse", mock.Anything, mock.Anything).Return(&rps.GetAllProfilesResponse{
