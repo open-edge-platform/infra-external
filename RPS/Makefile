@@ -72,3 +72,7 @@ go-dependency-check:
 
 go-build:
 	@echo "No Go build in this folder."
+
+out/dmt-rps:
+    @echo "No Go binary to build for RPS."
+    @touch out/dmt-rps
