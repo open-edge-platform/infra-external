@@ -114,7 +114,7 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
 	}, nil)
-	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
+	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
 		JSON404: &rps.APIResponse{},
 	}, nil)
 	rpsMock.On("CreateCIRAConfigWithResponse",
@@ -122,16 +122,16 @@ func TestReconciler_handleTenantCreation_happyPath(t *testing.T) {
 			return request.CommonName == config.MpsAddress &&
 				request.MpsServerAddress == config.MpsAddress &&
 				*request.Password == staticPassword
-		})).Return(&rps.CreateCIRAConfigResponse{
+		}), mock.Anything).Return(&rps.CreateCIRAConfigResponse{
 		JSON201: &rps.CIRAConfigResponse{},
 	}, nil)
 
-	rpsMock.On("GetProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.GetProfileResponse{
+	rpsMock.On("GetProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.GetProfileResponse{
 		JSON404: &rps.APIResponse{},
 	}, nil)
 	rpsMock.On("CreateProfileWithResponse", mock.Anything, mock.MatchedBy(func(request rps.CreateProfileJSONRequestBody) bool {
 		return *request.AmtPassword == staticPassword && *request.MebxPassword == staticPassword
-	})).Return(&rps.CreateProfileResponse{
+	}), mock.Anything).Return(&rps.CreateProfileResponse{
 		JSON201: &rps.ProfileResponse{},
 	}, nil)
 
@@ -188,7 +188,7 @@ func TestReconciler_handleTenantCreation_whenCannotGetCIRAConfigShouldReturnErro
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
 	}, nil)
-	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
+	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
 		JSON404: &rps.APIResponse{},
 	}, errors.Errorf("mocked error"))
 
@@ -220,10 +220,10 @@ func TestReconciler_handleTenantCreation_whenCannotCreateCIRAConfigShouldReturnE
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
 	}, nil)
-	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
+	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
 		JSON404: &rps.APIResponse{},
 	}, nil)
-	rpsMock.On("CreateCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.CreateCIRAConfigResponse{
+	rpsMock.On("CreateCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.CreateCIRAConfigResponse{
 		JSON201: &rps.CIRAConfigResponse{},
 	}, errors.Errorf("mocked error"))
 
@@ -255,14 +255,14 @@ func TestReconciler_handleTenantCreation_whenCannotGetProfileShouldReturnError(t
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
 	}, nil)
-	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
+	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
 		JSON404: &rps.APIResponse{},
 	}, nil)
-	rpsMock.On("CreateCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.CreateCIRAConfigResponse{
+	rpsMock.On("CreateCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.CreateCIRAConfigResponse{
 		JSON201: &rps.CIRAConfigResponse{},
 	}, nil)
 
-	rpsMock.On("GetProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.GetProfileResponse{
+	rpsMock.On("GetProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.GetProfileResponse{
 		JSON404: &rps.APIResponse{},
 	}, errors.Errorf("mocked error"))
 
@@ -294,17 +294,17 @@ func TestReconciler_handleTenantCreation_whenCannotCreateProfileShouldReturnErro
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte(cert),
 	}, nil)
-	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
+	rpsMock.On("GetCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.GetCIRAConfigResponse{
 		JSON404: &rps.APIResponse{},
 	}, nil)
-	rpsMock.On("CreateCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.CreateCIRAConfigResponse{
+	rpsMock.On("CreateCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.CreateCIRAConfigResponse{
 		JSON201: &rps.CIRAConfigResponse{},
 	}, nil)
 
-	rpsMock.On("GetProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.GetProfileResponse{
+	rpsMock.On("GetProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.GetProfileResponse{
 		JSON404: &rps.APIResponse{},
 	}, nil)
-	rpsMock.On("CreateProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.CreateProfileResponse{
+	rpsMock.On("CreateProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.CreateProfileResponse{
 		JSON201: &rps.ProfileResponse{},
 	}, errors.Errorf("mocked error"))
 
@@ -328,8 +328,9 @@ func TestReconciler_handleTenantRemoval_happyPath(t *testing.T) {
 		},
 	}
 
-	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
-	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveCIRAConfigResponse{}, nil)
+	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
+	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(
+		&rps.RemoveCIRAConfigResponse{}, nil)
 	assertHook := util.NewTestAssertHook("Finished tenant removal")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(assertHook)}
 
@@ -353,9 +354,9 @@ func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
 		},
 	}
 
-	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything).
+	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&rps.RemoveProfileResponse{}, errors.Errorf("mock error"))
-	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything).
+	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&rps.RemoveCIRAConfigResponse{}, errors.Errorf("mock error"))
 	profileHook := util.NewTestAssertHook("cannot remove profile")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(profileHook)}
@@ -406,8 +407,9 @@ func TestReconciler_ReconcileAll_shouldRemoveExcessiveConfigs(t *testing.T) {
 		JSON200: &[]rps.CIRAConfigResponse{{ConfigName: "deleteMe"}, {CommonName: tenantID}},
 	}, nil)
 
-	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
-	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything).Return(&rps.RemoveCIRAConfigResponse{}, nil)
+	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
+	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(
+		&rps.RemoveCIRAConfigResponse{}, nil)
 
 	dmr.ReconcileAll()
 

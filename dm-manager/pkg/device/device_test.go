@@ -66,7 +66,7 @@ func TestDeviceController_Reconcile_poweredOffSystemShouldTurnOn(t *testing.T) {
 
 	mpsMock.On("GetApiV1DevicesGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1DevicesGuidResponse{}, nil)
-	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.PostApiV1AmtPowerActionGuidResponse{
 			HTTPResponse: &http.Response{
 				StatusCode: http.StatusOK,
@@ -183,7 +183,7 @@ func TestDeviceController_ReconcileAll_shouldContinueOnErrorInReconcile(t *testi
 	reconcileHook := util.NewTestAssertHook("reconciliation of devices is done")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(powerHook, reconcileHook)}
 
-	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.PostApiV1AmtPowerActionGuidResponse{}, errors.Errorf("mocked error"))
 
 	deviceReconciller.ReconcileAll()
@@ -252,7 +252,7 @@ func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenS
 				Powerstate: tenant.Ptr(int(powerOff)),
 			},
 		}, nil)
-	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.PostApiV1AmtPowerActionGuidResponse{
 			HTTPResponse: &http.Response{
 				StatusCode: http.StatusOK,
@@ -346,7 +346,7 @@ func TestDeviceController_Reconcile_ifReceivedNotFoundDuringRequestThenShouldRet
 
 	mpsMock.On("GetApiV1DevicesGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1DevicesGuidResponse{}, nil)
-	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.PostApiV1AmtPowerActionGuidResponse{
 			HTTPResponse: &http.Response{
 				StatusCode: http.StatusNotFound,
@@ -368,7 +368,7 @@ func TestDeviceController_Reconcile_ifResponseHasNotReadyThenShouldFailRequest(t
 
 	mpsMock.On("GetApiV1DevicesGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1DevicesGuidResponse{}, nil)
-	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.PostApiV1AmtPowerActionGuidResponse{
 			HTTPResponse: &http.Response{
 				StatusCode: http.StatusOK,
