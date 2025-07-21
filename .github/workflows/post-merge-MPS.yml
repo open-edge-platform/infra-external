@@ -11,8 +11,6 @@ on:
       - release-*
     paths:
       - "MPS/**"
-  pull_request:
-    types: [synchronize]
 
 permissions: {}
 
