@@ -31,10 +31,10 @@ include ../common.mk
 
 # Build MPS image
 docker-build-mps:
-	cp ../common.mk ../version.mk ../common_go.mk .
+	cp ../common.mk ../version.mk  .
 	docker build . -f build/Dockerfile.mps \
 	-t $(DOCKER_IMG_NAME):$(VERSION) $(DOCKER_BUILD_ARGS)
-	@rm -rf common.mk version.mk common_go.mk
+	@rm -rf common.mk version.mk 
 
 docker-build: docker-build-mps
 	@echo "Built dmt-mps images."
