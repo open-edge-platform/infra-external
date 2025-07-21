@@ -211,7 +211,7 @@ func (s *AuthTestSuite) TestGetToken() {
 	s.NoError(os.Setenv("SERVICE_ACCOUNT", "test-svc"))
 	ctx, err := auth.GetToken(context.Background())
 	s.NoError(err)
-	_, ok := ctx.Value("Authorization").(string)
+	_, ok := ctx.Value(auth.ContextValue("Authorization")).(string)
 	s.Equal(true, ok)
 }
 

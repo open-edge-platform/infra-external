@@ -12,6 +12,8 @@ import (
 	vaultAuth "github.com/open-edge-platform/orch-library/go/pkg/auth"
 )
 
+type ContextValue string
+
 func GetToken(ctx context.Context) (context.Context, error) {
 	requireTokenStr := os.Getenv("USE_M2M_TOKEN")
 	requireToken, err := strconv.ParseBool(requireTokenStr)
@@ -40,8 +42,7 @@ func GetToken(ctx context.Context) (context.Context, error) {
 		return ctx, fmt.Errorf("tokenStr empty")
 	}
 
-	type authToken string
-	updatedCtx := context.WithValue(ctx, authToken("Authorization"), "Bearer "+tokenStr)
+	updatedCtx := context.WithValue(ctx, ContextValue("Authorization"), "Bearer "+tokenStr)
 	err = vaultAuthClient.Logout(ctx)
 	return updatedCtx, err
 }

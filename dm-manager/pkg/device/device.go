@@ -211,7 +211,7 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 
 	var err error
 	var updatedCtx context.Context
-	if token := ctx.Value("Authorization"); token == nil {
+	if token := ctx.Value(auth.ContextValue("Authorization")); token == nil {
 		updatedCtx, err = auth.GetToken(ctx)
 		if err != nil {
 			log.Err(err).Msgf("failed to retrieve token")
@@ -266,13 +266,14 @@ func (dc *Controller) syncPowerStatus(
 ) rec_v2.Directive[ID] {
 	updatedCtx := metadata.AppendToOutgoingContext(ctx, "tenantId", request.ID.GetTenantID())
 	callbackFunc := func(ctx context.Context, req *http.Request) error {
-		tenantID, ok := ctx.Value("tenantId").(string)
+		type headerValue string
+		tenantID, ok := ctx.Value(headerValue("tenantId")).(string)
 		if !ok {
 			req.Header.Add("ActiveProjectId", "")
 		} else {
 			req.Header.Add("ActiveProjectId", tenantID)
 		}
-		authorization, ok := ctx.Value("Authorization").(string)
+		authorization, ok := ctx.Value(headerValue("Authorization")).(string)
 		if !ok {
 			req.Header.Add("Authorization", "")
 		} else {
@@ -365,13 +366,14 @@ func (dc *Controller) handlePowerChange(
 	// https://en.wikipedia.org/wiki/Intel_AMT_versions
 	updatedCtx := metadata.AppendToOutgoingContext(ctx, "tenantId", request.ID.GetTenantID())
 	callbackFunc := func(ctx context.Context, req *http.Request) error {
-		tenantID, ok := ctx.Value("tenantId").(string)
+		type headerValue string
+		tenantID, ok := ctx.Value(headerValue("tenantId")).(string)
 		if !ok {
 			req.Header.Add("ActiveProjectId", "")
 		} else {
 			req.Header.Add("ActiveProjectId", tenantID)
 		}
-		authorization, ok := ctx.Value("Authorization").(string)
+		authorization, ok := ctx.Value(headerValue("Authorization")).(string)
 		if !ok {
 			req.Header.Add("Authorization", "")
 		} else {

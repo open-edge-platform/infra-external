@@ -114,13 +114,14 @@ func (tc *Controller) handleTenantRemoval(ctx context.Context,
 
 	updatedCtx := metadata.AppendToOutgoingContext(ctx, "tenantId", tenantID)
 	callbackFunc := func(ctx context.Context, req *http.Request) error {
-		tenant, ok := ctx.Value("tenantId").(string)
+		type headerValue string
+		tenant, ok := ctx.Value(headerValue("tenantId")).(string)
 		if !ok {
 			req.Header.Add("ActiveProjectId", "")
 		} else {
 			req.Header.Add("ActiveProjectId", tenant)
 		}
-		authorization, ok := ctx.Value("Authorization").(string)
+		authorization, ok := ctx.Value(headerValue("Authorization")).(string)
 		if !ok {
 			req.Header.Add("Authorization", "")
 		} else {
@@ -154,13 +155,14 @@ func (tc *Controller) handleTenantCreation(ctx context.Context,
 
 	updatedCtx := metadata.AppendToOutgoingContext(ctx, "tenantId", tenantID)
 	callbackFunc := func(ctx context.Context, req *http.Request) error {
-		tenant, ok := ctx.Value("tenantId").(string)
+		type headerValue string
+		tenant, ok := ctx.Value(headerValue("tenantId")).(string)
 		if !ok {
 			req.Header.Add("ActiveProjectId", "")
 		} else {
 			req.Header.Add("ActiveProjectId", tenant)
 		}
-		authorization, ok := ctx.Value("Authorization").(string)
+		authorization, ok := ctx.Value(headerValue("Authorization")).(string)
 		if !ok {
 			req.Header.Add("Authorization", "")
 		} else {
@@ -326,7 +328,7 @@ func (tc *Controller) ReconcileAll() {
 func (tc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ReconcilerID]) rec_v2.Directive[ReconcilerID] {
 	var err error
 	var updatedCtx context.Context
-	if token := ctx.Value("Authorization"); token == nil {
+	if token := ctx.Value(auth.ContextValue("Authorization")); token == nil {
 		updatedCtx, err = auth.GetToken(ctx)
 		if err != nil {
 			log.Err(err).Msgf("failed to retrieve token")
