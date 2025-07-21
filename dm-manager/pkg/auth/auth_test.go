@@ -205,7 +205,7 @@ func (s *AuthTestSuite) TestGetToken() {
 	server := s.NewTestHTTPServer().Start()
 	defer server.Stop()
 
-	s.NoError(os.Setenv("USE_M2M_TOKEN", "true"))
+	s.NoError(os.Setenv("USE_M2M_TOKEN", true))
 	s.NoError(os.Setenv("KEYCLOAK_SERVER", KeycloakServer))
 	s.NoError(os.Setenv("VAULT_SERVER", VaultServer))
 	s.NoError(os.Setenv("SERVICE_ACCOUNT", "test-svc"))
