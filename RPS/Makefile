@@ -69,3 +69,6 @@ mdlint:
 
 go-dependency-check:
 	@echo "No go dependency check implemented for this project."
+
+go-build:
+	@echo "No Go build in this folder."
