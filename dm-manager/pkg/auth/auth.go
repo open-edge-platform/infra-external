@@ -4,8 +4,8 @@
 package auth
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"os"
 	"strconv"
 
