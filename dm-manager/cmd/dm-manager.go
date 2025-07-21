@@ -142,16 +142,7 @@ func main() {
 	deviceReconciler := getDeviceController(mpsClient)
 
 	// DM handler for Device Management.
-	dmHandler, err := grpc.NewDMHandler(invClient,
-		grpc.DMHandlerConfig{
-			ServerAddress:    *dmServerAddress,
-			EnableTracing:    *enableTracing,
-			EnableMetrics:    *enableMetrics,
-			MetricsAddress:   *metricsAddress,
-			InventoryAddress: *inventoryAddress,
-			EnableAuth:       *enableAuth,
-			RBAC:             *rbacRules,
-		})
+	dmHandler, err := createDMHandler()
 	if err != nil {
 		log.InfraSec().Fatal().Err(err).Msgf("Unable to create DM handler")
 	}
@@ -227,6 +218,24 @@ func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
 		rec_v2.WithTimeout(*requestTimeout))
 	deviceReconciler.DeviceController = deviceController
 	return deviceReconciler
+}
+
+func createDMHandler() (*grpc.DMHandler, error) {
+	dmmInvClient, _ := prepareTenantAwareClient()
+	dmHandler, err := grpc.NewDMHandler(&dmmInvClient,
+		grpc.DMHandlerConfig{
+			ServerAddress:    *dmServerAddress,
+			EnableTracing:    *enableTracing,
+			EnableMetrics:    *enableMetrics,
+			MetricsAddress:   *metricsAddress,
+			InventoryAddress: *inventoryAddress,
+			EnableAuth:       *enableAuth,
+			RBAC:             *rbacRules,
+		})
+	if err != nil {
+		return nil, err
+	}
+	return dmHandler, nil
 }
 
 //nolint:gocritic // named results mean additional assignment/typecast.

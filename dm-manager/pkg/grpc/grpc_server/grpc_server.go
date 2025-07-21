@@ -39,7 +39,7 @@ func (dms *DeviceManagementService) checkRBACAuth(ctx context.Context) error {
 	if dms.authEnabled {
 		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
 			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
-			zlog.InfraSec().InfraErr(err).Msgf("Request %s is not authenticated", operation)
+			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
 			return err
 		}
 	}
