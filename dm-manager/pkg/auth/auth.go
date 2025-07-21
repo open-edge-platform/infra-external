@@ -19,7 +19,7 @@ func GetToken(ctx context.Context) (context.Context, error) {
 	requireToken, err := strconv.ParseBool(requireTokenStr)
 	if err != nil || !requireToken {
 		fmt.Printf("USE_M2M_TOKEN not set")
-		return ctx, err
+		return ctx, fmt.Errorf("Environment varaible not set")
 	}
 	keycloakServer := os.Getenv("KEYCLOAK_SERVER")
 	vaultServer := os.Getenv("VAULT_SERVER")
