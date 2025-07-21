@@ -35,6 +35,17 @@ type (
 	}
 )
 
+func (dms *DeviceManagementService) checkRBACAuth(ctx context.Context) error {
+	if dms.authEnabled {
+		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
+			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
+			zlog.InfraSec().InfraErr(err).Msgf("Request %s is not authenticated", operation)
+			return err
+		}
+	}
+	return nil
+}
+
 func (dms *DeviceManagementService) updateHost(
 	ctx context.Context, tenantID, invResourceID string, fieldMask *fieldmaskpb.FieldMask, invHost *computev1.HostResource,
 ) error {
@@ -101,13 +112,9 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 
 	zlog.Info().Msgf("ReportAMTStatus")
 
-	if dms.authEnabled {
-		// checking if JWT contains write permission
-		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
-			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
-			zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
-			return nil, err
-		}
+	err := dms.checkRBACAuth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
@@ -126,7 +133,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 	}
 
 	var hostInv *computev1.HostResource
-	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, host.Uuid)
+	hostInv, err = dms.invClient.GetHostByUUID(ctx, tenantID, host.Uuid)
 	switch {
 	case inv_errors.IsNotFound(err):
 		zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
@@ -154,13 +161,9 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 
 	zlog.Info().Msgf("RetrieveActivationDetails")
 
-	if dms.authEnabled {
-		// checking if JWT contains write permission
-		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
-			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
-			zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
-			return nil, err
-		}
+	err := dms.checkRBACAuth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
@@ -181,7 +184,7 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 
 	var hostInv *computev1.HostResource
 	var response *pb.ActivationDetailsResponse
-	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, host.Uuid)
+	hostInv, err = dms.invClient.GetHostByUUID(ctx, tenantID, host.Uuid)
 	switch {
 	case inv_errors.IsNotFound(err):
 		zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
@@ -217,13 +220,9 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 
 	zlog.Info().Msgf("ReportActivationResults")
 
-	if dms.authEnabled {
-		// checking if JWT contains write permission
-		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
-			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
-			zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
-			return nil, err
-		}
+	err := dms.checkRBACAuth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
@@ -243,7 +242,7 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 	host.DesiredAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
 
 	var hostInv *computev1.HostResource
-	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, host.Uuid)
+	hostInv, err = dms.invClient.GetHostByUUID(ctx, tenantID, host.Uuid)
 	switch {
 	case inv_errors.IsNotFound(err):
 		zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
@@ -251,7 +250,8 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 	case err == nil:
 		if req.ActivationStatus.String() == computev1.AmtState_AMT_STATE_PROVISIONED.String() {
 			zlog.Debug().Msgf("Host %s AMT is enabled", host.Uuid)
-			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
+			hostInv.CurrentAmtState = host.DesiredAmtState
+			hostInv.DesiredAmtState = host.DesiredAmtState
 			//TODO: what will be the desired state after activation?
 
 		} else {
