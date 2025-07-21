@@ -21,9 +21,9 @@ import (
 const (
 	keycloakTokenURL   = "/realms/master/protocol/openid-connect/token"
 	vaultK8SLoginURL   = `/v1/auth/kubernetes/login`
-	vaultSecretBaseURL = `/v1/secret/data/`                                    // #nosec
-	vaultRevokeSelfURL = `/v1/auth/token/revoke-self`                          // #nosec
-	vaultK8STokenFile  = `/var/run/secrets/kubernetes.io/serviceaccount/token` // #nosec G101
+	vaultSecretBaseURL = `/v1/secret/data/`           // #nosec
+	vaultRevokeSelfURL = `/v1/auth/token/revoke-self` // #nosec
+	vaultK8STokenFile  = `testdata/k8stoken`          // #nosec G101
 	token              = `token`
 )
 
