@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-package auth
+package auth_test
 
 import (
 	"context"
@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/auth"
 )
 
 const (
@@ -22,6 +24,7 @@ const (
 	vaultSecretBaseURL = `/v1/secret/data/`                                    // #nosec
 	vaultRevokeSelfURL = `/v1/auth/token/revoke-self`                          // #nosec
 	vaultK8STokenFile  = `/var/run/secrets/kubernetes.io/serviceaccount/token` // #nosec G101
+	token              = `token`
 )
 
 var K8STokenFile = vaultK8STokenFile
@@ -53,23 +56,24 @@ type TestHTTPServer struct {
 	Server               *httptest.Server
 }
 
-func (t *TestHTTPServer) WithK8SLoginReadHandler(K8SLoginReadHANDLER func(w http.ResponseWriter)) *TestHTTPServer {
-	t.K8SLoginReadHandler = K8SLoginReadHANDLER
+func (t *TestHTTPServer) WithK8SLoginReadHandler(k8SLoginReadHANDLER func(w http.ResponseWriter)) *TestHTTPServer {
+	t.K8SLoginReadHandler = k8SLoginReadHANDLER
 	return t
 }
 
-func (t *TestHTTPServer) WithSecretHandler(SecretHandler func(w http.ResponseWriter, r *http.Request)) *TestHTTPServer {
-	t.SecretHandler = SecretHandler
+func (t *TestHTTPServer) WithSecretHandler(secretHandler func(w http.ResponseWriter, r *http.Request)) *TestHTTPServer {
+	t.SecretHandler = secretHandler
 	return t
 }
 
-func (t *TestHTTPServer) WithKeycloakTokenHandler(KeycloakTokenHandler func(w http.ResponseWriter, r *http.Request)) *TestHTTPServer {
-	t.KeycloakTokenHandler = KeycloakTokenHandler
+func (t *TestHTTPServer) WithKeycloakTokenHandler(keycloakTokenHandler func(w http.ResponseWriter, r *http.Request),
+) *TestHTTPServer {
+	t.KeycloakTokenHandler = keycloakTokenHandler
 	return t
 }
 
-func (t *TestHTTPServer) WithRevokeHandler(RevokeHandler func(w http.ResponseWriter)) *TestHTTPServer {
-	t.RevokeHandler = RevokeHandler
+func (t *TestHTTPServer) WithRevokeHandler(revokeHandler func(w http.ResponseWriter)) *TestHTTPServer {
+	t.RevokeHandler = revokeHandler
 	return t
 }
 
@@ -120,7 +124,7 @@ func (s *AuthTestSuite) handleK8SLogin(w http.ResponseWriter) {
 		} `json:"auth"`
 		Errors []string `json:"errors"`
 	}
-	loginResp.Auth.ClientToken = "token"
+	loginResp.Auth.ClientToken = token
 	js, err := json.Marshal(loginResp)
 	s.NoError(err)
 	_, _ = w.Write(js)
@@ -134,7 +138,7 @@ func (s *AuthTestSuite) HandleK8SLoginBadJSON(w http.ResponseWriter) {
 		} `json:"auth"`
 		Errors []string `json:"errors"`
 	}
-	loginResp.Auth.ClientToken = "token"
+	loginResp.Auth.ClientToken = token
 	_, _ = w.Write([]byte("This is not the JSON you are looking for"))
 }
 
@@ -149,19 +153,22 @@ func (s *AuthTestSuite) HandleRevokeHTTPError(w http.ResponseWriter) {
 var secrets = map[string]string{}
 
 func (s *AuthTestSuite) handleSecret(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
+	switch r.Method {
+	case http.MethodPost:
 		w.WriteHeader(http.StatusOK)
 		secretData := map[string]interface{}{}
 		rawData, err := io.ReadAll(r.Body)
 		s.NoError(err)
 		err = json.Unmarshal(rawData, &secretData)
 		s.NoError(err)
-		data := secretData["data"].(map[string]interface{})
+		data, ok := secretData["data"].(map[string]interface{})
 		s.NotNil(data)
-		secret := data["value"].(string)
+		s.Equal(true, ok)
+		secret, ok := data["value"].(string)
+		s.Equal(true, ok)
 		secretJSON := `{"data":{"data":{"value":"` + secret + `"}}}`
 		secrets[r.URL.Path] = secretJSON
-	} else if r.Method == http.MethodGet {
+	case http.MethodGet:
 		secretJSON, ok := secrets[r.URL.Path]
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
@@ -169,9 +176,11 @@ func (s *AuthTestSuite) handleSecret(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(secretJSON))
 		}
-	} else if r.Method == http.MethodDelete {
+	case http.MethodDelete:
 		w.WriteHeader(http.StatusOK)
 		delete(secrets, r.URL.Path)
+	default:
+		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 
@@ -180,7 +189,7 @@ func (s *AuthTestSuite) handleKeycloakToken(w http.ResponseWriter, r *http.Reque
 		var tokenResp struct {
 			AccessToken string `json:"access_token"`
 		}
-		tokenResp.AccessToken = "token"
+		tokenResp.AccessToken = token
 		w.WriteHeader(http.StatusOK)
 		b, err := json.Marshal(tokenResp)
 		s.NoError(err)
@@ -202,7 +211,7 @@ func (s *AuthTestSuite) TestGetToken() {
 	s.NoError(os.Setenv("KEYCLOAK_SERVER", KeycloakServer))
 	s.NoError(os.Setenv("VAULT_SERVER", VaultServer))
 	s.NoError(os.Setenv("SERVICE_ACCOUNT", "test-svc"))
-	ctx, err := GetToken(context.Background())
+	ctx, err := auth.GetToken(context.Background())
 	s.NoError(err)
 	_, ok := ctx.Value("Authorization").(string)
 	s.Equal(true, ok)
