@@ -11,9 +11,6 @@ on:
       - release-*
     paths:
       - "RPS/**"
-  pull_request:
-    types: [opened, synchronize, reopened]
-
 
 permissions: {}
 
