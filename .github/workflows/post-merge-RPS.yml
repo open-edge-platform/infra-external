@@ -13,8 +13,7 @@ on:
       - "RPS/**"
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - "RPS/**"
+
 
 permissions: {}
 

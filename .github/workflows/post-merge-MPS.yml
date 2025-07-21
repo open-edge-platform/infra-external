@@ -12,9 +12,7 @@ on:
     paths:
       - "MPS/**"
   pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - "MPS/**"
+    types: [synchronize]
 
 permissions: {}
 
