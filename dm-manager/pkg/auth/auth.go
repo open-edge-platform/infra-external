@@ -9,8 +9,6 @@ import (
 	"os"
 	"strconv"
 
-	"google.golang.org/grpc/metadata"
-
 	vaultAuth "github.com/open-edge-platform/orch-library/go/pkg/auth"
 )
 
@@ -42,7 +40,8 @@ func GetToken(ctx context.Context) (context.Context, error) {
 		return ctx, fmt.Errorf("tokenStr empty")
 	}
 
-	updatedCtx := metadata.AppendToOutgoingContext(ctx, "Authorization", "Bearer "+tokenStr)
+	type authToken string
+	updatedCtx := context.WithValue(ctx, authToken("Authorization"), "Bearer "+tokenStr)
 	err = vaultAuthClient.Logout(ctx)
 	return updatedCtx, err
 }
