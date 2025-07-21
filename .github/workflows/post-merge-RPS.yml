@@ -7,7 +7,8 @@ name: Post-Merge RPS
 on:
   push:
     branches:
-      - '**'
+      - main
+      - release-*
     paths:
       - "RPS/**"
   pull_request:
