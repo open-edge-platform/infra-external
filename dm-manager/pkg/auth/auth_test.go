@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/auth"
+	vaultAuth "github.com/open-edge-platform/orch-library/go/pkg/auth"
 )
 
 const (
@@ -23,11 +24,8 @@ const (
 	vaultK8SLoginURL   = `/v1/auth/kubernetes/login`
 	vaultSecretBaseURL = `/v1/secret/data/`           // #nosec
 	vaultRevokeSelfURL = `/v1/auth/token/revoke-self` // #nosec
-	vaultK8STokenFile  = `testdata/k8stoken`          // #nosec G101
 	token              = `token`
 )
-
-var K8STokenFile = vaultK8STokenFile
 
 type AuthTestSuite struct {
 	suite.Suite
@@ -108,7 +106,7 @@ func (t *TestHTTPServer) Start() *TestHTTPServer {
 	t.Server = server
 	VaultServer = server.URL
 	KeycloakServer = server.URL
-	K8STokenFile = `testdata/k8stoken` // #nosec
+	vaultAuth.K8STokenFile = `testdata/k8stoken` // #nosec
 	return t
 }
 
