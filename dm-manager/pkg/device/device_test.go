@@ -199,7 +199,7 @@ func TestDeviceController_Start_shouldHandleEvents(t *testing.T) {
 	err := os.Setenv("USE_M2M_TOKEN", "false")
 	assert.NoError(t, err)
 
-	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
+	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
 			HTTPResponse: &http.Response{
 				StatusCode: http.StatusOK,
@@ -243,7 +243,7 @@ func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenS
 	err := os.Setenv("USE_M2M_TOKEN", "false")
 	assert.NoError(t, err)
 
-	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
+	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
 			HTTPResponse: &http.Response{
 				StatusCode: http.StatusOK,
@@ -282,7 +282,7 @@ func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenSh
 	err := os.Setenv("USE_M2M_TOKEN", "false")
 	assert.NoError(t, err)
 
-	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
+	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
 			HTTPResponse: &http.Response{
 				StatusCode: http.StatusOK,
@@ -316,7 +316,7 @@ func TestController_checkPowerState_ifDeviceIsNotConnectedThenShouldRetryReconci
 	err := os.Setenv("USE_M2M_TOKEN", "false")
 	assert.NoError(t, err)
 
-	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything).
+	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
 			HTTPResponse: &http.Response{
 				StatusCode: http.StatusNotFound,
