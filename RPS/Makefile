@@ -18,10 +18,14 @@ DOCKER_BUILD_ARGS = \
 	--build-arg REVISION="$(LABEL_REVISION)" \
 	--build-arg BUILD_DATE="$(LABEL_BUILD_DATE)"
 
+include ../common.mk
+
 # Build RPS image
 docker-build-rps:
+	cp ../common.mk ../version.mk .
 	docker build . -f build/Dockerfile.rps \
 	-t $(PROJECT_NAME_RPS):$(VERSION) $(DOCKER_BUILD_ARGS)
+	@rm -rf common.mk version.mk
 
 docker-build: docker-build-rps
 	@echo "Built dmt-rps images."
