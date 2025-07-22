@@ -5,12 +5,15 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 
 	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
 )
@@ -20,6 +23,8 @@ var (
 	timeout    time.Duration
 	insec      bool
 	skipVerify bool
+	jwtToken   string
+	jwtFile    string
 )
 
 func main() {
@@ -35,6 +40,10 @@ func main() {
 	rootCmd.PersistentFlags().BoolVar(&insec, "insecure", false, "Use insecure connection")
 	rootCmd.PersistentFlags().BoolVar(&skipVerify, "skip-verify", false, "Skip TLS certificate verification")
 
+	// JWT authentication flags
+	rootCmd.PersistentFlags().StringVar(&jwtToken, "token", "", "JWT token for authentication")
+	rootCmd.PersistentFlags().StringVar(&jwtFile, "token-file", "", "File containing JWT token")
+
 	// Add subcommands
 	rootCmd.AddCommand(
 		reportAMTStatusCmd(),
@@ -45,6 +54,28 @@ func main() {
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getJWTToken() (string, error) {
+	// Priority: command line flag > file > environment variable
+	if jwtToken != "" {
+		return jwtToken, nil
+	}
+
+	if jwtFile != "" {
+		tokenBytes, err := os.ReadFile(jwtFile)
+		if err != nil {
+			return "", fmt.Errorf("failed to read token file %s: %w", jwtFile, err)
+		}
+		return strings.TrimSpace(string(tokenBytes)), nil
+	}
+
+	if envToken := os.Getenv("DM_JWT_TOKEN"); envToken != "" {
+		return envToken, nil
+	}
+
+	// Token is optional - return empty string if none provided
+	return "", nil
 }
 
 func createConnection() (*grpc.ClientConn, error) {
@@ -68,6 +99,21 @@ func createConnection() (*grpc.ClientConn, error) {
 	}
 
 	return conn, nil
+}
+
+func createContextWithAuth(ctx context.Context) (context.Context, error) {
+	token, err := getJWTToken()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get JWT token: %w", err)
+	}
+
+	if token != "" {
+		// Add JWT token to gRPC metadata
+		md := metadata.Pairs("authorization", "Bearer "+token)
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	}
+
+	return ctx, nil
 }
 
 func reportAMTStatusCmd() *cobra.Command {
@@ -161,6 +207,12 @@ func reportAMTStatus(hostID, statusStr, version string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
+	// Add JWT token to context
+	ctx, err = createContextWithAuth(ctx)
+	if err != nil {
+		return err
+	}
+
 	req := &pb.AMTStatusRequest{
 		HostId:  hostID,
 		Status:  amtStatus,
@@ -195,6 +247,12 @@ func retrieveActivationDetails(hostID string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
+	// Add JWT token to context
+	ctx, err = createContextWithAuth(ctx)
+	if err != nil {
+		return err
+	}
 
 	req := &pb.ActivationRequest{
 		HostId: hostID,
@@ -239,6 +297,12 @@ func reportActivationResults(hostID, statusStr, message string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
+	// Add JWT token to context
+	ctx, err = createContextWithAuth(ctx)
+	if err != nil {
+		return err
+	}
 
 	req := &pb.ActivationResultRequest{
 		HostId:           hostID,
