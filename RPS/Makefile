@@ -8,7 +8,16 @@ all: lint test docker-build-rps
 
 # Variables
 PROJECT_NAME_RPS := dmt-rps
-VERSION := $(shell cat VERSION)
+BINARY_NAME      := dmt-rps
+
+VERSION			:= $(shell cat VERSION)
+VERSION_MAJOR   := $(shell cut -c 1 VERSION)
+DOCKER_IMG_NAME := ${PROJECT_NAME_RPS}
+DOCKER_VERSION  ?= $(shell git branch --show-current | sed 's/\//_/g')
+IMG_VERSION     ?= $(VERSION)
+GIT_COMMIT      ?= $(shell git rev-parse HEAD)
+BRANCH_NAME     ?= $(shell git rev-parse --abbrev-ref HEAD | sed 's/\//_/g')
+
 DOCKER_BUILD_ARGS = \
 	--build-arg http_proxy="$(http_proxy)" --build-arg HTTP_PROXY="$(HTTP_PROXY)" \
 	--build-arg https_proxy="$(https_proxy)" --build-arg HTTPS_PROXY="$(HTTPS_PROXY)" \
@@ -24,7 +33,7 @@ include ../common.mk
 docker-build-rps:
 	cp ../common.mk ../version.mk .
 	docker build . -f build/Dockerfile.rps \
-	-t $(PROJECT_NAME_RPS):$(VERSION) $(DOCKER_BUILD_ARGS)
+	-t $(DOCKER_IMG_NAME):$(VERSION) $(DOCKER_BUILD_ARGS)
 	@rm -rf common.mk version.mk
 
 docker-build: docker-build-rps
@@ -60,3 +69,10 @@ mdlint:
 
 go-dependency-check:
 	@echo "No go dependency check implemented for this project."
+
+go-build:
+	@echo "No Go build in this folder."
+
+out/dmt-rps:
+	@echo "No Go binary to build for RPS."
+	@touch out/dmt-rps
