@@ -8,7 +8,15 @@ all: lint test docker-build-mps
 
 # Variables
 PROJECT_NAME_MPS := dmt-mps
-VERSION := $(shell cat VERSION)
+BINARY_NAME      := dmt-mps
+
+VERSION         := $(shell cat VERSION)
+VERSION_MAJOR   := $(shell cut -c 1 VERSION)
+DOCKER_IMG_NAME := ${PROJECT_NAME_MPS}
+DOCKER_VERSION  ?= $(shell git branch --show-current | sed 's/\//_/g')
+IMG_VERSION     ?= $(VERSION)
+GIT_COMMIT      ?= $(shell git rev-parse HEAD)
+BRANCH_NAME     ?= $(shell git rev-parse --abbrev-ref HEAD | sed 's/\//_/g')
 DOCKER_BUILD_ARGS = \
 	--build-arg http_proxy="$(http_proxy)" --build-arg HTTP_PROXY="$(HTTP_PROXY)" \
 	--build-arg https_proxy="$(https_proxy)" --build-arg HTTPS_PROXY="$(HTTPS_PROXY)" \
@@ -18,14 +26,15 @@ DOCKER_BUILD_ARGS = \
 	--build-arg REVISION="$(LABEL_REVISION)" \
 	--build-arg BUILD_DATE="$(LABEL_BUILD_DATE)"
 
+
 include ../common.mk
 
 # Build MPS image
 docker-build-mps:
-	cp ../common.mk ../version.mk .
+	cp ../common.mk ../version.mk  .
 	docker build . -f build/Dockerfile.mps \
-	-t $(PROJECT_NAME_MPS):$(VERSION) $(DOCKER_BUILD_ARGS)
-	@rm -rf common.mk version.mk
+	-t $(DOCKER_IMG_NAME):$(VERSION) $(DOCKER_BUILD_ARGS)
+	@rm -rf common.mk version.mk 
 
 docker-build: docker-build-mps
 	@echo "Built dmt-mps images."
@@ -61,3 +70,9 @@ mdlint:
 go-dependency-check:
 	@echo "No go dependency check implemented for this project."
 
+go-build:
+	@echo "No Go build in this folder."
+
+out/dmt-mps:
+	@echo "No Go binary to build for MPS."
+	@touch out/dmt-mps
