@@ -267,7 +267,7 @@ func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenS
 	powerHook := util.NewTestAssertHook(fmt.Sprintf("but current power state is %v", 8))
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(powerHook)}
 
-	deviceReconciller.syncPowerStatus(context.Background(),
+	deviceReconciller.syncPowerStatus(context.Background(), context.Background(),
 		rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)}, invHost)
 
 	powerHook.AssertWithTimeout(t, time.Second)
@@ -301,7 +301,7 @@ func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenSh
 
 	assert.Equal(t, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED.String(), invHost.GetPowerStatusIndicator().String())
 
-	deviceReconciller.syncPowerStatus(context.Background(),
+	deviceReconciller.syncPowerStatus(context.Background(), context.Background(),
 		rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)}, invHost)
 
 	powerHook.AssertWithTimeout(t, time.Second)
@@ -330,7 +330,7 @@ func TestController_checkPowerState_ifDeviceIsNotConnectedThenShouldRetryReconci
 	powerHook := util.NewTestAssertHook("expected to get 2XX, but got 404")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(powerHook)}
 
-	deviceReconciller.syncPowerStatus(context.Background(),
+	deviceReconciller.syncPowerStatus(context.Background(), context.Background(),
 		rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)}, invHost)
 
 	powerHook.AssertWithTimeout(t, time.Second)

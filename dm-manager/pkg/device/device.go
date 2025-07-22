@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
@@ -217,9 +216,11 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 			log.Err(err).Msgf("failed to retrieve token")
 			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 		}
+	} else {
+		updatedCtx = ctx
 	}
 
-	invHost, err := dc.InventoryRmClient.GetHostByUUID(updatedCtx, request.ID.GetTenantID(), request.ID.GetHostUUID())
+	invHost, err := dc.InventoryRmClient.GetHostByUUID(ctx, request.ID.GetTenantID(), request.ID.GetHostUUID())
 	if err != nil {
 		log.Err(err).Msgf("couldn't get device from inventory")
 		return request.Fail(err)
@@ -232,13 +233,13 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 	switch {
 	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() == invHost.GetCurrentPowerState():
-		return dc.syncPowerStatus(updatedCtx, request, invHost)
+		return dc.syncPowerStatus(updatedCtx, ctx, request, invHost)
 
 	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState():
 		req, status, err := dc.handlePowerChange(updatedCtx, request, invHost, invHost.GetDesiredPowerState())
 		if err != nil {
-			updateError := dc.updateHost(updatedCtx, request.ID.GetTenantID(), invHost.GetResourceId(),
+			updateError := dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 				&fieldmaskpb.FieldMask{Paths: []string{
 					computev1.HostResourceFieldPowerStatus,
 					computev1.HostResourceFieldPowerStatusIndicator,
@@ -260,29 +261,28 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 	return request.Ack()
 }
 
-//nolint:cyclop // all stages are necessary
-func (dc *Controller) syncPowerStatus(
-	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
-) rec_v2.Directive[ID] {
-	updatedCtx := metadata.AppendToOutgoingContext(ctx, "tenantId", request.ID.GetTenantID())
+func clientCallback() func(ctx context.Context, req *http.Request) error {
 	callbackFunc := func(ctx context.Context, req *http.Request) error {
 		type headerValue string
 		tenantID, ok := ctx.Value(headerValue("tenantId")).(string)
-		if !ok {
-			req.Header.Add("ActiveProjectId", "")
-		} else {
+		if ok {
 			req.Header.Add("ActiveProjectId", tenantID)
 		}
 		authorization, ok := ctx.Value(headerValue("Authorization")).(string)
-		if !ok {
-			req.Header.Add("Authorization", "")
-		} else {
+		if ok {
 			req.Header.Add("Authorization", authorization)
 		}
 		return nil
 	}
+	return callbackFunc
+}
 
-	currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(updatedCtx, invHost.GetUuid(), callbackFunc)
+func (dc *Controller) syncPowerStatus(
+	ctx context.Context, invCtx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
+	updatedCtx := context.WithValue(ctx, auth.ContextValue("tenantId"), request.ID.GetTenantID())
+
+	currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(updatedCtx, invHost.GetUuid(), clientCallback())
 	if err != nil {
 		log.Err(err).Msgf("failed to check current power state for %v", invHost.GetUuid())
 		return request.Fail(err)
@@ -306,7 +306,7 @@ func (dc *Controller) syncPowerStatus(
 		log.Info().Msgf("%v host desired state is %v, but current power state is %v",
 			invHost.GetUuid(), powerMapping[invHost.GetDesiredPowerState()], powerStateCode)
 
-		err = dc.updateHost(updatedCtx, invHost.GetTenantId(), invHost.GetResourceId(),
+		err = dc.updateHost(invCtx, invHost.GetTenantId(), invHost.GetResourceId(),
 			&fieldmaskpb.FieldMask{Paths: []string{
 				computev1.HostResourceFieldCurrentPowerState,
 				computev1.HostResourceFieldPowerStatus,
@@ -324,7 +324,7 @@ func (dc *Controller) syncPowerStatus(
 	}
 	if contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) &&
 		invHost.GetPowerStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE {
-		err = dc.updateHost(updatedCtx, invHost.GetTenantId(), invHost.GetResourceId(),
+		err = dc.updateHost(invCtx, invHost.GetTenantId(), invHost.GetResourceId(),
 			&fieldmaskpb.FieldMask{Paths: []string{
 				computev1.HostResourceFieldPowerStatusIndicator,
 			}}, &computev1.HostResource{
@@ -364,27 +364,11 @@ func (dc *Controller) handlePowerChange(
 
 	// assumption is that we don't have to check if power actions are supported, as AMT supports it since 1.0.0
 	// https://en.wikipedia.org/wiki/Intel_AMT_versions
-	updatedCtx := metadata.AppendToOutgoingContext(ctx, "tenantId", request.ID.GetTenantID())
-	callbackFunc := func(ctx context.Context, req *http.Request) error {
-		type headerValue string
-		tenantID, ok := ctx.Value(headerValue("tenantId")).(string)
-		if !ok {
-			req.Header.Add("ActiveProjectId", "")
-		} else {
-			req.Header.Add("ActiveProjectId", tenantID)
-		}
-		authorization, ok := ctx.Value(headerValue("Authorization")).(string)
-		if !ok {
-			req.Header.Add("Authorization", "")
-		} else {
-			req.Header.Add("Authorization", authorization)
-		}
-		return nil
-	}
+	updatedCtx := context.WithValue(ctx, auth.ContextValue("tenantId"), request.ID.GetTenantID())
 	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(updatedCtx, request.ID.GetHostUUID(),
 		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
 			Action: powerMapping[desiredPowerState],
-		}, callbackFunc)
+		}, clientCallback())
 	if err != nil {
 		log.Err(err).Msgf("failed to send power action to MPS")
 		return request.Fail(err),

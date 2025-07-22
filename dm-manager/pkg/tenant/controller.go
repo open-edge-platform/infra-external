@@ -10,8 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"google.golang.org/grpc/metadata"
-
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
@@ -112,23 +110,8 @@ func (tc *Controller) handleTenantRemoval(ctx context.Context,
 ) error {
 	log.Info().Msgf("Handling tenant removal: %v", tenantID)
 
-	updatedCtx := metadata.AppendToOutgoingContext(ctx, "tenantId", tenantID)
-	callbackFunc := func(ctx context.Context, req *http.Request) error {
-		type headerValue string
-		tenant, ok := ctx.Value(headerValue("tenantId")).(string)
-		if !ok {
-			req.Header.Add("ActiveProjectId", "")
-		} else {
-			req.Header.Add("ActiveProjectId", tenant)
-		}
-		authorization, ok := ctx.Value(headerValue("Authorization")).(string)
-		if !ok {
-			req.Header.Add("Authorization", "")
-		} else {
-			req.Header.Add("Authorization", authorization)
-		}
-		return nil
-	}
+	updatedCtx := context.WithValue(ctx, auth.ContextValue("tenantId"), tenantID)
+	callbackFunc := clientCallback()
 
 	profileResp, err := tc.RpsClient.RemoveProfileWithResponse(updatedCtx, tenantID, callbackFunc)
 	if err != nil {
@@ -153,23 +136,8 @@ func (tc *Controller) handleTenantCreation(ctx context.Context,
 ) error {
 	log.Info().Msgf("Handling tenant creation: %v", tenantID)
 
-	updatedCtx := metadata.AppendToOutgoingContext(ctx, "tenantId", tenantID)
-	callbackFunc := func(ctx context.Context, req *http.Request) error {
-		type headerValue string
-		tenant, ok := ctx.Value(headerValue("tenantId")).(string)
-		if !ok {
-			req.Header.Add("ActiveProjectId", "")
-		} else {
-			req.Header.Add("ActiveProjectId", tenant)
-		}
-		authorization, ok := ctx.Value(headerValue("Authorization")).(string)
-		if !ok {
-			req.Header.Add("Authorization", "")
-		} else {
-			req.Header.Add("Authorization", authorization)
-		}
-		return nil
-	}
+	updatedCtx := context.WithValue(ctx, auth.ContextValue("tenantId"), tenantID)
+	callbackFunc := clientCallback()
 
 	cert, err := tc.MpsClient.GetApiV1CiracertWithResponse(updatedCtx, callbackFunc)
 	if err != nil {
@@ -334,6 +302,8 @@ func (tc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[Reco
 			log.Err(err).Msgf("failed to retrieve token")
 			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 		}
+	} else {
+		updatedCtx = ctx
 	}
 	if request.ID.isCreate() {
 		if err = tc.handleTenantCreation(updatedCtx, request.ID.GetTenantID()); err != nil {
