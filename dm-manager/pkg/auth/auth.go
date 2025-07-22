@@ -36,7 +36,8 @@ func GetToken(ctx context.Context) (context.Context, error) {
 		return ctx, err
 	}
 	if tokenStr == "" {
-		return ctx, nil
+		err = vaultAuthClient.Logout(ctx)
+		return ctx, err
 	}
 
 	updatedCtx := context.WithValue(ctx, ContextValue("Authorization"), "Bearer "+tokenStr)
