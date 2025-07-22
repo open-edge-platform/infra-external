@@ -74,7 +74,7 @@ var (
 	rpsAddress = flag.String(flags.RpsAddressFlag, "http://rps.orch-infra.svc:8081",
 		flags.RpsAddressDescription)
 	//TODO: need to ask for DM server address?
-	dmServerAddress = flag.String(flags.DMServerAddressFlag, "http://dm.orch-infra.svc:50058",
+	dmServerAddress = flag.String(flags.DMServerAddressFlag, "0.0.0.0:50058",
 		flags.DMServerAddressDescription)
 	insecure     = flag.Bool("InsecureSkipVerify", false, flags.InsecureDescription)
 	insecureGrpc = flag.Bool(invClient.InsecureGrpc, true, invClient.InsecureGrpcDescription)
@@ -148,15 +148,15 @@ func main() {
 	}
 
 	wg.Add(1)
+	go dmHandler.Start()
+
+	wg.Add(1)
 	go tenantReconciler.Start()
 
 	wg.Add(1)
 	go deviceReconciler.Start()
 	<-osChan
 	termChan <- true
-
-	wg.Add(1)
-	go dmHandler.Start()
 
 	close(osChan)
 	close(termChan)

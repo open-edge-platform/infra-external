@@ -70,7 +70,6 @@ func (dmh *DMHandler) Start() error {
 	var srvOpts []grpc.ServerOption
 	var unaryInter []grpc.UnaryServerInterceptor
 	// TODO:need to ask for approprite roles for DM service.
-	// TODO:Do we need to enable metric for DM service?
 	unaryInter = append(unaryInter, inv_tenant.GetExtractTenantIDInterceptor(inv_tenant.GetOnboardingRoles()))
 	srvMetrics := metrics.GetServerMetricsWithLatency()
 	cliMetrics := metrics.GetClientMetricsWithLatency()
@@ -98,6 +97,7 @@ func (dmh *DMHandler) Start() error {
 	}()
 
 	zlog.InfraSec().Info().Msgf("DM handler started")
+	zlog.Debug().Msgf("DM handler started")
 	return nil
 }
 

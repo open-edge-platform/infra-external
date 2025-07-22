@@ -111,6 +111,7 @@ func NewDeviceManagementService(invClient *client.TenantAwareInventoryClient,
 func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb.AMTStatusRequest) (*pb.AMTStatusResponse, error) {
 
 	zlog.Info().Msgf("ReportAMTStatus")
+	zlog.Debug().Msgf("ReportAMTStatus started")
 
 	err := dms.checkRBACAuth(ctx)
 	if err != nil {
