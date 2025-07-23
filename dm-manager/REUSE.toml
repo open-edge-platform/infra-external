@@ -9,7 +9,6 @@ path = [
     "go.sum",
 
     "*.md",
-    "pkg/auth/testdata/k8stoken",
     "pkg/api/**",
     "pkg/mocks/**"
 ]

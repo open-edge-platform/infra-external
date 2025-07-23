@@ -74,10 +74,7 @@ func clientCallback() func(ctx context.Context, req *http.Request) error {
 		if ok {
 			req.Header.Add("ActiveProjectId", tenantID)
 		}
-		authorization, ok := ctx.Value(headerValue("Authorization")).(string)
-		if ok {
-			req.Header.Add("Authorization", authorization)
-		}
+		req.Header.Add("User-Agent", "dm-manager")
 		return nil
 	}
 	return callbackFunc

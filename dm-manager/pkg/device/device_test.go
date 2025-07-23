@@ -61,8 +61,6 @@ func TestNewDeviceID(t *testing.T) {
 
 func TestDeviceController_Reconcile_poweredOffSystemShouldTurnOn(t *testing.T) {
 	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
-	err := os.Setenv("USE_M2M_TOKEN", "false")
-	assert.NoError(t, err)
 
 	mpsMock.On("GetApiV1DevicesGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1DevicesGuidResponse{}, nil)
@@ -133,8 +131,6 @@ func prepareEnv(
 }
 
 func TestDeviceController_Start(t *testing.T) {
-	err := os.Setenv("USE_M2M_TOKEN", "false")
-	assert.NoError(t, err)
 	termChan := make(chan bool, 1)
 	readyChan := make(chan bool, 1)
 	wg := &sync.WaitGroup{}
@@ -176,8 +172,6 @@ func TestDeviceController_Start(t *testing.T) {
 
 func TestDeviceController_ReconcileAll_shouldContinueOnErrorInReconcile(t *testing.T) {
 	_, _, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
-	err := os.Setenv("USE_M2M_TOKEN", "false")
-	assert.NoError(t, err)
 
 	powerHook := util.NewTestAssertHook("failed to send power action to MPS")
 	reconcileHook := util.NewTestAssertHook("reconciliation of devices is done")
@@ -196,8 +190,6 @@ func TestDeviceController_Start_shouldHandleEvents(t *testing.T) {
 	eventsWatcher := make(chan *client.WatchEvents, 10)
 	wg := &sync.WaitGroup{}
 	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_ON)
-	err := os.Setenv("USE_M2M_TOKEN", "false")
-	assert.NoError(t, err)
 
 	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
@@ -240,8 +232,6 @@ func TestDeviceController_Start_shouldHandleEvents(t *testing.T) {
 func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenShouldForcePowerOn(t *testing.T) {
 	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_POWER_CYCLE)
 	deviceReconciller.StatusChangeGracePeriod = 0
-	err := os.Setenv("USE_M2M_TOKEN", "false")
-	assert.NoError(t, err)
 
 	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
@@ -267,7 +257,7 @@ func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenS
 	powerHook := util.NewTestAssertHook(fmt.Sprintf("but current power state is %v", 8))
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(powerHook)}
 
-	deviceReconciller.syncPowerStatus(context.Background(), context.Background(),
+	deviceReconciller.syncPowerStatus(context.Background(),
 		rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)}, invHost)
 
 	powerHook.AssertWithTimeout(t, time.Second)
@@ -279,8 +269,6 @@ func TestController_checkPowerState_ifDesiredIsPowerOnButDeviceIsPoweredOffThenS
 
 func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenShouldChangeStatusToIdle(t *testing.T) {
 	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_ON)
-	err := os.Setenv("USE_M2M_TOKEN", "false")
-	assert.NoError(t, err)
 
 	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
@@ -301,7 +289,7 @@ func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenSh
 
 	assert.Equal(t, statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED.String(), invHost.GetPowerStatusIndicator().String())
 
-	deviceReconciller.syncPowerStatus(context.Background(), context.Background(),
+	deviceReconciller.syncPowerStatus(context.Background(),
 		rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)}, invHost)
 
 	powerHook.AssertWithTimeout(t, time.Second)
@@ -313,8 +301,6 @@ func TestController_checkPowerState_ifDesiredIsPowerOnAndDeviceIsPoweredOnThenSh
 
 func TestController_checkPowerState_ifDeviceIsNotConnectedThenShouldRetryReconcile(t *testing.T) {
 	dao, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_ON)
-	err := os.Setenv("USE_M2M_TOKEN", "false")
-	assert.NoError(t, err)
 
 	mpsMock.On("GetApiV1AmtPowerStateGuidWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1AmtPowerStateGuidResponse{
@@ -330,7 +316,7 @@ func TestController_checkPowerState_ifDeviceIsNotConnectedThenShouldRetryReconci
 	powerHook := util.NewTestAssertHook("expected to get 2XX, but got 404")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(powerHook)}
 
-	deviceReconciller.syncPowerStatus(context.Background(), context.Background(),
+	deviceReconciller.syncPowerStatus(context.Background(),
 		rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)}, invHost)
 
 	powerHook.AssertWithTimeout(t, time.Second)
@@ -341,8 +327,6 @@ func TestController_checkPowerState_ifDeviceIsNotConnectedThenShouldRetryReconci
 
 func TestDeviceController_Reconcile_ifReceivedNotFoundDuringRequestThenShouldRetryRequest(t *testing.T) {
 	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
-	err := os.Setenv("USE_M2M_TOKEN", "false")
-	assert.NoError(t, err)
 
 	mpsMock.On("GetApiV1DevicesGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1DevicesGuidResponse{}, nil)
@@ -363,8 +347,6 @@ func TestDeviceController_Reconcile_ifReceivedNotFoundDuringRequestThenShouldRet
 
 func TestDeviceController_Reconcile_ifResponseHasNotReadyThenShouldFailRequest(t *testing.T) {
 	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
-	err := os.Setenv("USE_M2M_TOKEN", "false")
-	assert.NoError(t, err)
 
 	mpsMock.On("GetApiV1DevicesGuidWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1DevicesGuidResponse{}, nil)

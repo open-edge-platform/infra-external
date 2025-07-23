@@ -17,7 +17,6 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/secretprovider"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/auth"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -41,6 +40,8 @@ const (
 )
 
 var log = logging.GetLogger("DmReconciler")
+
+type contextValue string
 
 type ReconcilerConfig struct {
 	MpsAddress     string
@@ -110,7 +111,7 @@ func (tc *Controller) handleTenantRemoval(ctx context.Context,
 ) error {
 	log.Info().Msgf("Handling tenant removal: %v", tenantID)
 
-	updatedCtx := context.WithValue(ctx, auth.ContextValue("tenantId"), tenantID)
+	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), tenantID)
 	callbackFunc := clientCallback()
 
 	profileResp, err := tc.RpsClient.RemoveProfileWithResponse(updatedCtx, tenantID, callbackFunc)
@@ -136,7 +137,7 @@ func (tc *Controller) handleTenantCreation(ctx context.Context,
 ) error {
 	log.Info().Msgf("Handling tenant creation: %v", tenantID)
 
-	updatedCtx := context.WithValue(ctx, auth.ContextValue("tenantId"), tenantID)
+	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), tenantID)
 	callbackFunc := clientCallback()
 
 	cert, err := tc.MpsClient.GetApiV1CiracertWithResponse(updatedCtx, callbackFunc)
@@ -273,12 +274,6 @@ func (tc *Controller) ReconcileAll() {
 		return
 	}
 
-	updatedCtx, err := auth.GetToken(ctx)
-	if err != nil {
-		log.Err(err).Msgf("failed to retrieve token")
-		return
-	}
-
 	tenants := []string{}
 	for _, tenant := range tenantsResp {
 		tenants = append(tenants, tenant.GetTenant().GetTenantId())
@@ -289,29 +284,18 @@ func (tc *Controller) ReconcileAll() {
 		}
 	}
 
-	tc.removeProfiles(updatedCtx, tenants)
-	tc.removeCIRAConfigs(updatedCtx, tenants)
+	tc.removeProfiles(ctx, tenants)
+	tc.removeCIRAConfigs(ctx, tenants)
 }
 
 func (tc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ReconcilerID]) rec_v2.Directive[ReconcilerID] {
-	var err error
-	var updatedCtx context.Context
-	if token := ctx.Value(auth.ContextValue("Authorization")); token == nil {
-		updatedCtx, err = auth.GetToken(ctx)
-		if err != nil {
-			log.Err(err).Msgf("failed to retrieve token")
-			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
-		}
-	} else {
-		updatedCtx = ctx
-	}
 	if request.ID.isCreate() {
-		if err = tc.handleTenantCreation(updatedCtx, request.ID.GetTenantID()); err != nil {
+		if err := tc.handleTenantCreation(ctx, request.ID.GetTenantID()); err != nil {
 			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 		}
 		return request.Ack()
 	}
-	if err = tc.handleTenantRemoval(updatedCtx, request.ID.GetTenantID()); err != nil {
+	if err := tc.handleTenantRemoval(ctx, request.ID.GetTenantID()); err != nil {
 		return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 	}
 	return request.Ack()
