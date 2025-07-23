@@ -130,6 +130,47 @@ func prepareEnv(
 	return dao, hostUUID, mpsMock, deviceReconciller
 }
 
+func prepareAMTEnv(
+	t *testing.T, currentAMTState computev1.AmtState,
+) (*inv_testing.InvResourceDAO, string, *mps.MockClientWithResponsesInterface, Controller) {
+	t.Helper()
+	dao := inv_testing.NewInvResourceDAOOrFail(t)
+	hostUUID := uuid.NewString()
+	host := dao.CreateHostWithOpts(t, client.FakeTenantID, true, func(c *computev1.HostResource) {
+		c.CurrentAmtState = computev1.AmtState_AMT_STATE_UNSPECIFIED
+		//nolint: gosec // overflow is not going to happen
+		c.AmtStatusTimestamp = uint64(time.Unix(1750058683, 0).Unix()) // Ensuring that status in tests will always be updated
+		c.Uuid = hostUUID
+	})
+
+	_, err := dao.GetRMClient().Update(context.Background(), host.GetTenantId(), host.GetResourceId(), &fieldmaskpb.FieldMask{
+		Paths: []string{
+			computev1.HostResourceFieldCurrentAmtState, computev1.HostResourceFieldCurrentPowerState,
+		},
+	}, &inventoryv1.Resource{
+		Resource: &inventoryv1.Resource_Host{
+			Host: &computev1.HostResource{
+				CurrentAmtState: currentAMTState,
+			},
+		},
+	})
+	assert.NoError(t, err)
+
+	mpsMock := new(mps.MockClientWithResponsesInterface)
+
+	deviceReconciller := Controller{
+		MpsClient:         mpsMock,
+		InventoryRmClient: dao.GetRMClient(),
+		RequestTimeout:    time.Second,
+		ReconcilePeriod:   time.Minute,
+		ReadyChan:         make(chan bool, 1),
+	}
+	deviceController := rec_v2.NewController[ID](
+		deviceReconciller.Reconcile)
+	deviceReconciller.DeviceController = deviceController
+	return dao, hostUUID, mpsMock, deviceReconciller
+}
+
 func TestDeviceController_Start(t *testing.T) {
 	termChan := make(chan bool, 1)
 	readyChan := make(chan bool, 1)
@@ -368,4 +409,34 @@ func TestDeviceController_Reconcile_ifResponseHasNotReadyThenShouldFailRequest(t
 	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
 
 	powerHook.AssertWithTimeout(t, time.Second)
+}
+
+func TestDeviceController_Reconcile_AmtCapable(t *testing.T) {
+	dao, hostUUID, _, deviceReconciller := prepareAMTEnv(t, computev1.AmtState_AMT_STATE_UNPROVISIONED)
+
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
+
+	host, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
+	assert.NoError(t, err)
+	assert.Equal(t, computev1.AmtState_AMT_STATE_UNPROVISIONED, host.CurrentAmtState)
+}
+
+func TestDeviceController_Reconcile_AmtActivation(t *testing.T) {
+	dao, hostUUID, _, deviceReconciller := prepareAMTEnv(t, computev1.AmtState_AMT_STATE_PROVISIONED)
+
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
+
+	host, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
+	assert.NoError(t, err)
+	assert.Equal(t, computev1.AmtState_AMT_STATE_PROVISIONED, host.CurrentAmtState)
+}
+
+func TestDeviceController_Reconcile_AmtDeactivation(t *testing.T) {
+	dao, hostUUID, _, deviceReconciller := prepareAMTEnv(t, computev1.AmtState(computev1.AmtState_AMT_STATE_UNPROVISIONED))
+
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
+
+	host, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
+	assert.NoError(t, err)
+	assert.Equal(t, computev1.AmtState_AMT_STATE_UNPROVISIONED, host.CurrentAmtState)
 }
