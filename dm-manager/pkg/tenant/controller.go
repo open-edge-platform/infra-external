@@ -159,7 +159,7 @@ func (tc *Controller) handleProfile(ctx context.Context, tenantID string) error 
 		log.Info().Msgf("profile not found for %v tenant, creating it", tenantID)
 
 		postProfileBody := rps.CreateProfileJSONRequestBody{
-			Activation:          "acmactivate",
+			Activation:          "ccmactivate",
 			CiraConfigName:      Ptr(tenantID),
 			DhcpEnabled:         true,
 			IpSyncEnabled:       Ptr(false),
