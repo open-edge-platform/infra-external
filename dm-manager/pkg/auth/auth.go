@@ -13,34 +13,36 @@ import (
 
 type ContextValue string
 
-func GetToken(ctx context.Context) (context.Context, error) {
+func GetToken(ctx context.Context) (updatedCtx context.Context, err error) {
 	requireTokenStr := os.Getenv("USE_M2M_TOKEN")
 	requireToken, err := strconv.ParseBool(requireTokenStr)
+	updatedCtx = ctx
 	if err != nil || !requireToken {
-		return ctx, nil //nolint: nilerr // no need to return error if USE_M2M_TOKEN is not set, just skip token retrieval
+		return //nolint: nakedret // no return values specified since variables specified in function definition
 	}
 	keycloakServer := os.Getenv("KEYCLOAK_SERVER")
 	vaultServer := os.Getenv("VAULT_SERVER")
 	serviceAcct := os.Getenv("SERVICE_ACCOUNT")
 	vaultAuthClient, err := vaultAuth.NewVaultAuth(keycloakServer, vaultServer, serviceAcct)
 	if err != nil {
-		return ctx, err
+		return //nolint: nakedret // no return values specified since variables specified in function definition
 	}
+
+	defer func() {
+		logoutErr := vaultAuthClient.Logout(ctx)
+		if logoutErr != nil {
+			err = logoutErr
+		}
+	}()
 
 	tokenStr, err := vaultAuthClient.GetM2MToken(ctx)
 	if err != nil {
-		logoutErr := vaultAuthClient.Logout(ctx)
-		if logoutErr != nil {
-			return ctx, logoutErr
-		}
-		return ctx, err
+		return //nolint: nakedret // no return values specified since variables specified in function definition
 	}
 	if tokenStr == "" {
-		err = vaultAuthClient.Logout(ctx)
-		return ctx, err
+		return //nolint: nakedret // no return values specified since variables specified in function definition
 	}
 
-	updatedCtx := context.WithValue(ctx, ContextValue("Authorization"), "Bearer "+tokenStr)
-	err = vaultAuthClient.Logout(ctx)
-	return updatedCtx, err
+	updatedCtx = context.WithValue(ctx, ContextValue("Authorization"), "Bearer "+tokenStr)
+	return //nolint: nakedret // no return values specified since variables specified in function definition
 }
