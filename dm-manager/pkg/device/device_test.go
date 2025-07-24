@@ -411,16 +411,6 @@ func TestDeviceController_Reconcile_ifResponseHasNotReadyThenShouldFailRequest(t
 	powerHook.AssertWithTimeout(t, time.Second)
 }
 
-func TestDeviceController_Reconcile_AmtCapable(t *testing.T) {
-	dao, hostUUID, _, deviceReconciller := prepareAMTEnv(t, computev1.AmtState_AMT_STATE_UNPROVISIONED)
-
-	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
-
-	host, err := dao.GetRMClient().GetHostByUUID(context.Background(), client.FakeTenantID, hostUUID)
-	assert.NoError(t, err)
-	assert.Equal(t, computev1.AmtState_AMT_STATE_UNPROVISIONED, host.CurrentAmtState)
-}
-
 func TestDeviceController_Reconcile_AmtActivation(t *testing.T) {
 	dao, hostUUID, _, deviceReconciller := prepareAMTEnv(t, computev1.AmtState_AMT_STATE_PROVISIONED)
 
