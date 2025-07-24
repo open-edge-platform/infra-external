@@ -23,7 +23,6 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
-	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
 	inv_util "github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
@@ -141,7 +140,6 @@ type Controller struct {
 	TermChan          chan bool
 	ReadyChan         chan bool
 	EventsWatcher     chan *client.WatchEvents
-	InternalWatcher   chan *client.ResourceTenantIDCarrier
 	WaitGroup         *sync.WaitGroup
 	DeviceController  *rec_v2.Controller[ID]
 
@@ -186,16 +184,6 @@ func (dc *Controller) Start() {
 func (dc *Controller) ReconcileAll() {
 	ctx, cancel := context.WithTimeout(context.Background(), dc.RequestTimeout)
 	defer cancel()
-	select {
-	case ev, ok := <-dc.InternalWatcher:
-		if !ok {
-			log.Debug().Msgf("internal watcher closed")
-		}
-		log.Debug().Msgf("Internal event reconciliation of devices started")
-		dc.handleInternalEvent(ev)
-	default:
-		log.Debug().Msgf("Not internal events to reconcile")
-	}
 	hosts, err := dc.InventoryRmClient.ListAll(ctx, &inventoryv1.ResourceFilter{
 		Resource: &inventoryv1.Resource{Resource: &inventoryv1.Resource_Host{}},
 	})
@@ -211,30 +199,6 @@ func (dc *Controller) ReconcileAll() {
 		}
 	}
 	log.Debug().Msgf("reconciliation of devices is done")
-}
-
-func (dc *Controller) handleInternalEvent(event *client.ResourceTenantIDCarrier) {
-	log.Debug().Msgf("Internal event [tenantID=%s, resourceID=%s]", event.TenantId, event.ResourceId)
-
-	if err := dc.reconcileResource(event.TenantId, event.ResourceId); err != nil {
-		log.InfraSec().InfraErr(err).Msgf("reconciliation resource failed")
-	}
-}
-
-func (dc *Controller) reconcileResource(tenantID, resourceID string) error {
-	expectedKind, err := util.GetResourceKindFromResourceID(resourceID)
-	if err != nil {
-		return fmt.Errorf("unknown resource kind for resource ID %s: %w", resourceID, err)
-	}
-
-	log.Debug().Msgf("Reconciling resource (%s) of kind=%s",
-		fmt.Sprintf("[tenantID=%s, resourceID=%s]", tenantID, resourceID), expectedKind)
-
-	err = dc.DeviceController.Reconcile(NewID(tenantID, resourceID))
-	if err != nil {
-		log.Err(err).Msgf("Failed to reconcile internal event")
-	}
-	return nil
 }
 
 func (dc *Controller) Stop() {
@@ -255,44 +219,6 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 		invHost.GetCurrentAmtState().String(), invHost.GetCurrentPowerState().String(), request.ID)
 
 	switch {
-	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_UNSPECIFIED &&
-		invHost.GetDesiredAmtState() == computev1.AmtState_AMT_STATE_UNPROVISIONED:
-		log.Debug().Msgf("AMT device is capable and update state to unprovisioned for %v ", request.ID)
-		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
-			&fieldmaskpb.FieldMask{Paths: []string{
-				computev1.HostResourceFieldCurrentAmtState,
-				computev1.HostResourceFieldAmtStatusIndicator,
-				computev1.HostResourceFieldAmtStatusTimestamp,
-			}}, &computev1.HostResource{
-				CurrentAmtState:    computev1.AmtState_AMT_STATE_UNPROVISIONED,
-				AmtStatus:          "Setting the AMT activation state to unprovisioned",
-				AmtStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
-			})
-		if err != nil {
-			log.Err(err).Msgf("Failed to update AMT state info")
-			return request.Fail(err)
-		}
-		return request.Ack()
-
-	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_UNPROVISIONED &&
-		invHost.GetDesiredAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED:
-		log.Debug().Msgf("Updating AMT activation state to provisioned for %v ", request.ID)
-		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
-			&fieldmaskpb.FieldMask{Paths: []string{
-				computev1.HostResourceFieldCurrentAmtState,
-				computev1.HostResourceFieldAmtStatusIndicator,
-				computev1.HostResourceFieldAmtStatusTimestamp,
-			}}, &computev1.HostResource{
-				CurrentAmtState:    computev1.AmtState_AMT_STATE_PROVISIONED,
-				AmtStatus:          "Setting the AMT activation state to provisioned",
-				AmtStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
-			})
-		if err != nil {
-			log.Err(err).Msgf("Failed to update AMT state info")
-			return request.Fail(err)
-		}
-		return request.Ack()
-
 	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredAmtState() == computev1.AmtState_AMT_STATE_UNPROVISIONED:
 		log.Debug().Msgf("Setting AMT activation state to unprovisioned for %v", request.ID)

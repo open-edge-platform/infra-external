@@ -199,7 +199,7 @@ func getTenantController(
 }
 
 func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
-	rmClient, deviceEventsWatcher, internalWatcher := prepareInventoryClients()
+	rmClient, deviceEventsWatcher := prepareInventoryClients()
 
 	deviceReconciler := device.Controller{
 		MpsClient:               mpsClient,
@@ -211,7 +211,6 @@ func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
 		RequestTimeout:          *requestTimeout,
 		StatusChangeGracePeriod: *statusChangeGracePeriod,
 		EventsWatcher:           deviceEventsWatcher,
-		InternalWatcher:         internalWatcher,
 	}
 	deviceController := rec_v2.NewController[device.ID](
 		deviceReconciler.Reconcile,
@@ -313,10 +312,8 @@ func prepareTenantAwareClient() (
 func prepareInventoryClients() (
 	rmClient invClient.TenantAwareInventoryClient,
 	eventsWatcher chan *invClient.WatchEvents,
-	internalWatcher chan *invClient.ResourceTenantIDCarrier,
 ) {
 	eventsWatcher = make(chan *invClient.WatchEvents, eventsWatcherBufSize)
-	internalWatcher = make(chan *invClient.ResourceTenantIDCarrier, eventsWatcherBufSize)
 	rmClient, err := invClient.NewTenantAwareInventoryClient(context.Background(), invClient.InventoryClientConfig{
 		Name:                      "DM RM manager",
 		Address:                   *inventoryAddress,
@@ -341,7 +338,7 @@ func prepareInventoryClients() (
 		log.Fatal().Err(err).Msgf("cannot create inventory client")
 	}
 
-	return rmClient, eventsWatcher, internalWatcher
+	return rmClient, eventsWatcher
 }
 
 func setupOamServer(enableTracing bool, oamservaddr string) {
