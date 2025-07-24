@@ -4,7 +4,9 @@
 package tenant
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 )
@@ -63,4 +65,17 @@ func findExtraElements(left, right []string) []string {
 
 func Ptr[T any](v T) *T {
 	return &v
+}
+
+func clientCallback() func(ctx context.Context, req *http.Request) error {
+	callbackFunc := func(ctx context.Context, req *http.Request) error {
+		type headerValue string
+		tenantID, ok := ctx.Value(headerValue("tenantId")).(string)
+		if ok {
+			req.Header.Add("ActiveProjectId", tenantID)
+		}
+		req.Header.Add("User-Agent", "dm-manager")
+		return nil
+	}
+	return callbackFunc
 }
