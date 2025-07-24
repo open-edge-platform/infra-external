@@ -85,15 +85,15 @@ func NewDeviceManagementService(invClient *client.TenantAwareInventoryClient,
 	}
 
 	var rbacPolicy *rbac.Policy
-	var err error
-	if enableAuth {
-		zlog.Info().Msgf("Authentication is enabled, starting RBAC server for DeviceManagement Service")
-		// start OPA server with policies
-		rbacPolicy, err = rbac.New(rbacRules)
-		if err != nil {
-			zlog.Fatal().Msg("Failed to start RBAC OPA server")
-		}
-	}
+	//var err error
+	// if enableAuth {
+	// 	zlog.Info().Msgf("Authentication is enabled, starting RBAC server for DeviceManagement Service")
+	// 	// start OPA server with policies
+	// 	rbacPolicy, err = rbac.New(rbacRules)
+	// 	if err != nil {
+	// 		zlog.Fatal().Msg("Failed to start RBAC OPA server")
+	// 	}
+	// }
 
 	if inventoryAdr == "" {
 		zlog.Warn().Msg("inventoryAdr is empty")
@@ -186,16 +186,13 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 				ProfileName: tenantID,
 			}
 			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_UNPROVISIONED
-			hostInv.DesiredAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
 		}
 	}
 	err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentAmtState,
-			computev1.HostResourceFieldDesiredAmtState,
 		}}, &computev1.HostResource{
 			CurrentAmtState: hostInv.CurrentAmtState,
-			DesiredAmtState: hostInv.DesiredAmtState,
 		})
 
 	if err != nil {
@@ -230,7 +227,7 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 		zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
 			req.HostId, tenantID)
 	case err == nil:
-		if req.ActivationStatus.String() == computev1.AmtState_AMT_STATE_PROVISIONED.String() {
+		if req.ActivationStatus == pb.ActivationStatus_PROVISIONED {
 			zlog.Debug().Msgf("Host %s AMT is enabled", req.HostId)
 			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
 

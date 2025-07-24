@@ -221,7 +221,7 @@ func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
 }
 
 func createDMHandler() (*grpc.DMHandler, error) {
-	dmmInvClient, _ := prepareTenantAwareClient()
+	dmmInvClient, _ := prepareInventoryClients()
 	dmHandler, err := grpc.NewDMHandler(&dmmInvClient,
 		grpc.DMHandlerConfig{
 			ServerAddress:    *dmServerAddress,
