@@ -110,13 +110,12 @@ func NewDeviceManagementService(invClient *client.TenantAwareInventoryClient,
 
 func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb.AMTStatusRequest) (*pb.AMTStatusResponse, error) {
 
-	zlog.Info().Msgf("ReportAMTStatus")
 	zlog.Debug().Msgf("ReportAMTStatus started")
 
-	// err := dms.checkRBACAuth(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err := dms.checkRBACAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
@@ -127,27 +126,27 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
 
 	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
-	switch {
-	case inv_errors.IsNotFound(err):
-		zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
-			req.HostId, tenantID)
-	case err == nil:
-		hostInv.AmtStatus = req.Status.String()
-
-	}
-	err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
-		&fieldmaskpb.FieldMask{Paths: []string{
-			computev1.HostResourceFieldAmtStatus,
-		}}, &computev1.HostResource{
-			AmtStatus: hostInv.AmtStatus,
-		})
 	if err != nil {
-		zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
-		return nil, inv_errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
+		zlog.InfraSec().InfraErr(err).Msgf("Failed to get host by UUID %s", req.HostId)
+		if inv_errors.IsNotFound(err) {
+			zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
+				req.HostId, tenantID)
+			return nil, inv_errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
+		}
 	}
-
-	return &pb.AMTStatusResponse{}, nil
-
+	if hostInv.AmtStatus != req.GetStatus().String() {
+		err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
+			&fieldmaskpb.FieldMask{Paths: []string{
+				computev1.HostResourceFieldAmtStatus,
+			}}, &computev1.HostResource{
+				AmtStatus: hostInv.AmtStatus,
+			})
+		if err != nil {
+			zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
+			return nil, inv_errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
+		}
+	}
+	return nil, inv_errors.Errorfc(codes.FailedPrecondition, "AMT status is already set to %s", hostInv.AmtStatus)
 }
 
 func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Context, req *pb.ActivationRequest) (*pb.ActivationDetailsResponse, error) {
