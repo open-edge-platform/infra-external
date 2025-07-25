@@ -112,10 +112,10 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 
 	zlog.Debug().Msgf("ReportAMTStatus started")
 
-	err := dms.checkRBACAuth(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// err := dms.checkRBACAuth(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
@@ -135,6 +135,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 		}
 	}
 	if hostInv.AmtStatus != req.GetStatus().String() {
+		hostInv.AmtStatus = req.GetStatus().String()
 		err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 			&fieldmaskpb.FieldMask{Paths: []string{
 				computev1.HostResourceFieldAmtStatus,
@@ -153,10 +154,10 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 
 	zlog.Info().Msgf("RetrieveActivationDetails")
 
-	err := dms.checkRBACAuth(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// err := dms.checkRBACAuth(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
@@ -168,7 +169,7 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 
 	var hostInv *computev1.HostResource
 	var response *pb.ActivationDetailsResponse
-	hostInv, err = dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
+	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
 	if err != nil {
 		zlog.InfraSec().InfraErr(err).Msgf("Failed to get host by UUID %s", req.HostId)
 		if inv_errors.IsNotFound(err) {
@@ -177,6 +178,8 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 			return nil, inv_errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
 		}
 	}
+	zlog.Debug().Msgf("DesiredAmtState %s ", hostInv.DesiredAmtState.String())
+	zlog.Debug().Msgf("CurrentAmtState %s ", hostInv.CurrentAmtState.String())
 
 	if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED && (hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNPROVISIONED ||
 		hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNSPECIFIED) {
@@ -199,10 +202,10 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 
 	zlog.Info().Msgf("ReportActivationResults")
 
-	err := dms.checkRBACAuth(ctx)
-	if err != nil {
-		return nil, err
-	}
+	// err := dms.checkRBACAuth(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
@@ -212,7 +215,7 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 	}
 
 	var hostInv *computev1.HostResource
-	hostInv, err = dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
+	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
 	if err != nil {
 		zlog.InfraSec().InfraErr(err).Msgf("Failed to get host by UUID %s", req.HostId)
 		if inv_errors.IsNotFound(err) {
