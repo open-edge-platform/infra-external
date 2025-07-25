@@ -134,19 +134,22 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 			return nil, inv_errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
 		}
 	}
+	zlog.Debug().Msgf("Request from PMA=%s", req.GetStatus().String())
+	zlog.Debug().Msgf("hostInv AMTStatus=%s", hostInv.AmtStatus)
 	if hostInv.AmtStatus != req.GetStatus().String() {
-		hostInv.AmtStatus = req.GetStatus().String()
 		err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 			&fieldmaskpb.FieldMask{Paths: []string{
 				computev1.HostResourceFieldAmtStatus,
 			}}, &computev1.HostResource{
-				AmtStatus: hostInv.AmtStatus,
+				AmtStatus: req.GetStatus().String(),
 			})
 		if err != nil {
 			zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
 			return nil, inv_errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
 		}
+		return &pb.AMTStatusResponse{}, nil
 	}
+
 	return nil, inv_errors.Errorfc(codes.FailedPrecondition, "AMT status is already set to %s", hostInv.AmtStatus)
 }
 
@@ -192,7 +195,7 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 	} else {
 		zlog.Debug().Msgf("Node is provisioned for UUID %s and tID=%s\n",
 			req.HostId, tenantID)
-		return nil, inv_errors.Errorfc(codes.Internal, "Failed to send activation request: %v", err)
+		return nil, inv_errors.Errorfc(codes.FailedPrecondition, "activation not requested by user: %v", err)
 	}
 
 	return response, nil
@@ -225,25 +228,27 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 		}
 	}
 
-	if req.ActivationStatus == pb.ActivationStatus_PROVISIONED && hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED {
-		zlog.Debug().Msgf("Host %s AMT state changed to provisioned", req.HostId)
-		hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
-	} else {
-		zlog.Debug().Msgf("Host %s AMT current state is Unprovisioned", req.HostId)
-		hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_UNPROVISIONED
+	if hostInv.CurrentAmtState != computev1.AmtState_AMT_STATE_PROVISIONED {
+		if req.ActivationStatus == pb.ActivationStatus_PROVISIONED && hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED {
+			zlog.Debug().Msgf("Host %s AMT state changed to provisioned", req.HostId)
+			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
+		} else {
+			zlog.Debug().Msgf("Host %s AMT current state is Unprovisioned", req.HostId)
+			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_UNPROVISIONED
+		}
+		err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
+			&fieldmaskpb.FieldMask{Paths: []string{
+				computev1.HostResourceFieldCurrentAmtState,
+			}}, &computev1.HostResource{
+				CurrentAmtState: hostInv.CurrentAmtState,
+			})
+		return &pb.ActivationResultResponse{}, nil
 	}
-
-	err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
-		&fieldmaskpb.FieldMask{Paths: []string{
-			computev1.HostResourceFieldCurrentAmtState,
-		}}, &computev1.HostResource{
-			CurrentAmtState: hostInv.CurrentAmtState,
-		})
 
 	if err != nil {
 		zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT state for host %s", hostInv.GetResourceId())
 		return nil, inv_errors.Errorfc(codes.Internal, "Failed to update AMT state: %v", err)
 	}
-	return nil, inv_errors.Errorfc(codes.FailedPrecondition, "AMT desired state is not set to provisioned %s", hostInv.DesiredAmtState)
+	return nil, inv_errors.Errorfc(codes.FailedPrecondition, "AMT is already in Provisioned state: %s", hostInv.CurrentAmtState)
 
 }
