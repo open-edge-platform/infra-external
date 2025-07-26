@@ -35,17 +35,6 @@ type (
 	}
 )
 
-func (dms *DeviceManagementService) checkRBACAuth(ctx context.Context) error {
-	if dms.authEnabled {
-		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
-			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
-			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
-			return err
-		}
-	}
-	return nil
-}
-
 func (dms *DeviceManagementService) updateHost(
 	ctx context.Context, tenantID, invResourceID string, fieldMask *fieldmaskpb.FieldMask, invHost *computev1.HostResource,
 ) error {
@@ -112,10 +101,12 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 
 	zlog.Debug().Msgf("ReportAMTStatus started")
 
-	// err := dms.checkRBACAuth(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	if dms.authEnabled {
+		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
+			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
+			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
+		}
+	}
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
@@ -157,10 +148,12 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 
 	zlog.Info().Msgf("RetrieveActivationDetails")
 
-	// err := dms.checkRBACAuth(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	if dms.authEnabled {
+		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
+			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
+			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
+		}
+	}
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
@@ -205,10 +198,12 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 
 	zlog.Info().Msgf("ReportActivationResults")
 
-	// err := dms.checkRBACAuth(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	if dms.authEnabled {
+		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
+			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
+			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
+		}
+	}
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
