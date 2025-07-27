@@ -188,7 +188,7 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 	} else {
 		zlog.Debug().Msgf("Node is provisioned for UUID %s and tID=%s\n",
 			req.HostId, tenantID)
-		return nil, inv_errors.Errorfc(codes.FailedPrecondition, "activation not requested by user: %v", err)
+		return nil, inv_errors.Errorfc(codes.FailedPrecondition, "current state is %s or activation not requested by user %v", hostInv.CurrentAmtState, err)
 	}
 
 	return response, nil
@@ -223,7 +223,14 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 		}
 	}
 
-	if hostInv.CurrentAmtState != computev1.AmtState_AMT_STATE_PROVISIONED {
+	var host = &computev1.HostResource{}
+	if req.ActivationStatus == pb.ActivationStatus_PROVISIONED {
+		host.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
+	} else {
+		host.CurrentAmtState = computev1.AmtState_AMT_STATE_UNPROVISIONED
+	}
+
+	if hostInv.CurrentAmtState != host.CurrentAmtState {
 		if req.ActivationStatus == pb.ActivationStatus_PROVISIONED && hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED {
 			zlog.Debug().Msgf("Host %s AMT state changed to provisioned", req.HostId)
 			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
@@ -244,6 +251,6 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 		zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT state for host %s", hostInv.GetResourceId())
 		return nil, inv_errors.Errorfc(codes.Internal, "Failed to update AMT state: %v", err)
 	}
-	return nil, inv_errors.Errorfc(codes.FailedPrecondition, "AMT is already in Provisioned state: %s", hostInv.CurrentAmtState)
+	return nil, inv_errors.Errorfc(codes.FailedPrecondition, "AMT is trying to set same current state: %s", hostInv.CurrentAmtState)
 
 }
