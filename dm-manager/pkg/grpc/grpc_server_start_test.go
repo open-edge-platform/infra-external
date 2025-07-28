@@ -24,26 +24,39 @@ import (
 	grpcpkg "github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc"
 )
 
-// MockTenantAwareInventoryClient is a mock implementation of TenantAwareInventoryClient
+// MockTenantAwareInventoryClient is a mock implementation of TenantAwareInventoryClient.
 type MockTenantAwareInventoryClient struct {
 	mock.Mock
 	client.TenantAwareInventoryClient
 }
 
-func (m *MockTenantAwareInventoryClient) GetHostByUUID(ctx context.Context, tenantID, hostUUID string) (*computev1.HostResource, error) {
+func (m *MockTenantAwareInventoryClient) GetHostByUUID(
+	ctx context.Context, tenantID, hostUUID string,
+) (*computev1.HostResource, error) {
 	args := m.Called(ctx, tenantID, hostUUID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*computev1.HostResource), args.Error(1)
+	result, ok := args.Get(0).(*computev1.HostResource)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return result, args.Error(1)
 }
 
-func (m *MockTenantAwareInventoryClient) Update(ctx context.Context, tenantID, resourceID string, fieldMask *fieldmaskpb.FieldMask, resource *inventoryv1.Resource) (*inventoryv1.Resource, error) {
+func (m *MockTenantAwareInventoryClient) Update(
+	ctx context.Context, tenantID, resourceID string,
+	fieldMask *fieldmaskpb.FieldMask, resource *inventoryv1.Resource,
+) (*inventoryv1.Resource, error) {
 	args := m.Called(ctx, tenantID, resourceID, fieldMask, resource)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*inventoryv1.Resource), args.Error(1)
+	result, ok := args.Get(0).(*inventoryv1.Resource)
+	if !ok {
+		return nil, args.Error(1)
+	}
+	return result, args.Error(1)
 }
 
 func (m *MockTenantAwareInventoryClient) Close() error {
@@ -51,19 +64,9 @@ func (m *MockTenantAwareInventoryClient) Close() error {
 	return args.Error(0)
 }
 
-// Helper function to create a test listener
+// Helper function to create a test listener.
 func createTestListener() (net.Listener, error) {
 	return net.Listen("tcp", "127.0.0.1:0")
-}
-
-// Helper function to get available port
-func getAvailablePort() (string, error) {
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		return "", err
-	}
-	defer listener.Close()
-	return listener.Addr().String(), nil
 }
 
 func TestNewDMHandler(t *testing.T) {
@@ -160,7 +163,10 @@ func TestNewDMHandlerWithListener(t *testing.T) {
 				return mockClient
 			},
 			setupListener: func() net.Listener {
-				lis, _ := createTestListener()
+				lis, err := createTestListener()
+				if err != nil {
+					return nil
+				}
 				return lis
 			},
 			config: grpcpkg.DMHandlerConfig{
@@ -213,6 +219,52 @@ func TestNewDMHandlerWithListener(t *testing.T) {
 	}
 }
 
+// Helper function for running start tests.
+func runStartTest(t *testing.T, tt struct {
+	name           string
+	setupMocks     func() *MockTenantAwareInventoryClient
+	config         grpcpkg.DMHandlerConfig
+	expectError    bool
+	errorContains  string
+	testServerFunc func(*testing.T, *grpcpkg.DMHandler)
+},
+) {
+	t.Helper()
+
+	mockClient := tt.setupMocks()
+	var client client.TenantAwareInventoryClient = mockClient
+
+	// Create handler with test listener
+	listener, err := createTestListener()
+	require.NoError(t, err)
+	defer listener.Close()
+
+	handler := grpcpkg.NewDMHandlerWithListener(listener, &client, tt.config)
+	require.NotNil(t, handler)
+
+	// Start the handler
+	err = handler.Start()
+
+	if tt.expectError {
+		assert.Error(t, err)
+		if tt.errorContains != "" {
+			assert.Contains(t, err.Error(), tt.errorContains)
+		}
+	} else {
+		assert.NoError(t, err)
+
+		// Give the server a moment to start
+		time.Sleep(100 * time.Millisecond)
+
+		if tt.testServerFunc != nil {
+			tt.testServerFunc(t, handler)
+		}
+
+		// Clean up - stop the server
+		handler.Stop()
+	}
+}
+
 func TestDMHandler_Start(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -237,12 +289,13 @@ func TestDMHandler_Start(t *testing.T) {
 				RBAC:             "",
 			},
 			expectError: false,
-			testServerFunc: func(t *testing.T, handler *grpcpkg.DMHandler) {
+			testServerFunc: func(t *testing.T, _ *grpcpkg.DMHandler) {
+				t.Helper()
 				// Verify server is running - we can only test by trying to connect
 				// Cannot access private fields from external test package
 
 				// Try to connect to the server address to verify it's running
-				conn, err := grpc.Dial("127.0.0.1:0", grpc.WithTransportCredentials(insecure.NewCredentials()))
+				conn, err := grpc.NewClient("127.0.0.1:0", grpc.WithTransportCredentials(insecure.NewCredentials()))
 				if err == nil {
 					defer conn.Close()
 
@@ -275,6 +328,7 @@ func TestDMHandler_Start(t *testing.T) {
 			},
 			expectError: false,
 			testServerFunc: func(t *testing.T, handler *grpcpkg.DMHandler) {
+				t.Helper()
 				// Cannot access private fields from external test package
 				// Just verify handler is not nil
 				assert.NotNil(t, handler)
@@ -296,6 +350,7 @@ func TestDMHandler_Start(t *testing.T) {
 			},
 			expectError: false,
 			testServerFunc: func(t *testing.T, handler *grpcpkg.DMHandler) {
+				t.Helper()
 				// Cannot access private fields from external test package
 				// Just verify handler is not nil
 				assert.NotNil(t, handler)
@@ -305,38 +360,7 @@ func TestDMHandler_Start(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockClient := tt.setupMocks()
-			var client client.TenantAwareInventoryClient = mockClient
-
-			// Create handler with test listener
-			listener, err := createTestListener()
-			require.NoError(t, err)
-			defer listener.Close()
-
-			handler := grpcpkg.NewDMHandlerWithListener(listener, &client, tt.config)
-			require.NotNil(t, handler)
-
-			// Start the handler
-			err = handler.Start()
-
-			if tt.expectError {
-				assert.Error(t, err)
-				if tt.errorContains != "" {
-					assert.Contains(t, err.Error(), tt.errorContains)
-				}
-			} else {
-				assert.NoError(t, err)
-
-				// Give the server a moment to start
-				time.Sleep(100 * time.Millisecond)
-
-				if tt.testServerFunc != nil {
-					tt.testServerFunc(t, handler)
-				}
-
-				// Clean up - stop the server
-				handler.Stop()
-			}
+			runStartTest(t, tt)
 		})
 	}
 }
@@ -563,12 +587,11 @@ func TestDMHandlerConfig_Validation(t *testing.T) {
 
 			_, err := grpcpkg.NewDMHandler(&client, tt.config)
 
-			if tt.valid {
-				// Note: Some "valid" configs might still fail due to network issues
-				// We're mainly testing that the constructor behaves predictably
-			} else {
+			if !tt.valid {
 				assert.Error(t, err)
 			}
+			// Note: Some "valid" configs might still fail due to network issues
+			// We're mainly testing that the constructor behaves predictably
 		})
 	}
 }
