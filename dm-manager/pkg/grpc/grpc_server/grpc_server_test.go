@@ -116,7 +116,7 @@ func TestReportAMTStatus(t *testing.T) {
 		},
 		{
 			name: "missing tenant ID",
-			setupMocks: func(mockInvClient *MockInventoryClient, mockRBAC *MockRBACPolicy) {
+			setupMocks: func(_ *MockInventoryClient, _ *MockRBACPolicy) {
 				// No setup needed as tenant validation happens first
 			},
 			context: createContextWithoutTenant(),
@@ -130,7 +130,7 @@ func TestReportAMTStatus(t *testing.T) {
 		},
 		{
 			name: "host not found",
-			setupMocks: func(mockInvClient *MockInventoryClient, mockRBAC *MockRBACPolicy) {
+			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123",
 					"host-123").Return(nil, inv_errors.Errorfc(codes.NotFound, "host not found"))
 			},
@@ -194,7 +194,7 @@ func TestRetrieveActivationDetails(t *testing.T) {
 	}{
 		{
 			name: "successful activation details retrieval",
-			setupMocks: func(mockInvClient *MockInventoryClient, mockRBAC *MockRBACPolicy) {
+			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				hostResource := &computev1.HostResource{
 					ResourceId:      "host-123",
 					Name:            "test-host",
@@ -219,7 +219,7 @@ func TestRetrieveActivationDetails(t *testing.T) {
 		},
 		{
 			name: "missing tenant ID",
-			setupMocks: func(mockInvClient *MockInventoryClient, mockRBAC *MockRBACPolicy) {
+			setupMocks: func(_ *MockInventoryClient, _ *MockRBACPolicy) {
 				// No setup needed as tenant validation happens first
 			},
 			context: createContextWithoutTenant(),
@@ -232,7 +232,7 @@ func TestRetrieveActivationDetails(t *testing.T) {
 		},
 		{
 			name: "host not found",
-			setupMocks: func(mockInvClient *MockInventoryClient, mockRBAC *MockRBACPolicy) {
+			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123",
 					"host-123").Return(nil, inv_errors.Errorfc(codes.NotFound, "host not found"))
 			},
@@ -298,7 +298,7 @@ func TestReportActivationResults(t *testing.T) {
 	}{
 		{
 			name: "successful activation result report",
-			setupMocks: func(mockInvClient *MockInventoryClient, mockRBAC *MockRBACPolicy) {
+			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				hostResource := &computev1.HostResource{
 					ResourceId: "host-123",
 					Name:       "test-host",
@@ -321,7 +321,7 @@ func TestReportActivationResults(t *testing.T) {
 		},
 		{
 			name: "missing tenant ID",
-			setupMocks: func(mockInvClient *MockInventoryClient, mockRBAC *MockRBACPolicy) {
+			setupMocks: func(_ *MockInventoryClient, _ *MockRBACPolicy) {
 				// No setup needed as tenant validation happens first
 			},
 			context: createContextWithoutTenant(),
@@ -335,7 +335,7 @@ func TestReportActivationResults(t *testing.T) {
 		},
 		{
 			name: "host not found",
-			setupMocks: func(mockInvClient *MockInventoryClient, mockRBAC *MockRBACPolicy) {
+			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				mockInvClient.On("GetHostByUUID", mock.Anything,
 					"tenant-123", "host-123").Return(nil,
 					inv_errors.Errorfc(codes.NotFound, "host not found"))
