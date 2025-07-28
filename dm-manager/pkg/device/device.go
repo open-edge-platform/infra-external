@@ -249,7 +249,8 @@ func (dc *Controller) shouldHandlePowerChange(invHost *computev1.HostResource) b
 func (dc *Controller) handleDeactivateAMT(
 	ctx context.Context,
 	request rec_v2.Request[ID],
-	invHost *computev1.HostResource) rec_v2.Directive[ID] {
+	invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
 	log.Debug().Msgf("Setting AMT activation state to unprovisioned for %v", request.ID)
 	return dc.deactivateAMT(ctx, request, invHost)
 }
@@ -257,14 +258,16 @@ func (dc *Controller) handleDeactivateAMT(
 func (dc *Controller) handleSyncPowerStatus(
 	ctx context.Context,
 	request rec_v2.Request[ID],
-	invHost *computev1.HostResource) rec_v2.Directive[ID] {
+	invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
 	return dc.syncPowerStatus(ctx, request, invHost)
 }
 
 func (dc *Controller) handlePowerChangeWrapper(
 	ctx context.Context,
 	request rec_v2.Request[ID],
-	invHost *computev1.HostResource) rec_v2.Directive[ID] {
+	invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
 	req, status, err := dc.handlePowerChange(ctx, request, invHost, invHost.GetDesiredPowerState())
 	if err != nil {
 		updateError := dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
@@ -286,7 +289,8 @@ func (dc *Controller) handlePowerChangeWrapper(
 func (dc *Controller) deactivateAMT(
 	ctx context.Context,
 	request rec_v2.Request[ID],
-	invHost *computev1.HostResource) rec_v2.Directive[ID] {
+	invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
 	log.Debug().Msgf("Deactivating AMT for device %s", invHost.GetUuid())
 	deactivateStatus, err := dc.MpsClient.DeleteApiV1AmtDeactivateGuidWithResponse(ctx, invHost.GetUuid())
 	if err != nil {
@@ -403,7 +407,8 @@ func (dc *Controller) handlePowerChange(
 	ctx context.Context,
 	request rec_v2.Request[ID],
 	invHost *computev1.HostResource,
-	desiredPowerState computev1.PowerState) (rec_v2.Directive[ID], statusv1.StatusIndication, error) {
+	desiredPowerState computev1.PowerState,
+) (rec_v2.Directive[ID], statusv1.StatusIndication, error) {
 	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID,
 		invHost.GetCurrentPowerState(), desiredPowerState)
 
