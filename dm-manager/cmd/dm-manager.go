@@ -222,7 +222,7 @@ func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
 
 func createDMHandler() (*grpc.DMHandler, error) {
 	dmmInvClient, _ := prepareInventoryClients()
-	dmHandler, err := grpc.NewDMHandler(&dmmInvClient,
+	dmHandler, err := grpc.NewDMHandler(dmmInvClient,
 		grpc.DMHandlerConfig{
 			ServerAddress:    *dmServerAddress,
 			EnableTracing:    *enableTracing,

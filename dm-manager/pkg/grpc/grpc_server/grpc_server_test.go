@@ -154,7 +154,7 @@ func TestReportAMTStatus(t *testing.T) {
 			// Create a service instance for testing with proper interface implementation
 			var invClient client.TenantAwareInventoryClient = mockInvClient
 			service, err := grpcserver.NewDeviceManagementService(
-				&invClient,
+				invClient,
 				"test-address",
 				false, // enableTracing
 				tt.authEnabled,
@@ -254,7 +254,7 @@ func TestRetrieveActivationDetails(t *testing.T) {
 
 			var invClient client.TenantAwareInventoryClient = mockInvClient
 			service, err := grpcserver.NewDeviceManagementService(
-				&invClient,
+				invClient,
 				"test-address",
 				false, // enableTracing
 				tt.authEnabled,
@@ -359,7 +359,7 @@ func TestReportActivationResults(t *testing.T) {
 
 			var invClient client.TenantAwareInventoryClient = mockInvClient
 			service, err := grpcserver.NewDeviceManagementService(
-				&invClient,
+				invClient,
 				"test-address",
 				false, // enableTracing
 				tt.authEnabled,

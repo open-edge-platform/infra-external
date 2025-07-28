@@ -141,6 +141,7 @@ linters-settings:
       - io/ioutil.ReadFile
       - io.Copy(*bytes.Buffer)
       - io.Copy(os.Stdout)
+      - (*github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc.DMHandler).Start
 
   govet:
     enable:

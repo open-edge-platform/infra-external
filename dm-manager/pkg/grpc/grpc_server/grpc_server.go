@@ -68,13 +68,10 @@ func (dms *DeviceManagementService) updateHost(
 	return nil
 }
 
-func NewDeviceManagementService(invClient *client.TenantAwareInventoryClient,
-	inventoryAdr string, enableTracing bool,
-	enableAuth bool, rbacRules string) (*DeviceManagementService, error) {
-	if invClient == nil {
-		return nil, errors.Errorf("invClient is nil in NewInteractiveOnboardingService")
-	}
-
+func NewDeviceManagementService(invClient client.TenantAwareInventoryClient,
+	inventoryAdr string, _ bool,
+	enableAuth bool, rbacRules string,
+) (*DeviceManagementService, error) {
 	var rbacPolicy *rbac.Policy
 	var err error
 	if enableAuth {
@@ -92,7 +89,7 @@ func NewDeviceManagementService(invClient *client.TenantAwareInventoryClient,
 
 	return &DeviceManagementService{
 		InventoryClientService: InventoryClientService{
-			invClient: *invClient,
+			invClient: invClient,
 		},
 		rbac:        rbacPolicy,
 		authEnabled: enableAuth,
@@ -181,20 +178,26 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 	zlog.Debug().Msgf("DesiredAmtState %s ", hostInv.DesiredAmtState.String())
 	zlog.Debug().Msgf("CurrentAmtState %s ", hostInv.CurrentAmtState.String())
 
-	if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED &&
-		(hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNPROVISIONED ||
-			hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNSPECIFIED) {
-		zlog.Debug().Msgf("Send activation request for Host %s ", req.HostId)
-		response = &pb.ActivationDetailsResponse{
-			Operation:   pb.OperationType_ACTIVATE,
-			HostId:      req.HostId,
-			ProfileName: tenantID,
+	if hostInv.AmtStatus == "ENABLED" {
+		if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED &&
+			(hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNPROVISIONED ||
+				hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNSPECIFIED) {
+			zlog.Debug().Msgf("Send activation request for Host %s ", req.HostId)
+			response = &pb.ActivationDetailsResponse{
+				Operation:   pb.OperationType_ACTIVATE,
+				HostId:      req.HostId,
+				ProfileName: tenantID,
+			}
+		} else {
+			zlog.Debug().Msgf("Node is provisioned for UUID %s and tID=%s\n",
+				req.HostId, tenantID)
+			return nil, errors.Errorfc(codes.FailedPrecondition,
+				"current state is %s or activation not requested by user %v", hostInv.CurrentAmtState, err)
 		}
 	} else {
-		zlog.Debug().Msgf("Node is provisioned for UUID %s and tID=%s\n",
-			req.HostId, tenantID)
+		zlog.Debug().Msgf("AMT is not enabled for host %s", req.HostId)
 		return nil, errors.Errorfc(codes.FailedPrecondition,
-			"current state is %s or activation not requested by user %v", hostInv.CurrentAmtState, err)
+			"AMT is not enabled for host %s", req.HostId)
 	}
 
 	return response, nil
@@ -212,26 +215,18 @@ func (dms *DeviceManagementService) ReportActivationResults(
 		}
 	}
 
-	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
-	if !present {
-		err := errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
-		zlog.InfraSec().InfraErr(err).Msgf("Request Nodes is not authenticated")
+	tenantID, err := dms.getTenantFromContext(ctx)
+	if err != nil {
 		return nil, err
 	}
 
-	var hostInv *computev1.HostResource
-	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
+	hostInv, err := dms.getHostByUUID(ctx, tenantID, req.HostId)
 	if err != nil {
-		zlog.InfraSec().InfraErr(err).Msgf("Failed to get host by UUID %s", req.HostId)
-		if errors.IsNotFound(err) {
-			zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
-				req.HostId, tenantID)
-			return nil, errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
-		}
+		return nil, err
 	}
 	// TODO: currently activation status is handled by dm-manager
 
-	var host = &computev1.HostResource{}
+	host := &computev1.HostResource{}
 	if req.ActivationStatus == pb.ActivationStatus_PROVISIONED {
 		host.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
 	} else {
@@ -262,4 +257,26 @@ func (dms *DeviceManagementService) ReportActivationResults(
 
 	return nil, errors.Errorfc(codes.FailedPrecondition,
 		"AMT is trying to set existing current state: %s", hostInv.CurrentAmtState)
+}
+
+func (dms *DeviceManagementService) getTenantFromContext(ctx context.Context) (string, error) {
+	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
+	if !present {
+		err := errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
+		zlog.InfraSec().InfraErr(err).Msgf("Request Nodes is not authenticated")
+		return "", err
+	}
+	return tenantID, nil
+}
+
+func (dms *DeviceManagementService) getHostByUUID(ctx context.Context, tenantID, hostID string) (*computev1.HostResource, error) {
+	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, hostID)
+	if err != nil {
+		zlog.InfraSec().InfraErr(err).Msgf("Failed to get host by UUID %s", hostID)
+		if errors.IsNotFound(err) {
+			return nil, errors.Errorfc(codes.NotFound, "Host with UUID %s not found", hostID)
+		}
+		return nil, err
+	}
+	return hostInv, nil
 }
