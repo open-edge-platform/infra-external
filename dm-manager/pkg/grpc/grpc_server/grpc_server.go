@@ -6,18 +6,17 @@ package grpcserver
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
+
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
-	inv_errors "github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
-	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
-	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
-
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/policy/rbac"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
+	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
 )
 
 var (
@@ -73,7 +72,7 @@ func NewDeviceManagementService(invClient *client.TenantAwareInventoryClient,
 	inventoryAdr string, enableTracing bool,
 	enableAuth bool, rbacRules string) (*DeviceManagementService, error) {
 	if invClient == nil {
-		return nil, inv_errors.Errorf("invClient is nil in NewInteractiveOnboardingService")
+		return nil, errors.Errorf("invClient is nil in NewInteractiveOnboardingService")
 	}
 
 	var rbacPolicy *rbac.Policy
@@ -100,20 +99,21 @@ func NewDeviceManagementService(invClient *client.TenantAwareInventoryClient,
 	}, nil
 }
 
-func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb.AMTStatusRequest) (*pb.AMTStatusResponse, error) {
-
+func (dms *DeviceManagementService) ReportAMTStatus(
+	ctx context.Context, req *pb.AMTStatusRequest,
+) (*pb.AMTStatusResponse, error) {
 	zlog.Debug().Msgf("ReportAMTStatus started")
 
 	if dms.authEnabled {
 		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
-			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
+			err := errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
 			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
 		}
 	}
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
-		err := inv_errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
+		err := errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
 		zlog.InfraSec().InfraErr(err).Msgf("Request Nodes is not authenticated")
 		return nil, err
 	}
@@ -122,10 +122,10 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
 	if err != nil {
 		zlog.InfraSec().InfraErr(err).Msgf("Failed to get host by UUID %s", req.HostId)
-		if inv_errors.IsNotFound(err) {
+		if errors.IsNotFound(err) {
 			zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
 				req.HostId, tenantID)
-			return nil, inv_errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
+			return nil, errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
 		}
 	}
 	zlog.Debug().Msgf("Request from PMA=%s", req.GetStatus().String())
@@ -139,28 +139,29 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 			})
 		if err != nil {
 			zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
-			return nil, inv_errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
+			return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
 		}
 		return &pb.AMTStatusResponse{}, nil
 	}
 
-	return nil, inv_errors.Errorfc(codes.FailedPrecondition, "AMT status is already set to %s", hostInv.AmtStatus)
+	return nil, errors.Errorfc(codes.FailedPrecondition, "AMT status is already set to %s", hostInv.AmtStatus)
 }
 
-func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Context, req *pb.ActivationRequest) (*pb.ActivationDetailsResponse, error) {
-
+func (dms *DeviceManagementService) RetrieveActivationDetails(
+	ctx context.Context, req *pb.ActivationRequest,
+) (*pb.ActivationDetailsResponse, error) {
 	zlog.Info().Msgf("RetrieveActivationDetails")
 
 	if dms.authEnabled {
 		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
-			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
+			err := errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
 			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
 		}
 	}
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
-		err := inv_errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
+		err := errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
 		zlog.InfraSec().InfraErr(err).Msgf("Request Nodes is not authenticated")
 		return nil, err
 	}
@@ -171,17 +172,18 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
 	if err != nil {
 		zlog.InfraSec().InfraErr(err).Msgf("Failed to get host by UUID %s", req.HostId)
-		if inv_errors.IsNotFound(err) {
+		if errors.IsNotFound(err) {
 			zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
 				req.HostId, tenantID)
-			return nil, inv_errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
+			return nil, errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
 		}
 	}
 	zlog.Debug().Msgf("DesiredAmtState %s ", hostInv.DesiredAmtState.String())
 	zlog.Debug().Msgf("CurrentAmtState %s ", hostInv.CurrentAmtState.String())
 
-	if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED && (hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNPROVISIONED ||
-		hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNSPECIFIED) {
+	if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED &&
+		(hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNPROVISIONED ||
+			hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNSPECIFIED) {
 		zlog.Debug().Msgf("Send activation request for Host %s ", req.HostId)
 		response = &pb.ActivationDetailsResponse{
 			Operation:   pb.OperationType_ACTIVATE,
@@ -191,26 +193,28 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 	} else {
 		zlog.Debug().Msgf("Node is provisioned for UUID %s and tID=%s\n",
 			req.HostId, tenantID)
-		return nil, inv_errors.Errorfc(codes.FailedPrecondition, "current state is %s or activation not requested by user %v", hostInv.CurrentAmtState, err)
+		return nil, errors.Errorfc(codes.FailedPrecondition,
+			"current state is %s or activation not requested by user %v", hostInv.CurrentAmtState, err)
 	}
 
 	return response, nil
 }
 
-func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context, req *pb.ActivationResultRequest) (*pb.ActivationResultResponse, error) {
-
+func (dms *DeviceManagementService) ReportActivationResults(
+	ctx context.Context, req *pb.ActivationResultRequest,
+) (*pb.ActivationResultResponse, error) {
 	zlog.Info().Msgf("ReportActivationResults")
 
 	if dms.authEnabled {
 		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
-			err := inv_errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
+			err := errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
 			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
 		}
 	}
 
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
-		err := inv_errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
+		err := errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
 		zlog.InfraSec().InfraErr(err).Msgf("Request Nodes is not authenticated")
 		return nil, err
 	}
@@ -219,10 +223,10 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
 	if err != nil {
 		zlog.InfraSec().InfraErr(err).Msgf("Failed to get host by UUID %s", req.HostId)
-		if inv_errors.IsNotFound(err) {
+		if errors.IsNotFound(err) {
 			zlog.Debug().Msgf("Node Doesn't Exist for UUID %s and tID=%s\n",
 				req.HostId, tenantID)
-			return nil, inv_errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
+			return nil, errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
 		}
 	}
 	// TODO: currently activation status is handled by dm-manager
@@ -235,7 +239,8 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 	}
 
 	if hostInv.CurrentAmtState != host.CurrentAmtState {
-		if req.ActivationStatus == pb.ActivationStatus_PROVISIONED && hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED {
+		if req.ActivationStatus == pb.ActivationStatus_PROVISIONED &&
+			hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED {
 			zlog.Debug().Msgf("Host %s AMT state changed to provisioned", req.HostId)
 			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
 		} else {
@@ -248,13 +253,13 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 			}}, &computev1.HostResource{
 				CurrentAmtState: hostInv.CurrentAmtState,
 			})
+		if err != nil {
+			zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT state for host %s", hostInv.GetResourceId())
+			return nil, errors.Errorfc(codes.Internal, "Failed to update AMT state: %v", err)
+		}
 		return &pb.ActivationResultResponse{}, nil
 	}
 
-	if err != nil {
-		zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT state for host %s", hostInv.GetResourceId())
-		return nil, inv_errors.Errorfc(codes.Internal, "Failed to update AMT state: %v", err)
-	}
-	return nil, inv_errors.Errorfc(codes.FailedPrecondition, "AMT is trying to set existing current state: %s", hostInv.CurrentAmtState)
-
+	return nil, errors.Errorfc(codes.FailedPrecondition,
+		"AMT is trying to set existing current state: %s", hostInv.CurrentAmtState)
 }

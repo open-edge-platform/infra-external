@@ -6,16 +6,16 @@ package grpc
 import (
 	"net"
 
-	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
-	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
-	grpcServer "github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc/grpc_server"
+	"github.com/prometheus/client_golang/prometheus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/metrics"
-	"github.com/prometheus/client_golang/prometheus"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
+	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
+	grpcServer "github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc/grpc_server"
 )
 
 // Misc variables.

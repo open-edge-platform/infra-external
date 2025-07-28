@@ -73,7 +73,7 @@ var (
 		flags.MpsAddressDescription)
 	rpsAddress = flag.String(flags.RpsAddressFlag, "http://rps.orch-infra.svc:8081",
 		flags.RpsAddressDescription)
-	//TODO: need to ask for DM server address?
+	// TODO: need to ask for DM server address?
 	dmServerAddress = flag.String(flags.DMServerAddressFlag, "0.0.0.0:50058",
 		flags.DMServerAddressDescription)
 	insecure     = flag.Bool("InsecureSkipVerify", false, flags.InsecureDescription)
