@@ -45,8 +45,13 @@ TEST_USE_DB      := true
 TEMP_BASE_OPENAPI_DIR := /tmp/dm-manager-main
 OPENAPI_PATH          := pkg/api/**/*.json
 
+
 # Include shared makefile
 include ../common.mk
+
+# Policy related
+REGODIR           := $(shell pwd)/rego/
+BUNDLE            := "$(shell pwd)/$(OUT_DIR)/policy_bundle.tar.gz"
 
 lint: oasdiff-breaking common-lint ## Run all lint tools
 

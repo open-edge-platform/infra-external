@@ -24,11 +24,13 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/metrics"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/oam"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/policy/rbac"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/tracing"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/device"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/flags"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/tenant"
 	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/secrets"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
@@ -71,11 +73,16 @@ var (
 		flags.MpsAddressDescription)
 	rpsAddress = flag.String(flags.RpsAddressFlag, "http://rps.orch-infra.svc:8081",
 		flags.RpsAddressDescription)
+	// TODO: need to ask for DM server address?
+	dmServerAddress = flag.String(flags.DMServerAddressFlag, "0.0.0.0:50058",
+		flags.DMServerAddressDescription)
 	insecure     = flag.Bool("InsecureSkipVerify", false, flags.InsecureDescription)
 	insecureGrpc = flag.Bool(invClient.InsecureGrpc, true, invClient.InsecureGrpcDescription)
 	caCertPath   = flag.String(invClient.CaCertPath, "", invClient.CaCertPathDescription)
 	tlsCertPath  = flag.String(invClient.TLSCertPath, "", invClient.TLSCertPathDescription)
 	tlsKeyPath   = flag.String(invClient.TLSKeyPath, "", invClient.TLSKeyPathDescription)
+	enableAuth   = flag.Bool(rbac.EnableAuth, true, rbac.EnableAuthDescription)
+	rbacRules    = flag.String(rbac.RbacRules, "/rego/authz.rego", rbac.RbacRulesDescription)
 )
 
 func main() {
@@ -134,6 +141,15 @@ func main() {
 	tenantReconciler := getTenantController(mpsClient, rpsClient, vsp, orchMpsHost, orchMpsPort)
 	deviceReconciler := getDeviceController(mpsClient)
 
+	// DM handler for Device Management.
+	dmHandler, err := createDMHandler()
+	if err != nil {
+		log.InfraSec().Fatal().Err(err).Msgf("Unable to create DM handler")
+	}
+
+	wg.Add(1)
+	go dmHandler.Start()
+
 	wg.Add(1)
 	go tenantReconciler.Start()
 
@@ -146,6 +162,7 @@ func main() {
 	close(termChan)
 	tenantReconciler.Stop()
 	deviceReconciler.Stop()
+	dmHandler.Stop()
 	wg.Wait()
 	log.Info().Msgf("Device Management Controller successfully stopped")
 }
@@ -201,6 +218,24 @@ func getDeviceController(mpsClient *mps.ClientWithResponses) device.Controller {
 		rec_v2.WithTimeout(*requestTimeout))
 	deviceReconciler.DeviceController = deviceController
 	return deviceReconciler
+}
+
+func createDMHandler() (*grpc.DMHandler, error) {
+	dmmInvClient, _ := prepareInventoryClients()
+	dmHandler, err := grpc.NewDMHandler(dmmInvClient,
+		grpc.DMHandlerConfig{
+			ServerAddress:    *dmServerAddress,
+			EnableTracing:    *enableTracing,
+			EnableMetrics:    *enableMetrics,
+			MetricsAddress:   *metricsAddress,
+			InventoryAddress: *inventoryAddress,
+			EnableAuth:       *enableAuth,
+			RBAC:             *rbacRules,
+		})
+	if err != nil {
+		return nil, err
+	}
+	return dmHandler, nil
 }
 
 //nolint:gocritic // named results mean additional assignment/typecast.

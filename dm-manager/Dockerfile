@@ -13,6 +13,7 @@ COPY Makefile go.mod go.sum *.go *.mk /go/src/github.com/open-edge-platform/infr
 COPY cmd/ /go/src/github.com/open-edge-platform/infra-external/dm-manager/cmd/
 COPY vendor/ /go/src/github.com/open-edge-platform/infra-external/dm-manager/vendor/
 COPY pkg/ /go/src/github.com/open-edge-platform/infra-external/dm-manager/pkg/
+COPY rego/ /go/src/github.com/open-edge-platform/infra-external/dm-manager/rego/
 WORKDIR /go/src/github.com/open-edge-platform/infra-external/dm-manager/
 RUN LABEL_REPO_URL=${REPO_URL} LABEL_VERSION=${VERSION} LABEL_REVISION=${REVISION} LABEL_BUILD_DATE=${BUILD_DATE} make go-build
 
@@ -32,5 +33,6 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.created=${BUILD_DATE}
 
 COPY --from=build --chown=nobody:nobody /go/src/github.com/open-edge-platform/infra-external/dm-manager/out/dm-manager /usr/local/bin/dm-manager
+COPY --from=build --chown=nobody:nobody /go/src/github.com/open-edge-platform/infra-external/dm-manager/rego/authz.rego /rego/authz.rego
 
 ENTRYPOINT  ["dm-manager"]
