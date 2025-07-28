@@ -132,7 +132,7 @@ func prepareEnv(
 
 func prepareAMTEnv(
 	t *testing.T, currentAMTState computev1.AmtState,
-) (*inv_testing.InvResourceDAO, string, *mps.MockClientWithResponsesInterface, Controller) {
+) (*inv_testing.InvResourceDAO, string, Controller) {
 	t.Helper()
 	dao := inv_testing.NewInvResourceDAOOrFail(t)
 	hostUUID := uuid.NewString()
@@ -168,7 +168,7 @@ func prepareAMTEnv(
 	deviceController := rec_v2.NewController[ID](
 		deviceReconciller.Reconcile)
 	deviceReconciller.DeviceController = deviceController
-	return dao, hostUUID, mpsMock, deviceReconciller
+	return dao, hostUUID, deviceReconciller
 }
 
 func TestDeviceController_Start(t *testing.T) {
@@ -412,7 +412,7 @@ func TestDeviceController_Reconcile_ifResponseHasNotReadyThenShouldFailRequest(t
 }
 
 func TestDeviceController_Reconcile_AmtActivation(t *testing.T) {
-	dao, hostUUID, _, deviceReconciller := prepareAMTEnv(t, computev1.AmtState_AMT_STATE_PROVISIONED)
+	dao, hostUUID, deviceReconciller := prepareAMTEnv(t, computev1.AmtState_AMT_STATE_PROVISIONED)
 
 	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
 
@@ -422,7 +422,7 @@ func TestDeviceController_Reconcile_AmtActivation(t *testing.T) {
 }
 
 func TestDeviceController_Reconcile_AmtDeactivation(t *testing.T) {
-	dao, hostUUID, _, deviceReconciller := prepareAMTEnv(t, computev1.AmtState(computev1.AmtState_AMT_STATE_UNPROVISIONED))
+	dao, hostUUID, deviceReconciller := prepareAMTEnv(t, computev1.AmtState(computev1.AmtState_AMT_STATE_UNPROVISIONED))
 
 	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
 
