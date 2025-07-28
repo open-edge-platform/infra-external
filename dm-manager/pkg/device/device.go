@@ -116,6 +116,8 @@ var mpsPowerStateToInventoryPowerState = map[int32]computev1.PowerState{
 
 type ID string
 
+type contextValue string
+
 func (id ID) GetTenantID() string {
 	return strings.Split(string(id), "_")[0]
 }
@@ -247,10 +249,25 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 	return request.Ack()
 }
 
+func clientCallback() func(ctx context.Context, req *http.Request) error {
+	callbackFunc := func(ctx context.Context, req *http.Request) error {
+		type headerValue string
+		tenantID, ok := ctx.Value(headerValue("tenantId")).(string)
+		if ok {
+			req.Header.Add("ActiveProjectId", tenantID)
+		}
+		req.Header.Add("User-Agent", "dm-manager")
+		return nil
+	}
+	return callbackFunc
+}
+
 func (dc *Controller) syncPowerStatus(
 	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
 ) rec_v2.Directive[ID] {
-	currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(ctx, invHost.GetUuid())
+	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), request.ID.GetTenantID())
+
+	currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(updatedCtx, invHost.GetUuid(), clientCallback())
 	if err != nil {
 		log.Err(err).Msgf("failed to check current power state for %v", invHost.GetUuid())
 		return request.Fail(err)
@@ -332,10 +349,11 @@ func (dc *Controller) handlePowerChange(
 
 	// assumption is that we don't have to check if power actions are supported, as AMT supports it since 1.0.0
 	// https://en.wikipedia.org/wiki/Intel_AMT_versions
-	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(ctx, request.ID.GetHostUUID(),
+	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), request.ID.GetTenantID())
+	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(updatedCtx, request.ID.GetHostUUID(),
 		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
 			Action: powerMapping[desiredPowerState],
-		})
+		}, clientCallback())
 	if err != nil {
 		log.Err(err).Msgf("failed to send power action to MPS")
 		return request.Fail(err),

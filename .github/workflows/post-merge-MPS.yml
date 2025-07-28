@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-name: Post-Merge LOCA Metadata
+name: Post-Merge MPS
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
       - main
       - release-*
     paths:
-      - "loca-metadata/**"
+      - "MPS/**"
 
 permissions: {}
 
@@ -30,7 +30,7 @@ jobs:
       run_version_tag: true
       run_version_dev: true
       prefix_tag_separator: "/"
-      project_folder: "loca-metadata"
+      project_folder: "MPS"
     secrets:
       SYS_ORCH_GITHUB: ${{ secrets.SYS_ORCH_GITHUB }}
       COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
