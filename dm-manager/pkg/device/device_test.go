@@ -422,7 +422,7 @@ func TestDeviceController_Reconcile_AmtActivation(t *testing.T) {
 }
 
 func TestDeviceController_Reconcile_AmtDeactivation(t *testing.T) {
-	dao, hostUUID, deviceReconciller := prepareAMTEnv(t, computev1.AmtState(computev1.AmtState_AMT_STATE_UNPROVISIONED))
+	dao, hostUUID, deviceReconciller := prepareAMTEnv(t, computev1.AmtState_AMT_STATE_UNPROVISIONED)
 
 	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
 
