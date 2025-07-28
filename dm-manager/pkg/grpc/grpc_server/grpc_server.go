@@ -164,7 +164,6 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 	}
 	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
 
-	var hostInv *computev1.HostResource
 	var response *pb.ActivationDetailsResponse
 	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
 	if err != nil {

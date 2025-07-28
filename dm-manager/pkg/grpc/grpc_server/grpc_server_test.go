@@ -202,6 +202,7 @@ func TestRetrieveActivationDetails(t *testing.T) {
 					TenantId:        "tenant-123",
 					DesiredAmtState: computev1.AmtState_AMT_STATE_PROVISIONED,
 					CurrentAmtState: computev1.AmtState_AMT_STATE_UNPROVISIONED,
+					AmtStatus:       "ENABLED",
 				}
 				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123", "host-123").Return(hostResource, nil)
 			},
