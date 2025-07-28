@@ -114,7 +114,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(ctx context.Context, req *pb
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
 		err := inv_errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
-		zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
+		zlog.InfraSec().InfraErr(err).Msgf("Request Nodes is not authenticated")
 		return nil, err
 	}
 	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
@@ -161,7 +161,7 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(ctx context.Contex
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
 		err := inv_errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
-		zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
+		zlog.InfraSec().InfraErr(err).Msgf("Request Nodes is not authenticated")
 		return nil, err
 	}
 	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
@@ -211,7 +211,7 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 	tenantID, present := inv_tenant.GetTenantIDFromContext(ctx)
 	if !present {
 		err := inv_errors.Errorfc(codes.Unauthenticated, "Tenant ID is missing from context")
-		zlog.InfraSec().InfraErr(err).Msgf("Request CreateNodes is not authenticated")
+		zlog.InfraSec().InfraErr(err).Msgf("Request Nodes is not authenticated")
 		return nil, err
 	}
 
@@ -225,6 +225,7 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 			return nil, inv_errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
 		}
 	}
+	// TODO: currently activation status is handled by dm-manager
 
 	var host = &computev1.HostResource{}
 	if req.ActivationStatus == pb.ActivationStatus_PROVISIONED {
@@ -254,6 +255,6 @@ func (dms *DeviceManagementService) ReportActivationResults(ctx context.Context,
 		zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT state for host %s", hostInv.GetResourceId())
 		return nil, inv_errors.Errorfc(codes.Internal, "Failed to update AMT state: %v", err)
 	}
-	return nil, inv_errors.Errorfc(codes.FailedPrecondition, "AMT is trying to set same current state: %s", hostInv.CurrentAmtState)
+	return nil, inv_errors.Errorfc(codes.FailedPrecondition, "AMT is trying to set existing current state: %s", hostInv.CurrentAmtState)
 
 }
