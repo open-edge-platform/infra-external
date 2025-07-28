@@ -102,6 +102,8 @@ func (dmh *DMHandler) Start() error {
 }
 
 func (dmh *DMHandler) Stop() {
-	dmh.server.Stop()
-	zlog.InfraSec().Info().Msgf("SB handler stopped")
+	if dmh.server != nil {
+		dmh.server.Stop()
+		zlog.InfraSec().Info().Msgf("SB handler stopped")
+	}
 }
