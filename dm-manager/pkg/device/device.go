@@ -301,20 +301,13 @@ func (dc *Controller) deactivateAMT(
 		err = errors.Errorf("%v", string(deactivateStatus.Body))
 		log.Err(err).
 			Msgf("expected to get 2XX, but got %v", deactivateStatus.StatusCode())
-		if deactivateStatus.StatusCode() == http.StatusNotFound {
-			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
-		}
 		return request.Fail(err)
 	}
 	err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentAmtState,
-			computev1.HostResourceFieldAmtStatusIndicator,
-			computev1.HostResourceFieldAmtStatusTimestamp,
 		}}, &computev1.HostResource{
-			CurrentAmtState:    computev1.AmtState_AMT_STATE_UNPROVISIONED,
-			AmtStatus:          "Setting the AMT activation state to unprovisioned",
-			AmtStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
+			CurrentAmtState: computev1.AmtState_AMT_STATE_UNPROVISIONED,
 		})
 	if err != nil {
 		log.Err(err).Msgf("Failed to update AMT state info")
