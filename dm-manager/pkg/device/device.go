@@ -219,33 +219,107 @@ func (dc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 		invHost.GetCurrentAmtState().String(), invHost.GetCurrentPowerState().String(), request.ID)
 
 	switch {
-	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
-		invHost.GetDesiredPowerState() == invHost.GetCurrentPowerState():
-		return dc.syncPowerStatus(ctx, request, invHost)
-
-	case invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
-		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState():
-		req, status, err := dc.handlePowerChange(ctx, request, invHost, invHost.GetDesiredPowerState())
-		if err != nil {
-			updateError := dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
-				&fieldmaskpb.FieldMask{Paths: []string{
-					computev1.HostResourceFieldPowerStatus,
-					computev1.HostResourceFieldPowerStatusIndicator,
-				}}, &computev1.HostResource{
-					PowerStatus:          err.Error(),
-					PowerStatusIndicator: status,
-				})
-			if updateError != nil {
-				log.Err(updateError).Msgf("failed to update device status")
-				return request.Fail(updateError)
-			}
-		}
-
-		return req
+	case dc.shouldDeactivateAMT(invHost):
+		return dc.handleDeactivateAMT(ctx, request, invHost)
+	case dc.shouldSyncPowerStatus(invHost):
+		return dc.handleSyncPowerStatus(ctx, request, invHost)
+	case dc.shouldHandlePowerChange(invHost):
+		return dc.handlePowerChangeWrapper(ctx, request, invHost)
 	default:
 		log.Debug().Msgf("device %v is in %v [%v]", request.ID, invHost.GetCurrentAmtState(), invHost.GetCurrentPowerState())
 	}
+	return request.Ack()
+}
 
+func (dc *Controller) shouldDeactivateAMT(invHost *computev1.HostResource) bool {
+	return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
+		invHost.GetDesiredAmtState() == computev1.AmtState_AMT_STATE_UNPROVISIONED
+}
+
+func (dc *Controller) shouldSyncPowerStatus(invHost *computev1.HostResource) bool {
+	return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
+		invHost.GetDesiredPowerState() == invHost.GetCurrentPowerState()
+}
+
+func (dc *Controller) shouldHandlePowerChange(invHost *computev1.HostResource) bool {
+	return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
+		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState()
+}
+
+func (dc *Controller) handleDeactivateAMT(
+	ctx context.Context,
+	request rec_v2.Request[ID],
+	invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
+	log.Debug().Msgf("Setting AMT activation state to unprovisioned for %v", request.ID)
+	return dc.deactivateAMT(ctx, request, invHost)
+}
+
+func (dc *Controller) handleSyncPowerStatus(
+	ctx context.Context,
+	request rec_v2.Request[ID],
+	invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
+	return dc.syncPowerStatus(ctx, request, invHost)
+}
+
+func (dc *Controller) handlePowerChangeWrapper(
+	ctx context.Context,
+	request rec_v2.Request[ID],
+	invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
+	req, status, err := dc.handlePowerChange(ctx, request, invHost, invHost.GetDesiredPowerState())
+	if err != nil {
+		updateError := dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
+			&fieldmaskpb.FieldMask{Paths: []string{
+				computev1.HostResourceFieldPowerStatus,
+				computev1.HostResourceFieldPowerStatusIndicator,
+			}}, &computev1.HostResource{
+				PowerStatus:          err.Error(),
+				PowerStatusIndicator: status,
+			})
+		if updateError != nil {
+			log.Err(updateError).Msgf("failed to update device status")
+			return request.Fail(updateError)
+		}
+	}
+	return req
+}
+
+func (dc *Controller) deactivateAMT(
+	ctx context.Context,
+	request rec_v2.Request[ID],
+	invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
+	log.Debug().Msgf("Deactivating AMT for device %s", invHost.GetUuid())
+	deactivateStatus, err := dc.MpsClient.DeleteApiV1AmtDeactivateGuidWithResponse(ctx, invHost.GetUuid())
+	if err != nil {
+		log.Err(err).Msgf("Failed to deactivate AMT for device %s", invHost.GetUuid())
+		return request.Fail(err)
+	}
+	if deactivateStatus.StatusCode() != http.StatusOK {
+		err = errors.Errorf("%v", string(deactivateStatus.Body))
+		log.Err(err).
+			Msgf("expected to get 2XX, but got %v", deactivateStatus.StatusCode())
+		if deactivateStatus.StatusCode() == http.StatusNotFound {
+			return request.Retry(err).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
+		}
+		return request.Fail(err)
+	}
+	err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
+		&fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldCurrentAmtState,
+			computev1.HostResourceFieldAmtStatusIndicator,
+			computev1.HostResourceFieldAmtStatusTimestamp,
+		}}, &computev1.HostResource{
+			CurrentAmtState:    computev1.AmtState_AMT_STATE_UNPROVISIONED,
+			AmtStatus:          "Setting the AMT activation state to unprovisioned",
+			AmtStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
+		})
+	if err != nil {
+		log.Err(err).Msgf("Failed to update AMT state info")
+		return request.Fail(err)
+	}
 	return request.Ack()
 }
 
@@ -267,7 +341,8 @@ func (dc *Controller) syncPowerStatus(
 ) rec_v2.Directive[ID] {
 	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), request.ID.GetTenantID())
 
-	currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(updatedCtx, invHost.GetUuid(), clientCallback())
+	currentPowerState, err := dc.MpsClient.GetApiV1AmtPowerStateGuidWithResponse(
+		updatedCtx, invHost.GetUuid(), clientCallback())
 	if err != nil {
 		log.Err(err).Msgf("failed to check current power state for %v", invHost.GetUuid())
 		return request.Fail(err)
@@ -286,7 +361,8 @@ func (dc *Controller) syncPowerStatus(
 	//nolint: gosec // overflow is unlikely, correct values are <1000
 	powerStateCode := int32(*currentPowerState.JSON200.Powerstate)
 	//nolint: gosec // time operations
-	afterGracePeriod := invHost.GetPowerStatusTimestamp()+uint64(dc.StatusChangeGracePeriod.Seconds()) < uint64(time.Now().Unix())
+	afterGracePeriod := invHost.GetPowerStatusTimestamp()+uint64(
+		dc.StatusChangeGracePeriod.Seconds()) < uint64(time.Now().Unix())
 	if !contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) && afterGracePeriod {
 		log.Info().Msgf("%v host desired state is %v, but current power state is %v",
 			invHost.GetUuid(), powerMapping[invHost.GetDesiredPowerState()], powerStateCode)
@@ -328,7 +404,10 @@ func (dc *Controller) syncPowerStatus(
 }
 
 func (dc *Controller) handlePowerChange(
-	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource, desiredPowerState computev1.PowerState,
+	ctx context.Context,
+	request rec_v2.Request[ID],
+	invHost *computev1.HostResource,
+	desiredPowerState computev1.PowerState,
 ) (rec_v2.Directive[ID], statusv1.StatusIndication, error) {
 	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID,
 		invHost.GetCurrentPowerState(), desiredPowerState)
@@ -374,7 +453,8 @@ func (dc *Controller) handlePowerChange(
 		}
 
 		return request.Fail(err),
-			statusv1.StatusIndication_STATUS_INDICATION_ERROR, errors.Errorf("%v", toUserFriendlyError(string(powerAction.Body)))
+			statusv1.StatusIndication_STATUS_INDICATION_ERROR,
+			errors.Errorf("%v", toUserFriendlyError(string(powerAction.Body)))
 	}
 
 	// intentionally comparing whole body, as there are cases where MPS defines variable as lowercase
