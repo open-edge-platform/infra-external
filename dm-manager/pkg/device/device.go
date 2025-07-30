@@ -294,23 +294,39 @@ func (dc *Controller) deactivateAMT(
 	log.Debug().Msgf("Deactivating AMT for device %s", invHost.GetUuid())
 	deactivateStatus, err := dc.MpsClient.DeleteApiV1AmtDeactivateGuidWithResponse(ctx, invHost.GetUuid())
 	if err != nil {
-		log.Err(err).Msgf("Failed to deactivate AMT for device %s", invHost.GetUuid())
+		log.Err(err).Msgf("Failed to deactivate AMT for device %s from MPS", invHost.GetUuid())
 		return request.Fail(err)
 	}
 	if deactivateStatus.StatusCode() != http.StatusOK {
 		err = errors.Errorf("%v", string(deactivateStatus.Body))
 		log.Err(err).
-			Msgf("expected to get 2XX, but got %v", deactivateStatus.StatusCode())
+			Msgf("MPS deactivation API response %v", deactivateStatus.StatusCode())
+		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
+			&fieldmaskpb.FieldMask{Paths: []string{
+				computev1.HostResourceFieldAmtStatus,
+				computev1.HostResourceFieldAmtStatusIndicator,
+			}}, &computev1.HostResource{
+				AmtStatus:          "AMT deactivation failed",
+				AmtStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
+			})
+		if err != nil {
+			log.Err(err).Msgf("Failed to update AMT deactivation state info")
+			return request.Fail(err)
+		}
 		return request.Fail(err)
 	}
 	err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentAmtState,
+			computev1.HostResourceFieldAmtStatus,
+			computev1.HostResourceFieldAmtStatusIndicator,
 		}}, &computev1.HostResource{
-			CurrentAmtState: computev1.AmtState_AMT_STATE_UNPROVISIONED,
+			CurrentAmtState:    computev1.AmtState_AMT_STATE_UNPROVISIONED,
+			AmtStatus:          "AMT deactivated",
+			AmtStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 		})
 	if err != nil {
-		log.Err(err).Msgf("Failed to update AMT state info")
+		log.Err(err).Msgf("Failed to update AMT deactivation state info")
 		return request.Fail(err)
 	}
 	return request.Ack()
