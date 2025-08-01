@@ -6,6 +6,7 @@ package grpcserver
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
@@ -17,9 +18,9 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/policy/rbac"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/secretprovider"
 	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/validator"
 	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/status"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -134,6 +135,10 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 			return nil, errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
 		}
 	}
+	if err = validator.ValidateMessage(hostInv); err != nil {
+		zlog.InfraSec().InfraErr(err).Msg("")
+		return nil, errors.Wrap(err)
+	}
 	zlog.Debug().Msgf("Request from PMA=%s", req.GetStatus().String())
 	zlog.Debug().Msgf("hostInv AMTStatus=%s", hostInv.AmtStatus)
 	if req.GetStatus() == pb.AMTStatus_ENABLED {
@@ -164,9 +169,9 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 		}
 	}
 	return &pb.AMTStatusResponse{}, nil
-
 }
 
+//nolint:cyclop // high cyclomatic complexity because of the conditional logic.
 func (dms *DeviceManagementService) RetrieveActivationDetails(
 	ctx context.Context, req *pb.ActivationRequest,
 ) (*pb.ActivationDetailsResponse, error) {
@@ -197,6 +202,11 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 			return nil, errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
 		}
 	}
+	if err = validator.ValidateMessage(hostInv); err != nil {
+		zlog.InfraSec().InfraErr(err).Msg("")
+		return nil, errors.Wrap(err)
+	}
+
 	zlog.Debug().Msgf("DesiredAmtState %s ", hostInv.DesiredAmtState.String())
 	zlog.Debug().Msgf("CurrentAmtState %s ", hostInv.CurrentAmtState.String())
 
@@ -225,6 +235,7 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 	return response, nil
 }
 
+//nolint:cyclop // high cyclomatic complexity because of the switch-case.
 func (dms *DeviceManagementService) ReportActivationResults(
 	ctx context.Context, req *pb.ActivationResultRequest,
 ) (*pb.ActivationResultResponse, error) {
@@ -246,20 +257,11 @@ func (dms *DeviceManagementService) ReportActivationResults(
 	if err != nil {
 		return nil, err
 	}
+	if err = validator.ValidateMessage(hostInv); err != nil {
+		zlog.InfraSec().InfraErr(err).Msg("")
+		return nil, errors.Wrap(err)
+	}
 	// TODO: currently activation status is handled by dm-manager
-
-	host := &computev1.HostResource{}
-	if req.ActivationStatus == pb.ActivationStatus_ACTIVATED {
-		host.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
-	} else {
-		host.CurrentAmtState = computev1.AmtState_AMT_STATE_UNPROVISIONED
-	}
-
-	if hostInv.AmtStatus != status.AMTStatusEnabled.Status {
-		zlog.Debug().Msgf("Host %s AMT is not enabled, cannot report activation results", req.HostId)
-		return nil, errors.Errorfc(codes.FailedPrecondition, "AMT is not enabled for host %s", req.HostId)
-	}
-
 	if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED {
 		switch req.ActivationStatus {
 		case pb.ActivationStatus_ACTIVATING:
