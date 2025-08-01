@@ -15,8 +15,16 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/policy/rbac"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/secretprovider"
 	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
 	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/status"
+	"github.com/rs/zerolog/log"
+)
+
+const (
+	AmtPasswordSecretName = "amt-password"
+	passwordKey           = "password"
 )
 
 var (
@@ -25,7 +33,8 @@ var (
 )
 
 type InventoryClientService struct {
-	invClient client.TenantAwareInventoryClient
+	invClient      client.TenantAwareInventoryClient
+	SecretProvider secretprovider.SecretProvider
 }
 
 type (
@@ -127,21 +136,35 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	}
 	zlog.Debug().Msgf("Request from PMA=%s", req.GetStatus().String())
 	zlog.Debug().Msgf("hostInv AMTStatus=%s", hostInv.AmtStatus)
-	if hostInv.AmtStatus != req.GetStatus().String() {
+	if req.GetStatus() == pb.AMTStatus_ENABLED {
 		err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 			&fieldmaskpb.FieldMask{Paths: []string{
 				computev1.HostResourceFieldAmtStatus,
+				computev1.HostResourceFieldAmtStatusIndicator,
 			}}, &computev1.HostResource{
-				AmtStatus: req.GetStatus().String(),
+				AmtStatus:          status.AMTStatusEnabled.Status,
+				AmtStatusIndicator: status.AMTStatusEnabled.StatusIndicator,
 			})
 		if err != nil {
 			zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
 			return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
 		}
-		return &pb.AMTStatusResponse{}, nil
+	} else {
+		err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
+			&fieldmaskpb.FieldMask{Paths: []string{
+				computev1.HostResourceFieldAmtStatus,
+				computev1.HostResourceFieldAmtStatusIndicator,
+			}}, &computev1.HostResource{
+				AmtStatus:          status.AMTStatusDisabled.Status,
+				AmtStatusIndicator: status.AMTStatusDisabled.StatusIndicator,
+			})
+		if err != nil {
+			zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
+			return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
+		}
 	}
+	return &pb.AMTStatusResponse{}, nil
 
-	return nil, errors.Errorfc(codes.FailedPrecondition, "AMT status is already set to %s", hostInv.AmtStatus)
 }
 
 func (dms *DeviceManagementService) RetrieveActivationDetails(
@@ -177,26 +200,26 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 	zlog.Debug().Msgf("DesiredAmtState %s ", hostInv.DesiredAmtState.String())
 	zlog.Debug().Msgf("CurrentAmtState %s ", hostInv.CurrentAmtState.String())
 
-	if hostInv.AmtStatus == "ENABLED" {
-		if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED &&
-			(hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNPROVISIONED ||
-				hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNSPECIFIED) {
-			zlog.Debug().Msgf("Send activation request for Host %s ", req.HostId)
-			response = &pb.ActivationDetailsResponse{
-				Operation:   pb.OperationType_ACTIVATE,
-				HostId:      req.HostId,
-				ProfileName: tenantID,
-			}
-		} else {
-			zlog.Debug().Msgf("Node is provisioned for UUID %s and tID=%s\n",
-				req.HostId, tenantID)
-			return nil, errors.Errorfc(codes.FailedPrecondition,
-				"current state is %s or activation not requested by user %v", hostInv.CurrentAmtState, err)
+	amtPassword := dms.SecretProvider.GetSecret(AmtPasswordSecretName, passwordKey)
+	if amtPassword == "" {
+		log.Error().Msgf("Couldn't get password from secret provider, see logs above for details")
+		return nil, errors.Errorfc(codes.Internal, "Failed to retrieve AMT password from secret provider")
+	}
+	if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED &&
+		(hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNPROVISIONED ||
+			hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNSPECIFIED) {
+		zlog.Debug().Msgf("Send activation request for Host %s ", req.HostId)
+		response = &pb.ActivationDetailsResponse{
+			Operation:      pb.OperationType_ACTIVATE,
+			HostId:         req.HostId,
+			ProfileName:    tenantID,
+			ActionPassword: amtPassword,
 		}
 	} else {
-		zlog.Debug().Msgf("AMT is not enabled for host %s", req.HostId)
+		zlog.Debug().Msgf("Node is provisioned for UUID %s and tID=%s\n",
+			req.HostId, tenantID)
 		return nil, errors.Errorfc(codes.FailedPrecondition,
-			"AMT is not enabled for host %s", req.HostId)
+			"current state is %s or activation not requested by user %v", hostInv.CurrentAmtState, err)
 	}
 
 	return response, nil
@@ -226,31 +249,83 @@ func (dms *DeviceManagementService) ReportActivationResults(
 	// TODO: currently activation status is handled by dm-manager
 
 	host := &computev1.HostResource{}
-	if req.ActivationStatus == pb.ActivationStatus_PROVISIONED {
+	if req.ActivationStatus == pb.ActivationStatus_ACTIVATED {
 		host.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
 	} else {
 		host.CurrentAmtState = computev1.AmtState_AMT_STATE_UNPROVISIONED
 	}
 
-	if hostInv.CurrentAmtState != host.CurrentAmtState {
-		if req.ActivationStatus == pb.ActivationStatus_PROVISIONED &&
-			hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED {
-			zlog.Debug().Msgf("Host %s AMT state changed to provisioned", req.HostId)
-			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_PROVISIONED
-		} else {
-			zlog.Debug().Msgf("Host %s AMT current state is Unprovisioned", req.HostId)
-			hostInv.CurrentAmtState = computev1.AmtState_AMT_STATE_UNPROVISIONED
+	if hostInv.AmtStatus != status.AMTStatusEnabled.Status {
+		zlog.Debug().Msgf("Host %s AMT is not enabled, cannot report activation results", req.HostId)
+		return nil, errors.Errorfc(codes.FailedPrecondition, "AMT is not enabled for host %s", req.HostId)
+	}
+
+	if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED {
+		switch req.ActivationStatus {
+		case pb.ActivationStatus_ACTIVATING:
+			if hostInv.AmtStatus == status.AMTActivationStatusInProgress.Status {
+				zlog.Debug().Msgf("Host %s AMT activation is already in progress", req.HostId)
+				return nil, errors.Errorfc(codes.FailedPrecondition, "AMT activation is already in progress")
+			}
+			zlog.Debug().Msgf("Host %s AMT status is provisioning", req.HostId)
+			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
+				&fieldmaskpb.FieldMask{Paths: []string{
+					computev1.HostResourceFieldAmtStatus,
+					computev1.HostResourceFieldAmtStatusIndicator,
+				}}, &computev1.HostResource{
+					AmtStatus:          status.AMTActivationStatusInProgress.Status,
+					AmtStatusIndicator: status.AMTActivationStatusInProgress.StatusIndicator,
+				})
+			if err != nil {
+				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT state for host %s", hostInv.GetResourceId())
+				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT state: %v", err)
+			}
+		case pb.ActivationStatus_ACTIVATED:
+			if hostInv.AmtStatus == status.AMTActivationStatusDone.Status &&
+				hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_PROVISIONED {
+				zlog.Debug().Msgf("Host %s AMT activation is already completed", req.HostId)
+				return nil, errors.Errorfc(codes.FailedPrecondition, "AMT activation is already completed")
+			}
+			zlog.Debug().Msgf("Host %s AMT current is provisioned", req.HostId)
+			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
+				&fieldmaskpb.FieldMask{Paths: []string{
+					computev1.HostResourceFieldCurrentAmtState,
+					computev1.HostResourceFieldAmtStatus,
+					computev1.HostResourceFieldAmtStatusIndicator,
+				}}, &computev1.HostResource{
+					CurrentAmtState:    computev1.AmtState_AMT_STATE_PROVISIONED,
+					AmtStatus:          status.AMTActivationStatusDone.Status,
+					AmtStatusIndicator: status.AMTActivationStatusDone.StatusIndicator,
+				})
+			if err != nil {
+				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT state for host %s", hostInv.GetResourceId())
+				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT state: %v", err)
+			}
+		case pb.ActivationStatus_ACTIVATION_FAILED:
+			if hostInv.AmtStatus == status.AMTActivationStatusFailed.Status &&
+				hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNPROVISIONED {
+				zlog.Debug().Msgf("Host %s AMT activation is already in failed state", req.HostId)
+				return nil, errors.Errorfc(codes.FailedPrecondition, "AMT activation is already in failed state")
+			}
+			zlog.Debug().Msgf("Host %s AMT activation is Failed", req.HostId)
+			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
+				&fieldmaskpb.FieldMask{Paths: []string{
+					computev1.HostResourceFieldCurrentAmtState,
+					computev1.HostResourceFieldAmtStatus,
+					computev1.HostResourceFieldAmtStatusIndicator,
+				}}, &computev1.HostResource{
+					CurrentAmtState:    computev1.AmtState_AMT_STATE_UNPROVISIONED,
+					AmtStatus:          status.AMTActivationStatusFailed.Status,
+					AmtStatusIndicator: status.AMTActivationStatusFailed.StatusIndicator,
+				})
+			if err != nil {
+				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT state for host %s", hostInv.GetResourceId())
+				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT state: %v", err)
+			}
+		default:
+			return nil, errors.Errorfc(codes.InvalidArgument, "Invalid activation status: %s", req.ActivationStatus)
 		}
-		err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
-			&fieldmaskpb.FieldMask{Paths: []string{
-				computev1.HostResourceFieldCurrentAmtState,
-			}}, &computev1.HostResource{
-				CurrentAmtState: hostInv.CurrentAmtState,
-			})
-		if err != nil {
-			zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT state for host %s", hostInv.GetResourceId())
-			return nil, errors.Errorfc(codes.Internal, "Failed to update AMT state: %v", err)
-		}
+		zlog.Debug().Msgf("Host %s AMT activation result reported successfully", req.HostId)
 		return &pb.ActivationResultResponse{}, nil
 	}
 
