@@ -100,6 +100,9 @@ linters-settings:
           - github.com/google/uuid
           - github.com/rs/zerolog
           - k8s.io/apimachinery/pkg
+          - google.golang.org/grpc/codes
+          - google.golang.org/grpc/status
+          - google.golang.org/protobuf/types/known/fieldmaskpb
   cyclop:
     # SDL requirements recommend a maximum cyclomatic complexity of 10
     max-complexity: 10
