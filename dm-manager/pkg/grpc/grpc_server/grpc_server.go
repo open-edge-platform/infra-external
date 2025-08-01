@@ -210,15 +210,15 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 	zlog.Debug().Msgf("DesiredAmtState %s ", hostInv.DesiredAmtState.String())
 	zlog.Debug().Msgf("CurrentAmtState %s ", hostInv.CurrentAmtState.String())
 
-	amtPassword := dms.SecretProvider.GetSecret(AmtPasswordSecretName, passwordKey)
-	if amtPassword == "" {
-		log.Error().Msgf("Couldn't get password from secret provider, see logs above for details")
-		return nil, errors.Errorfc(codes.Internal, "Failed to retrieve AMT password from secret provider")
-	}
 	if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		(hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNPROVISIONED ||
 			hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNSPECIFIED) {
 		zlog.Debug().Msgf("Send activation request for Host %s ", req.HostId)
+		amtPassword := dms.SecretProvider.GetSecret(AmtPasswordSecretName, passwordKey)
+		if amtPassword == "" {
+			log.Error().Msgf("Couldn't get password from secret provider for host %s", req.HostId)
+			return nil, errors.Errorfc(codes.Internal, "Failed to retrieve AMT password from secret provider")
+		}
 		response = &pb.ActivationDetailsResponse{
 			Operation:      pb.OperationType_ACTIVATE,
 			HostId:         req.HostId,
