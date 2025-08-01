@@ -72,9 +72,24 @@ func (m *MockRBACPolicy) Verify(ctx context.Context, operation string) error {
 	return args.Error(0)
 }
 
+// MockSecretProvider is a mock implementation of SecretProvider.
+type MockSecretProvider struct {
+	mock.Mock
+}
+
+func (m *MockSecretProvider) GetSecret(secretName, key string) string {
+	args := m.Called(secretName, key)
+	return args.String(0)
+}
+
+func (m *MockSecretProvider) Init(ctx context.Context, args []string) error {
+	mockArgs := m.Called(ctx, args)
+	return mockArgs.Error(0)
+}
+
 // Helper function to create context with tenant ID.
-func createContextWithTenant(_ string) context.Context {
-	return inv_tenant.AddTenantIDToContext(context.Background(), "tenant-123")
+func createContextWithTenant(tenantID string) context.Context {
+	return inv_tenant.AddTenantIDToContext(context.Background(), tenantID)
 }
 
 // Helper function to create context without tenant ID.
@@ -96,18 +111,19 @@ func TestReportAMTStatus(t *testing.T) {
 			name: "successful AMT status report",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				hostResource := &computev1.HostResource{
-					ResourceId: "host-123",
+					ResourceId: "host-12345678",
 					Name:       "test-host",
-					Uuid:       "host-uuid-123",
-					TenantId:   "tenant-123",
+					Uuid:       "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					TenantId:   "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
 				}
-				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123", "host-123").Return(hostResource, nil)
-				mockInvClient.On("Update", mock.Anything, "tenant-123", "host-123",
+				mockInvClient.On("GetHostByUUID", mock.Anything,
+					"bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678").Return(hostResource, nil)
+				mockInvClient.On("Update", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678",
 					mock.Anything, mock.Anything).Return(&inventoryv1.Resource{}, nil)
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant("bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d"),
 			request: &pb.AMTStatusRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 				Status: pb.AMTStatus_ENABLED,
 			},
 			authEnabled:    false,
@@ -121,7 +137,7 @@ func TestReportAMTStatus(t *testing.T) {
 			},
 			context: createContextWithoutTenant(),
 			request: &pb.AMTStatusRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 				Status: pb.AMTStatus_ENABLED,
 			},
 			authEnabled:    false,
@@ -131,12 +147,12 @@ func TestReportAMTStatus(t *testing.T) {
 		{
 			name: "host not found",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
-				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123",
-					"host-123").Return(nil, inv_errors.Errorfc(codes.NotFound, "host not found"))
+				mockInvClient.On("GetHostByUUID", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					"host-12345678").Return(nil, inv_errors.Errorfc(codes.NotFound, "host not found"))
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant("bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d"),
 			request: &pb.AMTStatusRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 				Status: pb.AMTStatus_ENABLED,
 			},
 			authEnabled:    false,
@@ -163,6 +179,11 @@ func TestReportAMTStatus(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to create service: %v", err)
 			}
+
+			// Set up mock secret provider for tests that need it
+			mockSecretProvider := &MockSecretProvider{}
+			mockSecretProvider.On("GetSecret", "amt-password", "password").Return("test-password")
+			service.SecretProvider = mockSecretProvider
 
 			response, err := service.ReportAMTStatus(tt.context, tt.request)
 
@@ -196,26 +217,26 @@ func TestRetrieveActivationDetails(t *testing.T) {
 			name: "successful activation details retrieval",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				hostResource := &computev1.HostResource{
-					ResourceId:      "host-123",
+					ResourceId:      "host-12345678",
 					Name:            "test-host",
-					Uuid:            "host-uuid-123",
-					TenantId:        "tenant-123",
+					Uuid:            "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					TenantId:        "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
 					DesiredAmtState: computev1.AmtState_AMT_STATE_PROVISIONED,
 					CurrentAmtState: computev1.AmtState_AMT_STATE_UNPROVISIONED,
 					AmtStatus:       "ENABLED",
 				}
-				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123", "host-123").Return(hostResource, nil)
+				mockInvClient.On("GetHostByUUID", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678").Return(hostResource, nil)
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant("bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d"),
 			request: &pb.ActivationRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 			},
 			authEnabled:   false,
 			expectedError: codes.OK,
 			expectedResult: &pb.ActivationDetailsResponse{
-				HostId:      "host-123",
+				HostId:      "host-12345678",
 				Operation:   pb.OperationType_ACTIVATE,
-				ProfileName: "tenant-123",
+				ProfileName: "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
 			},
 		},
 		{
@@ -225,7 +246,7 @@ func TestRetrieveActivationDetails(t *testing.T) {
 			},
 			context: createContextWithoutTenant(),
 			request: &pb.ActivationRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 			},
 			authEnabled:    false,
 			expectedError:  codes.Unauthenticated,
@@ -234,12 +255,12 @@ func TestRetrieveActivationDetails(t *testing.T) {
 		{
 			name: "host not found",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
-				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123",
-					"host-123").Return(nil, inv_errors.Errorfc(codes.NotFound, "host not found"))
+				mockInvClient.On("GetHostByUUID", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					"host-12345678").Return(nil, inv_errors.Errorfc(codes.NotFound, "host not found"))
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant("bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d"),
 			request: &pb.ActivationRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 			},
 			authEnabled:    false,
 			expectedError:  codes.NotFound,
@@ -264,6 +285,11 @@ func TestRetrieveActivationDetails(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to create service: %v", err)
 			}
+
+			// Set up mock secret provider for tests that need it
+			mockSecretProvider := &MockSecretProvider{}
+			mockSecretProvider.On("GetSecret", "amt-password", "password").Return("test-password")
+			service.SecretProvider = mockSecretProvider
 
 			response, err := service.RetrieveActivationDetails(tt.context, tt.request)
 
@@ -301,19 +327,20 @@ func TestReportActivationResults(t *testing.T) {
 			name: "successful activation result report",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				hostResource := &computev1.HostResource{
-					ResourceId: "host-123",
-					Name:       "test-host",
-					Uuid:       "host-uuid-123",
-					TenantId:   "tenant-123",
+					ResourceId:      "host-12345678",
+					Name:            "test-host",
+					Uuid:            "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					TenantId:        "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					DesiredAmtState: computev1.AmtState_AMT_STATE_PROVISIONED,
 				}
-				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123", "host-123").Return(hostResource, nil)
-				mockInvClient.On("Update", mock.Anything, "tenant-123",
-					"host-123", mock.Anything,
+				mockInvClient.On("GetHostByUUID", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678").Return(hostResource, nil)
+				mockInvClient.On("Update", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					"host-12345678", mock.Anything,
 					mock.Anything).Return(&inventoryv1.Resource{}, nil)
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant("bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d"),
 			request: &pb.ActivationResultRequest{
-				HostId:           "host-123",
+				HostId:           "host-12345678",
 				ActivationStatus: pb.ActivationStatus_ACTIVATED,
 			},
 			authEnabled:    false,
@@ -327,7 +354,7 @@ func TestReportActivationResults(t *testing.T) {
 			},
 			context: createContextWithoutTenant(),
 			request: &pb.ActivationResultRequest{
-				HostId:           "host-123",
+				HostId:           "host-12345678",
 				ActivationStatus: pb.ActivationStatus_ACTIVATED,
 			},
 			authEnabled:    false,
@@ -338,12 +365,12 @@ func TestReportActivationResults(t *testing.T) {
 			name: "host not found",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				mockInvClient.On("GetHostByUUID", mock.Anything,
-					"tenant-123", "host-123").Return(nil,
+					"bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678").Return(nil,
 					inv_errors.Errorfc(codes.NotFound, "host not found"))
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant("bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d"),
 			request: &pb.ActivationResultRequest{
-				HostId:           "host-123",
+				HostId:           "host-12345678",
 				ActivationStatus: pb.ActivationStatus_ACTIVATED,
 			},
 			authEnabled:    false,
@@ -369,6 +396,11 @@ func TestReportActivationResults(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to create service: %v", err)
 			}
+
+			// Set up mock secret provider for tests that need it
+			mockSecretProvider := &MockSecretProvider{}
+			mockSecretProvider.On("GetSecret", "amt-password", "password").Return("test-password")
+			service.SecretProvider = mockSecretProvider
 
 			response, err := service.ReportActivationResults(tt.context, tt.request)
 

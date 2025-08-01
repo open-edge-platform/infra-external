@@ -115,6 +115,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
 			err := errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
 			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
+			return nil, err
 		}
 	}
 
@@ -181,6 +182,7 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
 			err := errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
 			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
+			return nil, err
 		}
 	}
 
@@ -245,6 +247,7 @@ func (dms *DeviceManagementService) ReportActivationResults(
 		if !dms.rbac.IsRequestAuthorized(ctx, rbac.CreateKey) {
 			err := errors.Errorfc(codes.PermissionDenied, "Request is blocked by RBAC")
 			zlog.InfraSec().InfraErr(err).Msgf("Request Device management is not authenticated")
+			return nil, err
 		}
 	}
 
