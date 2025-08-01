@@ -314,7 +314,7 @@ func TestReportActivationResults(t *testing.T) {
 			context: createContextWithTenant("tenant-123"),
 			request: &pb.ActivationResultRequest{
 				HostId:           "host-123",
-				ActivationStatus: pb.ActivationStatus_PROVISIONED,
+				ActivationStatus: pb.ActivationStatus_ACTIVATED,
 			},
 			authEnabled:    false,
 			expectedError:  codes.OK,
@@ -328,7 +328,7 @@ func TestReportActivationResults(t *testing.T) {
 			context: createContextWithoutTenant(),
 			request: &pb.ActivationResultRequest{
 				HostId:           "host-123",
-				ActivationStatus: pb.ActivationStatus_PROVISIONED,
+				ActivationStatus: pb.ActivationStatus_ACTIVATED,
 			},
 			authEnabled:    false,
 			expectedError:  codes.Unauthenticated,
@@ -344,7 +344,7 @@ func TestReportActivationResults(t *testing.T) {
 			context: createContextWithTenant("tenant-123"),
 			request: &pb.ActivationResultRequest{
 				HostId:           "host-123",
-				ActivationStatus: pb.ActivationStatus_PROVISIONED,
+				ActivationStatus: pb.ActivationStatus_ACTIVATED,
 			},
 			authEnabled:    false,
 			expectedError:  codes.NotFound,
