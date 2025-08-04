@@ -141,7 +141,6 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 		return nil, errors.Wrap(err)
 	}
 	zlog.Debug().Msgf("Request from PMA=%s", req.GetStatus().String())
-	zlog.Debug().Msgf("hostInv AMTStatus=%s", hostInv.AmtStatus)
 	if req.GetStatus() == pb.AMTStatus_ENABLED {
 		err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 			&fieldmaskpb.FieldMask{Paths: []string{
