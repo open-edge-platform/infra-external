@@ -151,32 +151,51 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 		return nil, errors.Wrap(err)
 	}
 	zlog.Debug().Msgf("Request from PMA=%s", req.GetStatus().String())
-	if req.GetStatus() == pb.AMTStatus_ENABLED {
-		err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
-			&fieldmaskpb.FieldMask{Paths: []string{
-				computev1.HostResourceFieldAmtStatus,
-				computev1.HostResourceFieldAmtStatusIndicator,
-			}}, &computev1.HostResource{
-				AmtStatus:          status.AMTStatusEnabled.Status,
-				AmtStatusIndicator: status.AMTStatusEnabled.StatusIndicator,
-			})
-		if err != nil {
-			zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
-			return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
+	switch req.GetStatus() {
+	case pb.AMTStatus_ENABLED:
+		if hostInv.AmtStatus != status.AMTStatusEnabled.Status {
+			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
+				&fieldmaskpb.FieldMask{Paths: []string{
+					computev1.HostResourceFieldAmtStatus,
+					computev1.HostResourceFieldAmtStatusIndicator,
+					computev1.HostResourceFieldCurrentPowerState,
+				}}, &computev1.HostResource{
+					AmtStatus:          status.AMTStatusEnabled.Status,
+					AmtStatusIndicator: status.AMTStatusEnabled.StatusIndicator,
+					CurrentPowerState:  computev1.PowerState_POWER_STATE_ON,
+				})
+			if err != nil {
+				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
+				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
+			}
+		} else {
+			zlog.Debug().Msgf("AMT status for host %s is already enabled", hostInv.GetResourceId())
+			return nil, errors.Errorfc(codes.FailedPrecondition, "AMT status is already enabled for host %s", hostInv.GetResourceId())
 		}
-	} else {
-		err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
-			&fieldmaskpb.FieldMask{Paths: []string{
-				computev1.HostResourceFieldAmtStatus,
-				computev1.HostResourceFieldAmtStatusIndicator,
-			}}, &computev1.HostResource{
-				AmtStatus:          status.AMTStatusDisabled.Status,
-				AmtStatusIndicator: status.AMTStatusDisabled.StatusIndicator,
-			})
-		if err != nil {
-			zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
-			return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
+	case pb.AMTStatus_DISABLED:
+		if hostInv.AmtStatus != status.AMTStatusDisabled.Status {
+			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
+				&fieldmaskpb.FieldMask{Paths: []string{
+					computev1.HostResourceFieldAmtStatus,
+					computev1.HostResourceFieldAmtStatusIndicator,
+					computev1.HostResourceFieldCurrentPowerState,
+				}}, &computev1.HostResource{
+					AmtStatus:          status.AMTStatusDisabled.Status,
+					AmtStatusIndicator: status.AMTStatusDisabled.StatusIndicator,
+					CurrentPowerState:  computev1.PowerState_POWER_STATE_ON,
+				})
+			if err != nil {
+				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
+				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
+			}
+		} else {
+			zlog.Debug().Msgf("AMT status for host %s is already disabled", hostInv.GetResourceId())
+			return nil, errors.Errorfc(codes.FailedPrecondition, "AMT status is already disabled for host %s", hostInv.GetResourceId())
 		}
+	default:
+		err := errors.Errorfc(codes.InvalidArgument, "Invalid AMT status: %s", req.GetStatus())
+		zlog.InfraSec().InfraErr(err).Msgf("Invalid AMT status received from PMA")
+		return nil, err
 	}
 	return &pb.AMTStatusResponse{}, nil
 }
