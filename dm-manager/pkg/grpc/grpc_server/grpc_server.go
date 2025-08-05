@@ -158,12 +158,11 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 				&fieldmaskpb.FieldMask{Paths: []string{
 					computev1.HostResourceFieldAmtStatus,
 					computev1.HostResourceFieldAmtStatusIndicator,
-					computev1.HostResourceFieldCurrentPowerState,
 				}}, &computev1.HostResource{
 					AmtStatus:          status.AMTStatusEnabled.Status,
 					AmtStatusIndicator: status.AMTStatusEnabled.StatusIndicator,
-					CurrentPowerState:  computev1.PowerState_POWER_STATE_ON,
 				})
+
 			if err != nil {
 				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
 				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
@@ -178,11 +177,9 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 				&fieldmaskpb.FieldMask{Paths: []string{
 					computev1.HostResourceFieldAmtStatus,
 					computev1.HostResourceFieldAmtStatusIndicator,
-					computev1.HostResourceFieldCurrentPowerState,
 				}}, &computev1.HostResource{
 					AmtStatus:          status.AMTStatusDisabled.Status,
 					AmtStatusIndicator: status.AMTStatusDisabled.StatusIndicator,
-					CurrentPowerState:  computev1.PowerState_POWER_STATE_ON,
 				})
 			if err != nil {
 				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
