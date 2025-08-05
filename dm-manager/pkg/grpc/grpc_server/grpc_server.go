@@ -116,6 +116,7 @@ func NewDeviceManagementService(invClient client.TenantAwareInventoryClient,
 	}, nil
 }
 
+//nolint:cyclop // high cyclomatic complexity because of the conditional logic
 func (dms *DeviceManagementService) ReportAMTStatus(
 	ctx context.Context, req *pb.AMTStatusRequest,
 ) (*pb.AMTStatusResponse, error) {
@@ -162,14 +163,14 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 					AmtStatus:          status.AMTStatusEnabled.Status,
 					AmtStatusIndicator: status.AMTStatusEnabled.StatusIndicator,
 				})
-
 			if err != nil {
 				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
 				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
 			}
 		} else {
 			zlog.Debug().Msgf("AMT status for host %s is already enabled", hostInv.GetResourceId())
-			return nil, errors.Errorfc(codes.FailedPrecondition, "AMT status is already enabled for host %s", hostInv.GetResourceId())
+			return nil, errors.Errorfc(codes.FailedPrecondition,
+				"AMT status is already enabled for host %s", hostInv.GetResourceId())
 		}
 	case pb.AMTStatus_DISABLED:
 		if hostInv.AmtStatus != status.AMTStatusDisabled.Status {
@@ -187,7 +188,8 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 			}
 		} else {
 			zlog.Debug().Msgf("AMT status for host %s is already disabled", hostInv.GetResourceId())
-			return nil, errors.Errorfc(codes.FailedPrecondition, "AMT status is already disabled for host %s", hostInv.GetResourceId())
+			return nil, errors.Errorfc(codes.FailedPrecondition,
+				"AMT status is already disabled for host %s", hostInv.GetResourceId())
 		}
 	default:
 		err := errors.Errorfc(codes.InvalidArgument, "Invalid AMT status: %s", req.GetStatus())
@@ -373,7 +375,9 @@ func (dms *DeviceManagementService) getTenantFromContext(ctx context.Context) (s
 	return tenantID, nil
 }
 
-func (dms *DeviceManagementService) getHostByUUID(ctx context.Context, tenantID, hostID string) (*computev1.HostResource, error) {
+func (dms *DeviceManagementService) getHostByUUID(ctx context.Context,
+	tenantID, hostID string,
+) (*computev1.HostResource, error) {
 	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, hostID)
 	if err != nil {
 		zlog.InfraSec().InfraErr(err).Msgf("Failed to get host by UUID %s", hostID)
