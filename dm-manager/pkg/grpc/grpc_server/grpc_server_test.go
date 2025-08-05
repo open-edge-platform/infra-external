@@ -17,6 +17,7 @@ import (
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	inv_errors "github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/flags"
 	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
 	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
 	grpcserver "github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc/grpc_server"
@@ -99,6 +100,9 @@ func createContextWithoutTenant() context.Context {
 
 // Helper function to create a service instance for testing.
 func createTestService(mockInvClient *MockInventoryClient, authEnabled bool) (*grpcserver.DeviceManagementService, error) {
+	// Disable credentials management for testing
+	*flags.FlagDisableCredentialsManagement = true
+
 	var invClient client.TenantAwareInventoryClient = mockInvClient
 	service, err := grpcserver.NewDeviceManagementService(
 		invClient,
