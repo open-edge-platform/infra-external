@@ -5,6 +5,7 @@ package grpcserver
 
 import (
 	"context"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
@@ -21,11 +22,12 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/validator"
 	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/status"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/tenant"
+	"github.com/open-edge-platform/infra-external/loca-onboarding/v2/pkg/secrets"
 )
 
 const (
-	AmtPasswordSecretName = "amt-password"
-	passwordKey           = "password"
+	passwordKey = "password"
 )
 
 var (
@@ -97,9 +99,17 @@ func NewDeviceManagementService(invClient client.TenantAwareInventoryClient,
 		zlog.Warn().Msg("inventoryAdr is empty")
 	}
 
+	vsp := secrets.VaultSecretProvider{}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if initErr := vsp.Init(ctx, []string{tenant.AmtPasswordSecretName}); initErr != nil {
+		zlog.InfraSec().Fatal().Err(initErr).Msgf("Unable to initialize required secrets")
+	}
+
 	return &DeviceManagementService{
 		InventoryClientService: InventoryClientService{
-			invClient: invClient,
+			invClient:      invClient,
+			SecretProvider: &vsp,
 		},
 		rbac:        rbacPolicy,
 		authEnabled: enableAuth,
@@ -215,7 +225,7 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 		(hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNPROVISIONED ||
 			hostInv.CurrentAmtState == computev1.AmtState_AMT_STATE_UNSPECIFIED) {
 		zlog.Debug().Msgf("Send activation request for Host %s ", req.HostId)
-		amtPassword := dms.SecretProvider.GetSecret(AmtPasswordSecretName, passwordKey)
+		amtPassword := dms.SecretProvider.GetSecret(tenant.AmtPasswordSecretName, passwordKey)
 		if amtPassword == "" {
 			log.Error().Msgf("Couldn't get password from secret provider for host %s", req.HostId)
 			return nil, errors.Errorfc(codes.Internal, "Failed to retrieve AMT password from secret provider")
