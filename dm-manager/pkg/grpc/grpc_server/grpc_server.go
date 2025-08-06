@@ -154,40 +154,36 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	zlog.Debug().Msgf("Request from PMA=%s", req.GetStatus().String())
 	switch req.GetStatus() {
 	case pb.AMTStatus_ENABLED:
-		if hostInv.AmtStatus != status.AMTStatusEnabled.Status {
+		if hostInv.AmtSku != status.AMTStatusEnabled.Status {
 			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 				&fieldmaskpb.FieldMask{Paths: []string{
-					computev1.HostResourceFieldAmtStatus,
-					computev1.HostResourceFieldAmtStatusIndicator,
+					computev1.HostResourceFieldAmtSku,
 				}}, &computev1.HostResource{
-					AmtStatus:          status.AMTStatusEnabled.Status,
-					AmtStatusIndicator: status.AMTStatusEnabled.StatusIndicator,
+					AmtSku: status.AMTStatusEnabled.Status,
 				})
 			if err != nil {
 				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
 				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
 			}
 		} else {
-			zlog.Debug().Msgf("AMT status for host %s is already enabled", hostInv.GetResourceId())
+			zlog.Debug().Msgf("AMT status for host %s is already set as enabled", hostInv.GetResourceId())
 			return nil, errors.Errorfc(codes.FailedPrecondition,
 				"AMT status is already enabled for host %s", hostInv.GetResourceId())
 		}
 	case pb.AMTStatus_DISABLED:
-		if hostInv.AmtStatus != status.AMTStatusDisabled.Status {
+		if hostInv.AmtSku != status.AMTStatusDisabled.Status {
 			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 				&fieldmaskpb.FieldMask{Paths: []string{
-					computev1.HostResourceFieldAmtStatus,
-					computev1.HostResourceFieldAmtStatusIndicator,
+					computev1.HostResourceFieldAmtSku,
 				}}, &computev1.HostResource{
-					AmtStatus:          status.AMTStatusDisabled.Status,
-					AmtStatusIndicator: status.AMTStatusDisabled.StatusIndicator,
+					AmtSku: status.AMTStatusDisabled.Status,
 				})
 			if err != nil {
 				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
 				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
 			}
 		} else {
-			zlog.Debug().Msgf("AMT status for host %s is already disabled", hostInv.GetResourceId())
+			zlog.Debug().Msgf("AMT status for host %s is already set as disabled", hostInv.GetResourceId())
 			return nil, errors.Errorfc(codes.FailedPrecondition,
 				"AMT status is already disabled for host %s", hostInv.GetResourceId())
 		}
