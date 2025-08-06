@@ -288,7 +288,7 @@ func (dms *DeviceManagementService) ReportActivationResults(
 		return nil, errors.Wrap(err)
 	}
 	// TODO: currently activation status is handled by dm-manager
-	if hostInv.DesiredAmtState == computev1.AmtState_AMT_STATE_PROVISIONED {
+	if hostInv.DesiredAmtState != hostInv.CurrentAmtState {
 		switch req.ActivationStatus {
 		case pb.ActivationStatus_ACTIVATING:
 			if hostInv.AmtStatus == status.AMTActivationStatusInProgress.Status {
@@ -338,11 +338,9 @@ func (dms *DeviceManagementService) ReportActivationResults(
 			zlog.Debug().Msgf("Host %s AMT activation is Failed", req.HostId)
 			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 				&fieldmaskpb.FieldMask{Paths: []string{
-					computev1.HostResourceFieldCurrentAmtState,
 					computev1.HostResourceFieldAmtStatus,
 					computev1.HostResourceFieldAmtStatusIndicator,
 				}}, &computev1.HostResource{
-					CurrentAmtState:    computev1.AmtState_AMT_STATE_UNPROVISIONED,
 					AmtStatus:          status.AMTActivationStatusFailed.Status,
 					AmtStatusIndicator: status.AMTActivationStatusFailed.StatusIndicator,
 				})
