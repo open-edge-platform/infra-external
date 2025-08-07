@@ -191,7 +191,6 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	return &pb.AMTStatusResponse{}, nil
 }
 
-//nolint:cyclop // high cyclomatic complexity because of the conditional logic.
 func (dms *DeviceManagementService) RetrieveActivationDetails(
 	ctx context.Context, req *pb.ActivationRequest,
 ) (*pb.ActivationDetailsResponse, error) {
