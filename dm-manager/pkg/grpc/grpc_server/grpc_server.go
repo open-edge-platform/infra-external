@@ -19,7 +19,6 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/policy/rbac"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/secretprovider"
 	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
-	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/validator"
 	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/status"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/tenant"
@@ -147,10 +146,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 			return nil, errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
 		}
 	}
-	if err = validator.ValidateMessage(hostInv); err != nil {
-		zlog.InfraSec().InfraErr(err).Msg("")
-		return nil, errors.Wrap(err)
-	}
+
 	zlog.Debug().Msgf("Request from PMA=%s", req.GetStatus().String())
 	switch req.GetStatus() {
 	case pb.AMTStatus_ENABLED:
@@ -195,7 +191,6 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	return &pb.AMTStatusResponse{}, nil
 }
 
-//nolint:cyclop // high cyclomatic complexity because of the conditional logic.
 func (dms *DeviceManagementService) RetrieveActivationDetails(
 	ctx context.Context, req *pb.ActivationRequest,
 ) (*pb.ActivationDetailsResponse, error) {
@@ -226,10 +221,6 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 				req.HostId, tenantID)
 			return nil, errors.Errorfc(codes.NotFound, "Host with UUID %s not found", req.HostId)
 		}
-	}
-	if err = validator.ValidateMessage(hostInv); err != nil {
-		zlog.InfraSec().InfraErr(err).Msg("")
-		return nil, errors.Wrap(err)
 	}
 
 	zlog.Debug().Msgf("DesiredAmtState %s ", hostInv.DesiredAmtState.String())
@@ -283,10 +274,7 @@ func (dms *DeviceManagementService) ReportActivationResults(
 	if err != nil {
 		return nil, err
 	}
-	if err = validator.ValidateMessage(hostInv); err != nil {
-		zlog.InfraSec().InfraErr(err).Msg("")
-		return nil, errors.Wrap(err)
-	}
+
 	// TODO: currently activation status is handled by dm-manager
 	if hostInv.DesiredAmtState != hostInv.CurrentAmtState {
 		switch req.ActivationStatus {
