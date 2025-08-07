@@ -20,6 +20,7 @@ import (
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/flags"
 	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
 	grpcpkg "github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc"
 )
@@ -67,6 +68,11 @@ func (m *MockTenantAwareInventoryClient) Close() error {
 // Helper function to create a test listener.
 func createTestListener() (net.Listener, error) {
 	return net.Listen("tcp", "127.0.0.1:0")
+}
+
+// setupTestEnvironment disables credentials management for testing.
+func setupTestEnvironment() {
+	*flags.FlagDisableCredentialsManagement = true
 }
 
 func TestNewDMHandler(t *testing.T) {
@@ -230,6 +236,9 @@ func runStartTest(t *testing.T, tt struct {
 },
 ) {
 	t.Helper()
+
+	// Setup test environment to disable credentials management
+	setupTestEnvironment()
 
 	mockClient := tt.setupMocks()
 	var client client.TenantAwareInventoryClient = mockClient
@@ -441,6 +450,9 @@ func TestDMHandler_Stop(t *testing.T) {
 
 func TestDMHandler_StartStop_Integration(t *testing.T) {
 	t.Run("start_stop_multiple_times", func(t *testing.T) {
+		// Setup test environment to disable credentials management
+		setupTestEnvironment()
+
 		mockClient := &MockTenantAwareInventoryClient{}
 
 		config := grpcpkg.DMHandlerConfig{
@@ -487,6 +499,9 @@ func TestDMHandler_StartStop_Integration(t *testing.T) {
 
 func TestDMHandler_Concurrent_Access(t *testing.T) {
 	t.Run("concurrent_start_stop", func(t *testing.T) {
+		// Setup test environment to disable credentials management
+		setupTestEnvironment()
+
 		mockClient := &MockTenantAwareInventoryClient{}
 
 		config := grpcpkg.DMHandlerConfig{

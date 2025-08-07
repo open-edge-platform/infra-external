@@ -15,14 +15,17 @@ enum OperationType {
 
 // Enum for AMT status.
 enum AMTStatus {
-    ENABLED = 0;
-    DISABLED = 1;
+    UNKNOWN = 0; // Default value, should not be used
+    ENABLED = 1;  // AMT is enabled
+    DISABLED = 2; // AMT is disabled
 }
 
 // Enum for activation result status.
 enum ActivationStatus {
-    PROVISIONED = 0;
-    FAILED = 1;
+    UNSPECIFIED = 0; // Default value, should not be used
+    ACTIVATING = 1;
+    ACTIVATED = 2;
+    ACTIVATION_FAILED = 3;
 }
 
 // Service for Device Management.
@@ -56,6 +59,7 @@ message ActivationDetailsResponse {
     string host_id = 1;          // Host identifier
     OperationType operation = 2; // Activate or Deactivate
     string profile_name = 3;     // Profile name for activation
+    string action_password = 4; // Action password for activation
 }
 
 // ActivationResultRequest reports activation results back to dm manager.

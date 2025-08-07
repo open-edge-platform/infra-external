@@ -17,6 +17,7 @@ import (
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	inv_errors "github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
+	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/flags"
 	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
 	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
 	grpcserver "github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc/grpc_server"
@@ -72,14 +73,54 @@ func (m *MockRBACPolicy) Verify(ctx context.Context, operation string) error {
 	return args.Error(0)
 }
 
-// Helper function to create context with tenant ID.
-func createContextWithTenant(_ string) context.Context {
-	return inv_tenant.AddTenantIDToContext(context.Background(), "tenant-123")
+// MockSecretProvider is a mock implementation of SecretProvider.
+type MockSecretProvider struct {
+	mock.Mock
+}
+
+func (m *MockSecretProvider) GetSecret(secretName, key string) string {
+	args := m.Called(secretName, key)
+	return args.String(0)
+}
+
+func (m *MockSecretProvider) Init(ctx context.Context, args []string) error {
+	mockArgs := m.Called(ctx, args)
+	return mockArgs.Error(0)
+}
+
+// Helper function to create context with test tenant ID.
+func createContextWithTenant() context.Context {
+	return inv_tenant.AddTenantIDToContext(context.Background(), "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d")
 }
 
 // Helper function to create context without tenant ID.
 func createContextWithoutTenant() context.Context {
 	return context.Background()
+}
+
+// Helper function to create a service instance for testing.
+func createTestService(mockInvClient *MockInventoryClient, authEnabled bool) (*grpcserver.DeviceManagementService, error) {
+	// Disable credentials management for testing
+	*flags.FlagDisableCredentialsManagement = true
+
+	var invClient client.TenantAwareInventoryClient = mockInvClient
+	service, err := grpcserver.NewDeviceManagementService(
+		invClient,
+		"test-address",
+		false, // enableTracing
+		authEnabled,
+		"test-rbac",
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set up mock secret provider
+	mockSecretProvider := &MockSecretProvider{}
+	mockSecretProvider.On("GetSecret", "amt-password", "password").Return("test-password")
+	service.SecretProvider = mockSecretProvider
+
+	return service, nil
 }
 
 func TestReportAMTStatus(t *testing.T) {
@@ -96,18 +137,19 @@ func TestReportAMTStatus(t *testing.T) {
 			name: "successful AMT status report",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				hostResource := &computev1.HostResource{
-					ResourceId: "host-123",
+					ResourceId: "host-12345678",
 					Name:       "test-host",
-					Uuid:       "host-uuid-123",
-					TenantId:   "tenant-123",
+					Uuid:       "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					TenantId:   "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
 				}
-				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123", "host-123").Return(hostResource, nil)
-				mockInvClient.On("Update", mock.Anything, "tenant-123", "host-123",
+				mockInvClient.On("GetHostByUUID", mock.Anything,
+					"bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678").Return(hostResource, nil)
+				mockInvClient.On("Update", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678",
 					mock.Anything, mock.Anything).Return(&inventoryv1.Resource{}, nil)
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant(),
 			request: &pb.AMTStatusRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 				Status: pb.AMTStatus_ENABLED,
 			},
 			authEnabled:    false,
@@ -121,7 +163,7 @@ func TestReportAMTStatus(t *testing.T) {
 			},
 			context: createContextWithoutTenant(),
 			request: &pb.AMTStatusRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 				Status: pb.AMTStatus_ENABLED,
 			},
 			authEnabled:    false,
@@ -131,12 +173,12 @@ func TestReportAMTStatus(t *testing.T) {
 		{
 			name: "host not found",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
-				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123",
-					"host-123").Return(nil, inv_errors.Errorfc(codes.NotFound, "host not found"))
+				mockInvClient.On("GetHostByUUID", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					"host-12345678").Return(nil, inv_errors.Errorfc(codes.NotFound, "host not found"))
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant(),
 			request: &pb.AMTStatusRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 				Status: pb.AMTStatus_ENABLED,
 			},
 			authEnabled:    false,
@@ -151,15 +193,7 @@ func TestReportAMTStatus(t *testing.T) {
 			mockRBAC := &MockRBACPolicy{}
 			tt.setupMocks(mockInvClient, mockRBAC)
 
-			// Create a service instance for testing with proper interface implementation
-			var invClient client.TenantAwareInventoryClient = mockInvClient
-			service, err := grpcserver.NewDeviceManagementService(
-				invClient,
-				"test-address",
-				false, // enableTracing
-				tt.authEnabled,
-				"test-rbac",
-			)
+			service, err := createTestService(mockInvClient, tt.authEnabled)
 			if err != nil {
 				t.Fatalf("Failed to create service: %v", err)
 			}
@@ -196,26 +230,27 @@ func TestRetrieveActivationDetails(t *testing.T) {
 			name: "successful activation details retrieval",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				hostResource := &computev1.HostResource{
-					ResourceId:      "host-123",
+					ResourceId:      "host-12345678",
 					Name:            "test-host",
-					Uuid:            "host-uuid-123",
-					TenantId:        "tenant-123",
+					Uuid:            "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					TenantId:        "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
 					DesiredAmtState: computev1.AmtState_AMT_STATE_PROVISIONED,
 					CurrentAmtState: computev1.AmtState_AMT_STATE_UNPROVISIONED,
 					AmtStatus:       "ENABLED",
 				}
-				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123", "host-123").Return(hostResource, nil)
+				mockInvClient.On("GetHostByUUID", mock.Anything,
+					"bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678").Return(hostResource, nil)
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant(),
 			request: &pb.ActivationRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 			},
 			authEnabled:   false,
 			expectedError: codes.OK,
 			expectedResult: &pb.ActivationDetailsResponse{
-				HostId:      "host-123",
+				HostId:      "host-12345678",
 				Operation:   pb.OperationType_ACTIVATE,
-				ProfileName: "tenant-123",
+				ProfileName: "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
 			},
 		},
 		{
@@ -225,7 +260,7 @@ func TestRetrieveActivationDetails(t *testing.T) {
 			},
 			context: createContextWithoutTenant(),
 			request: &pb.ActivationRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 			},
 			authEnabled:    false,
 			expectedError:  codes.Unauthenticated,
@@ -234,12 +269,12 @@ func TestRetrieveActivationDetails(t *testing.T) {
 		{
 			name: "host not found",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
-				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123",
-					"host-123").Return(nil, inv_errors.Errorfc(codes.NotFound, "host not found"))
+				mockInvClient.On("GetHostByUUID", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					"host-12345678").Return(nil, inv_errors.Errorfc(codes.NotFound, "host not found"))
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant(),
 			request: &pb.ActivationRequest{
-				HostId: "host-123",
+				HostId: "host-12345678",
 			},
 			authEnabled:    false,
 			expectedError:  codes.NotFound,
@@ -253,14 +288,7 @@ func TestRetrieveActivationDetails(t *testing.T) {
 			mockRBAC := &MockRBACPolicy{}
 			tt.setupMocks(mockInvClient, mockRBAC)
 
-			var invClient client.TenantAwareInventoryClient = mockInvClient
-			service, err := grpcserver.NewDeviceManagementService(
-				invClient,
-				"test-address",
-				false, // enableTracing
-				tt.authEnabled,
-				"test-rbac",
-			)
+			service, err := createTestService(mockInvClient, tt.authEnabled)
 			if err != nil {
 				t.Fatalf("Failed to create service: %v", err)
 			}
@@ -301,20 +329,22 @@ func TestReportActivationResults(t *testing.T) {
 			name: "successful activation result report",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				hostResource := &computev1.HostResource{
-					ResourceId: "host-123",
-					Name:       "test-host",
-					Uuid:       "host-uuid-123",
-					TenantId:   "tenant-123",
+					ResourceId:      "host-12345678",
+					Name:            "test-host",
+					Uuid:            "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					TenantId:        "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					DesiredAmtState: computev1.AmtState_AMT_STATE_PROVISIONED,
 				}
-				mockInvClient.On("GetHostByUUID", mock.Anything, "tenant-123", "host-123").Return(hostResource, nil)
-				mockInvClient.On("Update", mock.Anything, "tenant-123",
-					"host-123", mock.Anything,
+				mockInvClient.On("GetHostByUUID", mock.Anything,
+					"bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678").Return(hostResource, nil)
+				mockInvClient.On("Update", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					"host-12345678", mock.Anything,
 					mock.Anything).Return(&inventoryv1.Resource{}, nil)
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant(),
 			request: &pb.ActivationResultRequest{
-				HostId:           "host-123",
-				ActivationStatus: pb.ActivationStatus_PROVISIONED,
+				HostId:           "host-12345678",
+				ActivationStatus: pb.ActivationStatus_ACTIVATED,
 			},
 			authEnabled:    false,
 			expectedError:  codes.OK,
@@ -327,8 +357,8 @@ func TestReportActivationResults(t *testing.T) {
 			},
 			context: createContextWithoutTenant(),
 			request: &pb.ActivationResultRequest{
-				HostId:           "host-123",
-				ActivationStatus: pb.ActivationStatus_PROVISIONED,
+				HostId:           "host-12345678",
+				ActivationStatus: pb.ActivationStatus_ACTIVATED,
 			},
 			authEnabled:    false,
 			expectedError:  codes.Unauthenticated,
@@ -338,13 +368,13 @@ func TestReportActivationResults(t *testing.T) {
 			name: "host not found",
 			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
 				mockInvClient.On("GetHostByUUID", mock.Anything,
-					"tenant-123", "host-123").Return(nil,
+					"bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678").Return(nil,
 					inv_errors.Errorfc(codes.NotFound, "host not found"))
 			},
-			context: createContextWithTenant("tenant-123"),
+			context: createContextWithTenant(),
 			request: &pb.ActivationResultRequest{
-				HostId:           "host-123",
-				ActivationStatus: pb.ActivationStatus_PROVISIONED,
+				HostId:           "host-12345678",
+				ActivationStatus: pb.ActivationStatus_ACTIVATED,
 			},
 			authEnabled:    false,
 			expectedError:  codes.NotFound,
@@ -358,14 +388,7 @@ func TestReportActivationResults(t *testing.T) {
 			mockRBAC := &MockRBACPolicy{}
 			tt.setupMocks(mockInvClient, mockRBAC)
 
-			var invClient client.TenantAwareInventoryClient = mockInvClient
-			service, err := grpcserver.NewDeviceManagementService(
-				invClient,
-				"test-address",
-				false, // enableTracing
-				tt.authEnabled,
-				"test-rbac",
-			)
+			service, err := createTestService(mockInvClient, tt.authEnabled)
 			if err != nil {
 				t.Fatalf("Failed to create service: %v", err)
 			}
