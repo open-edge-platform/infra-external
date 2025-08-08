@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -25,6 +26,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_util "github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
+	"github.com/open-edge-platform/infra-external/dm-manager/pkg/status"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -555,6 +557,17 @@ func (dc *Controller) updateHost(
 		invHost.PowerStatus = powerMappingToIdleState[invHost.GetCurrentPowerState()]
 	case statusv1.StatusIndication_STATUS_INDICATION_ERROR:
 		invHost.PowerStatus = toUserFriendlyError(invHost.PowerStatus)
+	case statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED:
+		hostStatus := invHost.GetHostStatus()
+		if hostStatus == "" || slices.Contains(status.DefaultHostPowerUnknown, hostStatus) {
+			invHost.PowerStatus = "Error"
+		} else if slices.Contains(status.DefaultHostPowerOff, hostStatus) {
+			invHost.PowerStatus = "Off"
+		} else if slices.Contains(status.DefaultHostPowerOn, hostStatus) {
+			invHost.PowerStatus = "On"
+		} else {
+			invHost.PowerStatus = "Error"
+		}
 	default:
 		invHost.PowerStatus = "Unknown"
 	}
