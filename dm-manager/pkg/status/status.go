@@ -27,4 +27,9 @@ var (
 	AMTStatusUnknown  = inv_status.New("AMT Status Unknown", statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 	AMTStatusEnabled  = inv_status.New("AMT Status Enabled", statusv1.StatusIndication_STATUS_INDICATION_IDLE)
 	AMTStatusDisabled = inv_status.New("AMT Status Disabled", statusv1.StatusIndication_STATUS_INDICATION_IDLE)
+
+	// Resource statuses for Host.
+	DefaultHostPowerOff     = []string{"No Connection", "Invalidated"}
+	DefaultHostPowerOn      = []string{"Running", "Booting", "Invalidating", "Deleting"}
+	DefaultHostPowerUnknown = []string{"Unknown", "Error"}
 )
