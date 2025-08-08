@@ -559,13 +559,14 @@ func (dc *Controller) updateHost(
 		invHost.PowerStatus = toUserFriendlyError(invHost.PowerStatus)
 	case statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED:
 		hostStatus := invHost.GetHostStatus()
-		if hostStatus == "" || slices.Contains(status.DefaultHostPowerUnknown, hostStatus) {
+		switch {
+		case slices.Contains(status.DefaultHostPowerUnknown, hostStatus):
 			invHost.PowerStatus = "Error"
-		} else if slices.Contains(status.DefaultHostPowerOff, hostStatus) {
+		case slices.Contains(status.DefaultHostPowerOff, hostStatus):
 			invHost.PowerStatus = "Off"
-		} else if slices.Contains(status.DefaultHostPowerOn, hostStatus) {
+		case slices.Contains(status.DefaultHostPowerOn, hostStatus):
 			invHost.PowerStatus = "On"
-		} else {
+		default:
 			invHost.PowerStatus = "Error"
 		}
 	default:
