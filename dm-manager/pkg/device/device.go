@@ -516,6 +516,22 @@ func contains[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~string](slice []T, el
 	return false
 }
 
+func updateDefaultPowerStatus(
+	invHost *computev1.HostResource,
+) string {
+	hostStatus := invHost.GetHostStatus()
+	switch {
+	case slices.Contains(status.DefaultHostPowerUnknown, hostStatus):
+		return "Error"
+	case slices.Contains(status.DefaultHostPowerOff, hostStatus):
+		return "Off"
+	case slices.Contains(status.DefaultHostPowerOn, hostStatus):
+		return "On"
+	default:
+		return "Error"
+	}
+}
+
 //nolint:cyclop // all checks are necessary
 func (dc *Controller) updateHost(
 	ctx context.Context, tenantID, invResourceID string, fieldMask *fieldmaskpb.FieldMask, invHost *computev1.HostResource,
@@ -558,17 +574,7 @@ func (dc *Controller) updateHost(
 	case statusv1.StatusIndication_STATUS_INDICATION_ERROR:
 		invHost.PowerStatus = toUserFriendlyError(invHost.PowerStatus)
 	case statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED:
-		hostStatus := invHost.GetHostStatus()
-		switch {
-		case slices.Contains(status.DefaultHostPowerUnknown, hostStatus):
-			invHost.PowerStatus = "Error"
-		case slices.Contains(status.DefaultHostPowerOff, hostStatus):
-			invHost.PowerStatus = "Off"
-		case slices.Contains(status.DefaultHostPowerOn, hostStatus):
-			invHost.PowerStatus = "On"
-		default:
-			invHost.PowerStatus = "Error"
-		}
+		invHost.PowerStatus = updateDefaultPowerStatus(invHost)
 	default:
 		invHost.PowerStatus = "Unknown"
 	}
