@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -26,7 +25,6 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_util "github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/status"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -520,22 +518,6 @@ func contains[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~string](slice []T, el
 		}
 	}
 	return false
-}
-
-func updateDefaultPowerStatus(
-	invHost *computev1.HostResource,
-) string {
-	hostStatus := invHost.GetHostStatus()
-	switch {
-	case slices.Contains(status.DefaultHostPowerUnknown, hostStatus):
-		return "Error"
-	case slices.Contains(status.DefaultHostPowerOff, hostStatus):
-		return "Off"
-	case slices.Contains(status.DefaultHostPowerOn, hostStatus):
-		return "On"
-	default:
-		return "Error"
-	}
 }
 
 //nolint:cyclop // all checks are necessary
