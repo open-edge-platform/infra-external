@@ -520,7 +520,6 @@ func contains[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~string](slice []T, el
 	return false
 }
 
-//nolint:cyclop // all checks are necessary
 func (dc *Controller) updateHost(
 	ctx context.Context, tenantID, invResourceID string, fieldMask *fieldmaskpb.FieldMask, invHost *computev1.HostResource,
 ) error {
