@@ -212,6 +212,12 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 	}
 	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
 
+	if req.HostId == "" {
+		err := errors.Errorfc(codes.InvalidArgument, "Host ID cannot be empty")
+		zlog.InfraSec().InfraErr(err).Msg("Empty Host ID provided in request")
+		return nil, err
+	}
+
 	var response *pb.ActivationDetailsResponse
 	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
 	if err != nil {
