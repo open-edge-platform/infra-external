@@ -5,6 +5,7 @@ package grpcserver
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -163,7 +164,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 					computev1.HostResourceFieldPowerStatusIndicator,
 				}}, &computev1.HostResource{
 					AmtSku:               status.AMTStatusEnabled.Status,
-					PowerStatus:          status.UpdateDefaultPowerStatus(hostInv),
+					PowerStatus:          UpdateDefaultPowerStatus(hostInv),
 					PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 				})
 			if err != nil {
@@ -184,7 +185,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 					computev1.HostResourceFieldPowerStatusIndicator,
 				}}, &computev1.HostResource{
 					AmtSku:               status.AMTStatusDisabled.Status,
-					PowerStatus:          status.UpdateDefaultPowerStatus(hostInv),
+					PowerStatus:          UpdateDefaultPowerStatus(hostInv),
 					PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 				})
 			if err != nil {
@@ -400,4 +401,20 @@ func (dms *DeviceManagementService) getHostByUUID(ctx context.Context,
 		return nil, err
 	}
 	return hostInv, nil
+}
+
+func UpdateDefaultPowerStatus(
+	invHost *computev1.HostResource,
+) string {
+	hostStatus := invHost.GetHostStatus()
+	switch {
+	case slices.Contains(status.DefaultHostPowerUnknown, hostStatus):
+		return "Error"
+	case slices.Contains(status.DefaultHostPowerOff, hostStatus):
+		return "Off"
+	case slices.Contains(status.DefaultHostPowerOn, hostStatus):
+		return "On"
+	default:
+		return "Error"
+	}
 }

@@ -4,9 +4,6 @@
 package status
 
 import (
-	"slices"
-
-	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	statusv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/status/v1"
 	inv_status "github.com/open-edge-platform/infra-core/inventory/v2/pkg/status"
 )
@@ -36,19 +33,3 @@ var (
 	DefaultHostPowerOn      = []string{"Running", "Booting", "Invalidating", "Deleting"}
 	DefaultHostPowerUnknown = []string{"Unknown", "Error"}
 )
-
-func UpdateDefaultPowerStatus(
-	invHost *computev1.HostResource,
-) string {
-	hostStatus := invHost.GetHostStatus()
-	switch {
-	case slices.Contains(DefaultHostPowerUnknown, hostStatus):
-		return "Error"
-	case slices.Contains(DefaultHostPowerOff, hostStatus):
-		return "Off"
-	case slices.Contains(DefaultHostPowerOn, hostStatus):
-		return "On"
-	default:
-		return "Error"
-	}
-}
