@@ -137,7 +137,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	}
 	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
 
-	if err := dms.validateHostID(req.HostId); err != nil {
+	if err := dms.checkHostIDNotEmpty(req.HostId); err != nil {
 		return nil, err
 	}
 
@@ -216,7 +216,7 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 		return nil, err
 	}
 
-	if err := dms.validateHostID(req.HostId); err != nil {
+	if err := dms.checkHostIDNotEmpty(req.HostId); err != nil {
 		return nil, err
 	}
 
@@ -278,7 +278,7 @@ func (dms *DeviceManagementService) ReportActivationResults(
 		return nil, err
 	}
 
-	err = dms.validateHostID(req.HostId)
+	err = dms.checkHostIDNotEmpty(req.HostId)
 	if err != nil {
 		return nil, err
 	}
@@ -370,7 +370,7 @@ func (dms *DeviceManagementService) getTenantFromContext(ctx context.Context) (s
 	return tenantID, nil
 }
 
-func (dms *DeviceManagementService) validateHostID(hostID string) error {
+func (dms *DeviceManagementService) checkHostIDNotEmpty(hostID string) error {
 	if hostID == "" {
 		err := errors.Errorfc(codes.InvalidArgument, "Host ID cannot be empty")
 		zlog.InfraSec().InfraErr(err).Msg("Empty Host ID provided in request")
