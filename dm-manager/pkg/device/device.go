@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -26,7 +25,6 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_util "github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
 	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/status"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -398,8 +396,10 @@ func (dc *Controller) syncPowerStatus(
 		invHost.GetPowerStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE {
 		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
 			&fieldmaskpb.FieldMask{Paths: []string{
+				computev1.HostResourceFieldPowerStatus,
 				computev1.HostResourceFieldPowerStatusIndicator,
 			}}, &computev1.HostResource{
+				PowerStatus:          powerMappingToIdleState[invHost.GetDesiredPowerState()],
 				PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 			})
 		if err != nil {
@@ -428,8 +428,7 @@ func (dc *Controller) handlePowerChange(
 			computev1.HostResourceFieldPowerStatus,
 			computev1.HostResourceFieldPowerStatusIndicator,
 		}}, &computev1.HostResource{
-			CurrentPowerState:    invHost.GetCurrentPowerState(),
-			PowerStatus:          desiredPowerState.String(),
+			PowerStatus:          powerMappingToInProgressState[desiredPowerState],
 			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
 		})
 	if err != nil {
@@ -481,8 +480,12 @@ func (dc *Controller) handlePowerChange(
 	err = dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentPowerState,
+			computev1.HostResourceFieldPowerStatus,
+			computev1.HostResourceFieldPowerStatusIndicator,
 		}}, &computev1.HostResource{
-			CurrentPowerState: desiredPowerState,
+			CurrentPowerState:    desiredPowerState,
+			PowerStatus:          powerMappingToInProgressState[desiredPowerState],
+			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
 		})
 	if err != nil {
 		log.Err(err).Msgf("failed to update device info")
@@ -516,23 +519,6 @@ func contains[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~string](slice []T, el
 	return false
 }
 
-func updateDefaultPowerStatus(
-	invHost *computev1.HostResource,
-) string {
-	hostStatus := invHost.GetHostStatus()
-	switch {
-	case slices.Contains(status.DefaultHostPowerUnknown, hostStatus):
-		return "Error"
-	case slices.Contains(status.DefaultHostPowerOff, hostStatus):
-		return "Off"
-	case slices.Contains(status.DefaultHostPowerOn, hostStatus):
-		return "On"
-	default:
-		return "Error"
-	}
-}
-
-//nolint:cyclop // all checks are necessary
 func (dc *Controller) updateHost(
 	ctx context.Context, tenantID, invResourceID string, fieldMask *fieldmaskpb.FieldMask, invHost *computev1.HostResource,
 ) error {
@@ -560,24 +546,6 @@ func (dc *Controller) updateHost(
 		fieldMask.Paths = append(fieldMask.Paths, computev1.HostResourceFieldPowerStatusTimestamp)
 	}
 
-	switch invHost.PowerStatusIndicator {
-	case statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS:
-		invResource, getErr := dc.InventoryRmClient.Get(ctx, tenantID, invResourceID)
-		if getErr != nil {
-			log.Err(getErr).Msgf("couldn't get device from inventory")
-			return getErr
-		}
-
-		invHost.PowerStatus = powerMappingToInProgressState[invResource.GetResource().GetHost().GetDesiredPowerState()]
-	case statusv1.StatusIndication_STATUS_INDICATION_IDLE:
-		invHost.PowerStatus = powerMappingToIdleState[invHost.GetCurrentPowerState()]
-	case statusv1.StatusIndication_STATUS_INDICATION_ERROR:
-		invHost.PowerStatus = toUserFriendlyError(invHost.PowerStatus)
-	case statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED:
-		invHost.PowerStatus = updateDefaultPowerStatus(invHost)
-	default:
-		invHost.PowerStatus = "Unknown"
-	}
 	fieldMask.Paths = append(fieldMask.Paths, computev1.HostResourceFieldPowerStatus)
 
 	resCopy := proto.Clone(invHost)
