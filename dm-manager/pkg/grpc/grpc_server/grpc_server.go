@@ -137,6 +137,10 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	}
 	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
 
+	if err := dms.checkHostIDNotEmpty(req.HostId); err != nil {
+		return nil, err
+	}
+
 	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
 	if err != nil {
 		zlog.InfraSec().InfraErr(err).Msgf("Failed to get host by UUID %s", req.HostId)
@@ -191,6 +195,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	return &pb.AMTStatusResponse{}, nil
 }
 
+//nolint:cyclop // high cyclomatic complexity because of the conditional logic
 func (dms *DeviceManagementService) RetrieveActivationDetails(
 	ctx context.Context, req *pb.ActivationRequest,
 ) (*pb.ActivationDetailsResponse, error) {
@@ -210,7 +215,10 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 		zlog.InfraSec().InfraErr(err).Msgf("Request Nodes is not authenticated")
 		return nil, err
 	}
-	zlog.Debug().Msgf("ReportAMTStatus: tenantID=%s", tenantID)
+
+	if err := dms.checkHostIDNotEmpty(req.HostId); err != nil {
+		return nil, err
+	}
 
 	var response *pb.ActivationDetailsResponse
 	hostInv, err := dms.invClient.GetHostByUUID(ctx, tenantID, req.HostId)
@@ -266,6 +274,11 @@ func (dms *DeviceManagementService) ReportActivationResults(
 	}
 
 	tenantID, err := dms.getTenantFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = dms.checkHostIDNotEmpty(req.HostId)
 	if err != nil {
 		return nil, err
 	}
@@ -355,6 +368,15 @@ func (dms *DeviceManagementService) getTenantFromContext(ctx context.Context) (s
 		return "", err
 	}
 	return tenantID, nil
+}
+
+func (dms *DeviceManagementService) checkHostIDNotEmpty(hostID string) error {
+	if hostID == "" {
+		err := errors.Errorfc(codes.InvalidArgument, "Host ID cannot be empty")
+		zlog.InfraSec().InfraErr(err).Msg("Empty Host ID provided in request")
+		return err
+	}
+	return nil
 }
 
 func (dms *DeviceManagementService) getHostByUUID(ctx context.Context,
