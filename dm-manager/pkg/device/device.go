@@ -243,7 +243,7 @@ func (dc *Controller) shouldSyncPowerStatus(invHost *computev1.HostResource) boo
 
 func (dc *Controller) shouldHandlePowerChange(invHost *computev1.HostResource) bool {
 	return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
-		(invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState())
+		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState()
 }
 
 func (dc *Controller) handleDeactivateAMT(
