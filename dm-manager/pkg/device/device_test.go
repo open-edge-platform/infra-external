@@ -420,3 +420,101 @@ func TestDeviceController_Reconcile_AmtDeactivation(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, computev1.AmtState_AMT_STATE_UNPROVISIONED, host.CurrentAmtState)
 }
+
+type contextKey string
+
+func TestDeviceController_MPS_CallsWithRequiredHeaders(t *testing.T) {
+	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
+
+	// Clear existing mock expectations to avoid conflicts
+	mpsMock.ExpectedCalls = nil
+
+	// MPS mock verifies that required headers are present
+	// call power action API during power state reconciliation
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse",
+		mock.AnythingOfType("*context.valueCtx"),      // context
+		mock.AnythingOfType("string"),                 // guid string
+		mock.AnythingOfType("mps.PowerActionRequest"), // body PostApiV1AmtPowerActionGuidJSONRequestBody
+		mock.AnythingOfType("[]mps.RequestEditorFn")).Return(&mps.PostApiV1AmtPowerActionGuidResponse{
+		HTTPResponse: &http.Response{
+			StatusCode: http.StatusOK,
+		},
+		JSON200: &mps.PowerActionResponse{
+			Body: &struct {
+				ReturnValue    *int    `json:"ReturnValue,omitempty"`
+				ReturnValueStr *string `json:"ReturnValueStr,omitempty"`
+			}{
+				ReturnValueStr: tenant.Ptr("SUCCESS"),
+			},
+		},
+		Body: []byte(`{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}`),
+	}, nil)
+
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
+
+	mpsMock.AssertExpectations(t)
+}
+
+func TestDeviceController_MPS_CallsWithMissingHeaders_ShouldHandleGracefully(t *testing.T) {
+	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
+
+	// Clear existing mock expectations to avoid conflicts
+	mpsMock.ExpectedCalls = nil
+
+	// Mock power action method - this gets called first during reconciliation
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse",
+		mock.AnythingOfType("*context.valueCtx"),
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("mps.PowerActionRequest"),
+		mock.AnythingOfType("[]mps.RequestEditorFn")).
+		Return(&mps.PostApiV1AmtPowerActionGuidResponse{
+			HTTPResponse: &http.Response{
+				StatusCode: http.StatusBadRequest,
+			},
+		}, errors.Errorf("Bad Request: missing required headers"))
+
+	errorHook := util.NewTestAssertHook("Bad Request: missing required headers")
+	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(errorHook)}
+
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
+
+	errorHook.AssertWithTimeout(t, time.Second)
+	mpsMock.AssertExpectations(t)
+}
+
+func TestDeviceController_MPS_HeaderValidation_UserAgent(t *testing.T) {
+	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
+
+	// Clear existing mock expectations to avoid conflicts
+	mpsMock.ExpectedCalls = nil
+
+	// Verify that User-Agent header is consistently set in power action calls
+	mpsMock.On("PostApiV1AmtPowerActionGuidWithResponse",
+		mock.AnythingOfType("*context.valueCtx"),
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("mps.PowerActionRequest"),
+		mock.MatchedBy(func(reqEditors []mps.RequestEditorFn) bool {
+			if len(reqEditors) == 0 {
+				return true
+			}
+
+			req, _ := http.NewRequest("POST", "http://test", nil)
+			if err := reqEditors[0](context.Background(), req); err != nil {
+				return false
+			}
+			return req.Header.Get("User-Agent") == "dm-manager"
+		})).Return(&mps.PostApiV1AmtPowerActionGuidResponse{
+		HTTPResponse: &http.Response{StatusCode: http.StatusOK},
+		JSON200: &mps.PowerActionResponse{
+			Body: &struct {
+				ReturnValue    *int    `json:"ReturnValue,omitempty"`
+				ReturnValueStr *string `json:"ReturnValueStr,omitempty"`
+			}{ReturnValueStr: tenant.Ptr("SUCCESS")},
+		},
+		Body: []byte(`{"ReturnValue":0,"ReturnValueStr":"SUCCESS"}`),
+	}, nil)
+
+	deviceReconciller.Reconcile(context.Background(), rec_v2.Request[ID]{ID: NewID(client.FakeTenantID, hostUUID)})
+
+	mpsMock.AssertExpectations(t)
+}

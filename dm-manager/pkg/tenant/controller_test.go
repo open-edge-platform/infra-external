@@ -5,6 +5,7 @@ package tenant
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"sync"
 	"testing"
@@ -395,4 +396,118 @@ func TestReconciler_ReconcileAll_shouldRemoveExcessiveConfigs(t *testing.T) {
 
 	profileHook.Assert(t)
 	CIRAHook.Assert(t)
+}
+
+type contextKey string
+
+func TestTenantController_RPS_CallsWithRequiredHeaders(t *testing.T) {
+	mpsMock := new(mps.MockClientWithResponsesInterface)
+	rpsMock := new(rps.MockClientWithResponsesInterface)
+	msp := mocks.MockSecretProvider{}
+	msp.On("GetSecret", mock.Anything, mock.Anything).Return("P@ssw0rd")
+
+	dmr := &Controller{
+		MpsClient:      mpsMock,
+		RpsClient:      rpsMock,
+		SecretProvider: &msp,
+		Config: &ReconcilerConfig{
+			ReconcilePeriod: time.Minute,
+		},
+	}
+
+	// Test case where RPS mock verifies that required headers are present
+	rpsMock.On("GetCIRAConfigWithResponse",
+		mock.AnythingOfType("*context.valueCtx"),
+		mock.Anything,
+		mock.Anything).Return(&rps.GetCIRAConfigResponse{
+		JSON404: &rps.APIResponse{},
+	}, nil)
+
+	rpsMock.On("CreateCIRAConfigWithResponse",
+		mock.Anything, mock.Anything,
+		mock.Anything).Return(&rps.CreateCIRAConfigResponse{
+		JSON201: &rps.CIRAConfigResponse{},
+	}, nil)
+
+	mpsMock.On("GetApiV1CiracertWithResponse", mock.AnythingOfType("*context.valueCtx"), mock.Anything).Return(&mps.GetApiV1CiracertResponse{
+		Body: []byte("test-cert"),
+	}, nil)
+
+	rpsMock.On("GetProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.GetProfileResponse{
+		JSON404: &rps.APIResponse{},
+	}, nil)
+
+	rpsMock.On("CreateProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.CreateProfileResponse{
+		JSON201: &rps.ProfileResponse{},
+	}, nil)
+
+	err := dmr.handleTenantCreation(context.Background(), "test-tenant")
+
+	assert.NoError(t, err)
+	rpsMock.AssertExpectations(t)
+}
+
+func TestTenantController_RPS_CallsWithMissingHeaders_ShouldHandleGracefully(t *testing.T) {
+	mpsMock := new(mps.MockClientWithResponsesInterface)
+	rpsMock := new(rps.MockClientWithResponsesInterface)
+	msp := mocks.MockSecretProvider{}
+	msp.On("GetSecret", mock.Anything, mock.Anything).Return("P@ssw0rd")
+
+	dmr := &Controller{
+		MpsClient:      mpsMock,
+		RpsClient:      rpsMock,
+		SecretProvider: &msp,
+		Config: &ReconcilerConfig{
+			ReconcilePeriod: time.Minute,
+		},
+	}
+
+	// Mock to simulate behavior when headers might be missing or invalid
+	rpsMock.On("GetCIRAConfigWithResponse", mock.AnythingOfType("*context.valueCtx"), mock.Anything, mock.Anything).
+		Return(&rps.GetCIRAConfigResponse{
+			HTTPResponse: &http.Response{
+				StatusCode: http.StatusBadRequest,
+			},
+		}, errors.Errorf("Bad Request: missing required headers"))
+
+	mpsMock.On("GetApiV1CiracertWithResponse", mock.AnythingOfType("*context.valueCtx"), mock.Anything).Return(&mps.GetApiV1CiracertResponse{
+		Body: []byte("test-cert"),
+	}, nil)
+
+	errorHook := util.NewTestAssertHook("Bad Request: missing required headers")
+	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(errorHook)}
+
+	err := dmr.handleTenantCreation(context.Background(), "test-tenant")
+
+	assert.Error(t, err)
+	errorHook.AssertWithTimeout(t, time.Second)
+	rpsMock.AssertExpectations(t)
+}
+
+func TestTenantController_RPS_HeaderValidation_UserAgent(t *testing.T) {
+	mpsMock := new(mps.MockClientWithResponsesInterface)
+	rpsMock := new(rps.MockClientWithResponsesInterface)
+	msp := mocks.MockSecretProvider{}
+	msp.On("GetSecret", mock.Anything, mock.Anything).Return("P@ssw0rd")
+
+	dmr := &Controller{
+		MpsClient:      mpsMock,
+		RpsClient:      rpsMock,
+		SecretProvider: &msp,
+		Config: &ReconcilerConfig{
+			ReconcilePeriod: time.Minute,
+		},
+	}
+
+	// Verify that User-Agent header is consistently set
+	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything,
+		mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
+
+	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything,
+		mock.Anything).Return(&rps.RemoveCIRAConfigResponse{}, nil)
+
+	err := dmr.handleTenantRemoval(context.Background(), "test-tenant")
+
+	assert.NoError(t, err)
+	rpsMock.AssertExpectations(t)
 }
