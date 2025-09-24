@@ -398,8 +398,6 @@ func TestReconciler_ReconcileAll_shouldRemoveExcessiveConfigs(t *testing.T) {
 	CIRAHook.Assert(t)
 }
 
-type contextKey string
-
 func TestTenantController_RPS_CallsWithRequiredHeaders(t *testing.T) {
 	mpsMock := new(mps.MockClientWithResponsesInterface)
 	rpsMock := new(rps.MockClientWithResponsesInterface)
@@ -429,7 +427,9 @@ func TestTenantController_RPS_CallsWithRequiredHeaders(t *testing.T) {
 		JSON201: &rps.CIRAConfigResponse{},
 	}, nil)
 
-	mpsMock.On("GetApiV1CiracertWithResponse", mock.AnythingOfType("*context.valueCtx"), mock.Anything).Return(&mps.GetApiV1CiracertResponse{
+	mpsMock.On("GetApiV1CiracertWithResponse",
+		mock.AnythingOfType("*context.valueCtx"),
+		mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte("test-cert"),
 	}, nil)
 
@@ -470,7 +470,9 @@ func TestTenantController_RPS_CallsWithMissingHeaders_ShouldHandleGracefully(t *
 			},
 		}, errors.Errorf("Bad Request: missing required headers"))
 
-	mpsMock.On("GetApiV1CiracertWithResponse", mock.AnythingOfType("*context.valueCtx"), mock.Anything).Return(&mps.GetApiV1CiracertResponse{
+	mpsMock.On("GetApiV1CiracertWithResponse",
+		mock.AnythingOfType("*context.valueCtx"),
+		mock.Anything).Return(&mps.GetApiV1CiracertResponse{
 		Body: []byte("test-cert"),
 	}, nil)
 

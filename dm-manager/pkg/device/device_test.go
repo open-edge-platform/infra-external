@@ -421,8 +421,6 @@ func TestDeviceController_Reconcile_AmtDeactivation(t *testing.T) {
 	assert.Equal(t, computev1.AmtState_AMT_STATE_UNPROVISIONED, host.CurrentAmtState)
 }
 
-type contextKey string
-
 func TestDeviceController_MPS_CallsWithRequiredHeaders(t *testing.T) {
 	_, hostUUID, mpsMock, deviceReconciller := prepareEnv(t, computev1.PowerState_POWER_STATE_OFF)
 
@@ -498,7 +496,10 @@ func TestDeviceController_MPS_HeaderValidation_UserAgent(t *testing.T) {
 				return true
 			}
 
-			req, _ := http.NewRequest("POST", "http://test", nil)
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "http://test", http.NoBody)
+			if err != nil {
+				return false
+			}
 			if err := reqEditors[0](context.Background(), req); err != nil {
 				return false
 			}
