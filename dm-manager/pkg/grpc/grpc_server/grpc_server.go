@@ -156,14 +156,14 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	zlog.Debug().Msgf("Request from PMA=%s", req.GetStatus().String())
 	switch req.GetStatus() {
 	case pb.AMTStatus_ENABLED:
-		if hostInv.AmtSku != status.AMTStatusEnabled.Status {
+		if hostInv.AmtSku != computev1.AmtSku_AMT_SKU_AMT && hostInv.AmtSku != computev1.AmtSku_AMT_SKU_ISM {
 			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 				&fieldmaskpb.FieldMask{Paths: []string{
 					computev1.HostResourceFieldAmtSku,
 					computev1.HostResourceFieldPowerStatus,
 					computev1.HostResourceFieldPowerStatusIndicator,
 				}}, &computev1.HostResource{
-					AmtSku:               status.AMTStatusEnabled.Status,
+					AmtSku:               computev1.AmtSku_AMT_SKU_AMT,
 					PowerStatus:          UpdateDefaultPowerStatus(hostInv),
 					PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 				})
@@ -177,14 +177,14 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 				"AMT status is already enabled for host %s", hostInv.GetResourceId())
 		}
 	case pb.AMTStatus_DISABLED:
-		if hostInv.AmtSku != status.AMTStatusDisabled.Status {
+		if hostInv.AmtSku != computev1.AmtSku_AMT_SKU_UNSPECIFIED {
 			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 				&fieldmaskpb.FieldMask{Paths: []string{
 					computev1.HostResourceFieldAmtSku,
 					computev1.HostResourceFieldPowerStatus,
 					computev1.HostResourceFieldPowerStatusIndicator,
 				}}, &computev1.HostResource{
-					AmtSku:               status.AMTStatusDisabled.Status,
+					AmtSku:               computev1.AmtSku_AMT_SKU_UNSPECIFIED,
 					PowerStatus:          UpdateDefaultPowerStatus(hostInv),
 					PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 				})
