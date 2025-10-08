@@ -61,7 +61,7 @@ func (m *AMTStatusRequest) validate(all bool) error {
 
 	// no validation rules for Status
 
-	// no validation rules for Version
+	// no validation rules for Feature
 
 	if len(errors) > 0 {
 		return AMTStatusRequestMultiError(errors)
@@ -77,7 +77,7 @@ type AMTStatusRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m AMTStatusRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -177,7 +177,7 @@ type AMTStatusResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m AMTStatusResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -281,7 +281,7 @@ type ActivationRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m ActivationRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -391,7 +391,7 @@ type ActivationDetailsResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m ActivationDetailsResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -499,7 +499,7 @@ type ActivationResultRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m ActivationResultRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -601,7 +601,7 @@ type ActivationResultResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m ActivationResultResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}

@@ -157,16 +157,29 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	switch req.GetStatus() {
 	case pb.AMTStatus_ENABLED:
 		if hostInv.AmtSku != computev1.AmtSku_AMT_SKU_AMT && hostInv.AmtSku != computev1.AmtSku_AMT_SKU_ISM {
-			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
-				&fieldmaskpb.FieldMask{Paths: []string{
-					computev1.HostResourceFieldAmtSku,
-					computev1.HostResourceFieldPowerStatus,
-					computev1.HostResourceFieldPowerStatusIndicator,
-				}}, &computev1.HostResource{
-					AmtSku:               computev1.AmtSku_AMT_SKU_AMT,
-					PowerStatus:          UpdateDefaultPowerStatus(hostInv),
-					PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
-				})
+			if req.GetFeature() == "AMT" {
+				err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
+					&fieldmaskpb.FieldMask{Paths: []string{
+						computev1.HostResourceFieldAmtSku,
+						computev1.HostResourceFieldPowerStatus,
+						computev1.HostResourceFieldPowerStatusIndicator,
+					}}, &computev1.HostResource{
+						AmtSku:               computev1.AmtSku_AMT_SKU_AMT,
+						PowerStatus:          UpdateDefaultPowerStatus(hostInv),
+						PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+					})
+			} else {
+				err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
+					&fieldmaskpb.FieldMask{Paths: []string{
+						computev1.HostResourceFieldAmtSku,
+						computev1.HostResourceFieldPowerStatus,
+						computev1.HostResourceFieldPowerStatusIndicator,
+					}}, &computev1.HostResource{
+						AmtSku:               computev1.AmtSku_AMT_SKU_ISM,
+						PowerStatus:          UpdateDefaultPowerStatus(hostInv),
+						PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+					})
+			}
 			if err != nil {
 				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
 				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
