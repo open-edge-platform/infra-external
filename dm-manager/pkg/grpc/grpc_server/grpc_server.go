@@ -119,7 +119,7 @@ func NewDeviceManagementService(invClient client.TenantAwareInventoryClient,
 	}, nil
 }
 
-//nolint:cyclop // high cyclomatic complexity because of the conditional logic
+//nolint:cyclop,funlen // high cyclomatic complexity and function length because of the conditional logic
 func (dms *DeviceManagementService) ReportAMTStatus(
 	ctx context.Context, req *pb.AMTStatusRequest,
 ) (*pb.AMTStatusResponse, error) {
@@ -160,7 +160,8 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	case pb.AMTStatus_ENABLED:
 		if hostInv.AmtSku != computev1.AmtSku_AMT_SKU_AMT && hostInv.AmtSku != computev1.AmtSku_AMT_SKU_ISM {
 			zlog.Info().Msgf("AMT_SKU value: %s", req.GetFeature())
-			if req.GetFeature() == amt {
+			switch req.GetFeature() {
+			case amt:
 				err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 					&fieldmaskpb.FieldMask{Paths: []string{
 						computev1.HostResourceFieldAmtSku,
@@ -171,7 +172,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 						PowerStatus:          UpdateDefaultPowerStatus(hostInv),
 						PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 					})
-			} else if req.GetFeature() == ism {
+			case ism:
 				err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 					&fieldmaskpb.FieldMask{Paths: []string{
 						computev1.HostResourceFieldAmtSku,
@@ -182,7 +183,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 						PowerStatus:          UpdateDefaultPowerStatus(hostInv),
 						PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 					})
-			} else {
+			default:
 				zlog.InfraSec().InfraErr(err).Msgf("Failed AMT feature is EMPTY string %s", req.GetFeature())
 				return nil, errors.Errorfc(codes.InvalidArgument, "Invalid AMT feature: %s", req.GetFeature())
 			}
