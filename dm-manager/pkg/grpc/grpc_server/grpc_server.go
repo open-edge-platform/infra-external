@@ -29,6 +29,8 @@ import (
 
 const (
 	passwordKey = "password"
+	amt         = "AMT"
+	ism         = "ISM"
 )
 
 var (
@@ -157,7 +159,8 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 	switch req.GetStatus() {
 	case pb.AMTStatus_ENABLED:
 		if hostInv.AmtSku != computev1.AmtSku_AMT_SKU_AMT && hostInv.AmtSku != computev1.AmtSku_AMT_SKU_ISM {
-			if req.GetFeature() == "AMT" {
+			zlog.Info().Msgf("AMT_SKU value: %s", req.GetFeature())
+			if req.GetFeature() == amt {
 				err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 					&fieldmaskpb.FieldMask{Paths: []string{
 						computev1.HostResourceFieldAmtSku,
@@ -168,7 +171,7 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 						PowerStatus:          UpdateDefaultPowerStatus(hostInv),
 						PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 					})
-			} else {
+			} else if req.GetFeature() == ism {
 				err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 					&fieldmaskpb.FieldMask{Paths: []string{
 						computev1.HostResourceFieldAmtSku,
@@ -179,7 +182,11 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 						PowerStatus:          UpdateDefaultPowerStatus(hostInv),
 						PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 					})
+			} else {
+				zlog.InfraSec().InfraErr(err).Msgf("Failed AMT feature is EMPTY string %s", req.GetFeature())
+				return nil, errors.Errorfc(codes.InvalidArgument, "Invalid AMT feature: %s", req.GetFeature())
 			}
+
 			if err != nil {
 				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
 				return nil, errors.Errorfc(codes.Internal, "Failed to update AMT status: %v", err)
