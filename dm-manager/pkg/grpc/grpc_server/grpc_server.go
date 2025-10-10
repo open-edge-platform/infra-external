@@ -5,7 +5,6 @@ package grpcserver
 
 import (
 	"context"
-	"slices"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -14,7 +13,6 @@ import (
 
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
-	statusv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/status/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
@@ -119,7 +117,7 @@ func NewDeviceManagementService(invClient client.TenantAwareInventoryClient,
 	}, nil
 }
 
-//nolint:cyclop,funlen // high cyclomatic complexity and function length because of the conditional logic
+//nolint:cyclop // high cyclomatic complexity because of the conditional logic
 func (dms *DeviceManagementService) ReportAMTStatus(
 	ctx context.Context, req *pb.AMTStatusRequest,
 ) (*pb.AMTStatusResponse, error) {
@@ -165,23 +163,15 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 				err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 					&fieldmaskpb.FieldMask{Paths: []string{
 						computev1.HostResourceFieldAmtSku,
-						computev1.HostResourceFieldPowerStatus,
-						computev1.HostResourceFieldPowerStatusIndicator,
 					}}, &computev1.HostResource{
-						AmtSku:               computev1.AmtSku_AMT_SKU_AMT,
-						PowerStatus:          UpdateDefaultPowerStatus(hostInv),
-						PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+						AmtSku: computev1.AmtSku_AMT_SKU_AMT,
 					})
 			case ism:
 				err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 					&fieldmaskpb.FieldMask{Paths: []string{
 						computev1.HostResourceFieldAmtSku,
-						computev1.HostResourceFieldPowerStatus,
-						computev1.HostResourceFieldPowerStatusIndicator,
 					}}, &computev1.HostResource{
-						AmtSku:               computev1.AmtSku_AMT_SKU_ISM,
-						PowerStatus:          UpdateDefaultPowerStatus(hostInv),
-						PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+						AmtSku: computev1.AmtSku_AMT_SKU_ISM,
 					})
 			default:
 				zlog.InfraSec().InfraErr(err).Msgf("Failed AMT feature is EMPTY string %s", req.GetFeature())
@@ -202,12 +192,8 @@ func (dms *DeviceManagementService) ReportAMTStatus(
 			err = dms.updateHost(ctx, hostInv.GetTenantId(), hostInv.GetResourceId(),
 				&fieldmaskpb.FieldMask{Paths: []string{
 					computev1.HostResourceFieldAmtSku,
-					computev1.HostResourceFieldPowerStatus,
-					computev1.HostResourceFieldPowerStatusIndicator,
 				}}, &computev1.HostResource{
-					AmtSku:               computev1.AmtSku_AMT_SKU_UNSPECIFIED,
-					PowerStatus:          UpdateDefaultPowerStatus(hostInv),
-					PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+					AmtSku: computev1.AmtSku_AMT_SKU_UNSPECIFIED,
 				})
 			if err != nil {
 				zlog.InfraSec().InfraErr(err).Msgf("Failed to update AMT status for host %s", hostInv.GetResourceId())
@@ -422,20 +408,4 @@ func (dms *DeviceManagementService) getHostByUUID(ctx context.Context,
 		return nil, err
 	}
 	return hostInv, nil
-}
-
-func UpdateDefaultPowerStatus(
-	invHost *computev1.HostResource,
-) string {
-	hostStatus := invHost.GetHostStatus()
-	switch {
-	case slices.Contains(status.DefaultHostPowerUnknown, hostStatus):
-		return "Error"
-	case slices.Contains(status.DefaultHostPowerOff, hostStatus):
-		return "Off"
-	case slices.Contains(status.DefaultHostPowerOn, hostStatus):
-		return "On"
-	default:
-		return "Error"
-	}
 }
