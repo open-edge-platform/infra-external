@@ -123,6 +123,7 @@ func createTestService(mockInvClient *MockInventoryClient, authEnabled bool) (*g
 	return service, nil
 }
 
+//nolint:funlen // high cyclomatic complexity and function length because of the conditional logic
 func TestReportAMTStatus(t *testing.T) {
 	tests := []struct {
 		name           string
