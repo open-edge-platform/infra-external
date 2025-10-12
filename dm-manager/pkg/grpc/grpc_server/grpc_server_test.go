@@ -123,6 +123,7 @@ func createTestService(mockInvClient *MockInventoryClient, authEnabled bool) (*g
 	return service, nil
 }
 
+//nolint:funlen // high cyclomatic complexity and function length because of the conditional logic
 func TestReportAMTStatus(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -149,12 +150,60 @@ func TestReportAMTStatus(t *testing.T) {
 			},
 			context: createContextWithTenant(),
 			request: &pb.AMTStatusRequest{
-				HostId: "host-12345678",
-				Status: pb.AMTStatus_ENABLED,
+				HostId:  "host-12345678",
+				Status:  pb.AMTStatus_ENABLED,
+				Feature: "AMT",
 			},
 			authEnabled:    false,
 			expectedError:  codes.OK,
 			expectedResult: true,
+		},
+		{
+			name: "successful ISM status report",
+			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
+				hostResource := &computev1.HostResource{
+					ResourceId: "host-12345678",
+					Name:       "test-host",
+					Uuid:       "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					TenantId:   "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+				}
+				mockInvClient.On("GetHostByUUID", mock.Anything,
+					"bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678").Return(hostResource, nil)
+				mockInvClient.On("Update", mock.Anything, "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678",
+					mock.Anything, mock.Anything).Return(&inventoryv1.Resource{}, nil)
+			},
+			context: createContextWithTenant(),
+			request: &pb.AMTStatusRequest{
+				HostId:  "host-12345678",
+				Status:  pb.AMTStatus_ENABLED,
+				Feature: "ISM",
+			},
+			authEnabled:    false,
+			expectedError:  codes.OK,
+			expectedResult: true,
+		},
+		{
+			name: "Empty string for Feature field",
+			setupMocks: func(mockInvClient *MockInventoryClient, _ *MockRBACPolicy) {
+				hostResource := &computev1.HostResource{
+					ResourceId: "host-12345678",
+					Name:       "test-host",
+					Uuid:       "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+					TenantId:   "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+				}
+				mockInvClient.On("GetHostByUUID", mock.Anything,
+					"bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d", "host-12345678").Return(hostResource, nil)
+				// No Update mock expectation since the function should return an error before calling Update
+			},
+			context: createContextWithTenant(),
+			request: &pb.AMTStatusRequest{
+				HostId:  "host-12345678",
+				Status:  pb.AMTStatus_ENABLED,
+				Feature: "",
+			},
+			authEnabled:    false,
+			expectedError:  codes.InvalidArgument,
+			expectedResult: false,
 		},
 		{
 			name: "missing tenant ID",

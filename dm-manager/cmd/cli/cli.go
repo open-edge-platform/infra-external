@@ -24,7 +24,6 @@ var (
 	tenantID     = flag.String("tenantID", "91000763-23a2-4a2b-984a-37f69989b7e0",
 		"Tenant ID to use for the inventory client")
 	hostUUID       = flag.String("hostUUID", "874873cd-d715-d223-66fa-88aedd715d23", "Host UUID to use for the inventory client")
-	amtSku         = flag.String("amtSku", "AMT Pro Corporate", "AMT SKU to use for the host")
 	listHostsFlag  = flag.Bool("listHosts", false, "List hosts")
 	createHostFlag = flag.Bool("createHost", false, "Create a host")
 	deleteHostFlag = flag.Bool("deleteHost", false, "Delete a host")
@@ -99,7 +98,7 @@ func createHost(apiClient, rmClient invClient.TenantAwareInventoryClient) {
 					DesiredAmtState:    computev1.AmtState_AMT_STATE_PROVISIONED,
 					TenantId:           *tenantID,
 					Uuid:               *hostUUID,
-					AmtSku:             *amtSku,
+					AmtSku:             computev1.AmtSku_AMT_SKU_UNSPECIFIED,
 				},
 			},
 		})

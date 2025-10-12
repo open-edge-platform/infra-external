@@ -44,7 +44,7 @@ service DeviceManagement {
 message AMTStatusRequest {
     string host_id = 1;    // Host identifier
     AMTStatus status = 2;  // AMT status (e.g. Enabled, Disabled)
-    string version = 3;    // AMT version
+    string feature = 3;    // AMT feature
 }
 
 message AMTStatusResponse {}
