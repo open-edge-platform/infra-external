@@ -52,6 +52,7 @@ var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
 	computev1.PowerState_POWER_STATE_RESET:       powerReset,
 	computev1.PowerState_POWER_STATE_HIBERNATE:   powerHibernate,
 	computev1.PowerState_POWER_STATE_POWER_CYCLE: powerCycle,
+	computev1.PowerState_POWER_STATE_RESET_REPEAT: powerReset, // Same MPS action as regular reset
 }
 
 var powerMappingToInProgressState = map[computev1.PowerState]string{
@@ -62,6 +63,7 @@ var powerMappingToInProgressState = map[computev1.PowerState]string{
 	computev1.PowerState_POWER_STATE_RESET:       "Resetting",
 	computev1.PowerState_POWER_STATE_HIBERNATE:   "Hibernating",
 	computev1.PowerState_POWER_STATE_POWER_CYCLE: "Power cycling",
+	computev1.PowerState_POWER_STATE_RESET_REPEAT: "Resetting (repeat)",
 }
 
 var powerMappingToIdleState = map[computev1.PowerState]string{
@@ -72,6 +74,7 @@ var powerMappingToIdleState = map[computev1.PowerState]string{
 	computev1.PowerState_POWER_STATE_RESET:       "Reset successful",
 	computev1.PowerState_POWER_STATE_HIBERNATE:   "Hibernate state",
 	computev1.PowerState_POWER_STATE_POWER_CYCLE: "Power cycle successful",
+	computev1.PowerState_POWER_STATE_RESET_REPEAT: "Reset (repeat) successful",
 }
 
 //nolint: godot // copied from swagger file
@@ -99,6 +102,7 @@ var allowedPowerStates = map[computev1.PowerState][]int32{
 	computev1.PowerState_POWER_STATE_RESET:       {2, 14},
 	computev1.PowerState_POWER_STATE_HIBERNATE:   {2, 7},
 	computev1.PowerState_POWER_STATE_POWER_CYCLE: {2, 9},
+	computev1.PowerState_POWER_STATE_RESET_REPEAT: {2, 14}, // Same allowed states as RESET
 }
 
 var mpsPowerStateToInventoryPowerState = map[int32]computev1.PowerState{
@@ -242,8 +246,37 @@ func (dc *Controller) shouldSyncPowerStatus(invHost *computev1.HostResource) boo
 }
 
 func (dc *Controller) shouldHandlePowerChange(invHost *computev1.HostResource) bool {
-	return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
-		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState()
+	if invHost.GetCurrentAmtState() != computev1.AmtState_AMT_STATE_PROVISIONED {
+		return false
+	}
+
+	currentState := invHost.GetCurrentPowerState()
+	desiredState := invHost.GetDesiredPowerState()
+
+	// Standard case: different desired and current power states
+	if desiredState != currentState {
+		return true
+	}
+
+	// Special case for consecutive operations:
+	// Allow consecutive resets/power cycles even when current state matches desired state
+	// This enables multiple operations in sequence
+
+	// Handle consecutive RESET operations
+	if desiredState == computev1.PowerState_POWER_STATE_RESET &&
+		currentState == computev1.PowerState_POWER_STATE_RESET {
+		log.Info().Msgf("Allowing consecutive reset operation for host %v", invHost.GetResourceId())
+		return true
+	}
+
+	// Handle consecutive RESET_REPEAT operations
+	if desiredState == computev1.PowerState_POWER_STATE_RESET_REPEAT &&
+		currentState == computev1.PowerState_POWER_STATE_RESET_REPEAT {
+		log.Info().Msgf("Allowing consecutive reset repeat operation for host %v", invHost.GetResourceId())
+		return true
+	}
+
+	return false
 }
 
 func (dc *Controller) handleDeactivateAMT(
