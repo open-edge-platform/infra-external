@@ -45,35 +45,35 @@ const (
 var log = logging.GetLogger("DeviceReconciler")
 
 var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
-	computev1.PowerState_POWER_STATE_UNSPECIFIED: powerOn, // todo: consider removing this mapping
-	computev1.PowerState_POWER_STATE_ON:          powerOn,
-	computev1.PowerState_POWER_STATE_OFF:         powerOff,
-	computev1.PowerState_POWER_STATE_SLEEP:       powerSleep,
-	computev1.PowerState_POWER_STATE_RESET:       powerReset,
-	computev1.PowerState_POWER_STATE_HIBERNATE:   powerHibernate,
-	computev1.PowerState_POWER_STATE_POWER_CYCLE: powerCycle,
+	computev1.PowerState_POWER_STATE_UNSPECIFIED:  powerOn, // todo: consider removing this mapping
+	computev1.PowerState_POWER_STATE_ON:           powerOn,
+	computev1.PowerState_POWER_STATE_OFF:          powerOff,
+	computev1.PowerState_POWER_STATE_SLEEP:        powerSleep,
+	computev1.PowerState_POWER_STATE_RESET:        powerReset,
+	computev1.PowerState_POWER_STATE_HIBERNATE:    powerHibernate,
+	computev1.PowerState_POWER_STATE_POWER_CYCLE:  powerCycle,
 	computev1.PowerState_POWER_STATE_RESET_REPEAT: powerReset, // Same MPS action as regular reset
 }
 
 var powerMappingToInProgressState = map[computev1.PowerState]string{
-	computev1.PowerState_POWER_STATE_UNSPECIFIED: "Unspecified",
-	computev1.PowerState_POWER_STATE_ON:          "Powering on",
-	computev1.PowerState_POWER_STATE_OFF:         "Powering off",
-	computev1.PowerState_POWER_STATE_SLEEP:       "Sleeping",
-	computev1.PowerState_POWER_STATE_RESET:       "Resetting",
-	computev1.PowerState_POWER_STATE_HIBERNATE:   "Hibernating",
-	computev1.PowerState_POWER_STATE_POWER_CYCLE: "Power cycling",
+	computev1.PowerState_POWER_STATE_UNSPECIFIED:  "Unspecified",
+	computev1.PowerState_POWER_STATE_ON:           "Powering on",
+	computev1.PowerState_POWER_STATE_OFF:          "Powering off",
+	computev1.PowerState_POWER_STATE_SLEEP:        "Sleeping",
+	computev1.PowerState_POWER_STATE_RESET:        "Resetting",
+	computev1.PowerState_POWER_STATE_HIBERNATE:    "Hibernating",
+	computev1.PowerState_POWER_STATE_POWER_CYCLE:  "Power cycling",
 	computev1.PowerState_POWER_STATE_RESET_REPEAT: "Resetting (repeat)",
 }
 
 var powerMappingToIdleState = map[computev1.PowerState]string{
-	computev1.PowerState_POWER_STATE_UNSPECIFIED: "Unspecified",
-	computev1.PowerState_POWER_STATE_ON:          "Powered on",
-	computev1.PowerState_POWER_STATE_OFF:         "Powered off",
-	computev1.PowerState_POWER_STATE_SLEEP:       "Sleep state",
-	computev1.PowerState_POWER_STATE_RESET:       "Reset successful",
-	computev1.PowerState_POWER_STATE_HIBERNATE:   "Hibernate state",
-	computev1.PowerState_POWER_STATE_POWER_CYCLE: "Power cycle successful",
+	computev1.PowerState_POWER_STATE_UNSPECIFIED:  "Unspecified",
+	computev1.PowerState_POWER_STATE_ON:           "Powered on",
+	computev1.PowerState_POWER_STATE_OFF:          "Powered off",
+	computev1.PowerState_POWER_STATE_SLEEP:        "Sleep state",
+	computev1.PowerState_POWER_STATE_RESET:        "Reset successful",
+	computev1.PowerState_POWER_STATE_HIBERNATE:    "Hibernate state",
+	computev1.PowerState_POWER_STATE_POWER_CYCLE:  "Power cycle successful",
 	computev1.PowerState_POWER_STATE_RESET_REPEAT: "Reset (repeat) successful",
 }
 
@@ -95,13 +95,13 @@ for SLEEP/HIBERNATE, as MPS it returns 2 (POWER_ON)
 14	Soft reset	Powered up/on	Perform a shutdown and then a hardware reset	N/A
 */
 var allowedPowerStates = map[computev1.PowerState][]int32{
-	computev1.PowerState_POWER_STATE_UNSPECIFIED: {},
-	computev1.PowerState_POWER_STATE_ON:          {2},
-	computev1.PowerState_POWER_STATE_OFF:         {6, 8, 12, 13},
-	computev1.PowerState_POWER_STATE_SLEEP:       {2, 3, 4},
-	computev1.PowerState_POWER_STATE_RESET:       {2, 14},
-	computev1.PowerState_POWER_STATE_HIBERNATE:   {2, 7},
-	computev1.PowerState_POWER_STATE_POWER_CYCLE: {2, 9},
+	computev1.PowerState_POWER_STATE_UNSPECIFIED:  {},
+	computev1.PowerState_POWER_STATE_ON:           {2},
+	computev1.PowerState_POWER_STATE_OFF:          {6, 8, 12, 13},
+	computev1.PowerState_POWER_STATE_SLEEP:        {2, 3, 4},
+	computev1.PowerState_POWER_STATE_RESET:        {2, 14},
+	computev1.PowerState_POWER_STATE_HIBERNATE:    {2, 7},
+	computev1.PowerState_POWER_STATE_POWER_CYCLE:  {2, 9},
 	computev1.PowerState_POWER_STATE_RESET_REPEAT: {2, 14}, // Same allowed states as RESET
 }
 
