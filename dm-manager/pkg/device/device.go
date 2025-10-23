@@ -462,6 +462,7 @@ func (dc *Controller) syncPowerStatus(
 	return request.Ack()
 }
 
+//nolint:cyclop,funlen // Power change handling requires complex state management and MPS integration
 func (dc *Controller) handlePowerChange(
 	ctx context.Context,
 	request rec_v2.Request[ID],
