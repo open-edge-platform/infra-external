@@ -520,7 +520,7 @@ func TestDeviceController_MPS_HeaderValidation_UserAgent(t *testing.T) {
 	mpsMock.AssertExpectations(t)
 }
 
-// Tests for consecutive reset functionality
+// Tests for consecutive reset functionality.
 func TestConsecutiveResetLogic(t *testing.T) {
 	dc := &Controller{}
 
