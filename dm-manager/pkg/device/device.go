@@ -246,15 +246,21 @@ func (dc *Controller) shouldSyncPowerStatus(invHost *computev1.HostResource) boo
 }
 
 func (dc *Controller) shouldHandlePowerChange(invHost *computev1.HostResource) bool {
-	if invHost.GetCurrentAmtState() != computev1.AmtState_AMT_STATE_PROVISIONED {
-		return false
-	}
-
+	hostId := invHost.GetResourceId()
+	currentAmtState := invHost.GetCurrentAmtState()
 	currentState := invHost.GetCurrentPowerState()
 	desiredState := invHost.GetDesiredPowerState()
 
+	log.Info().Msgf("Host %v states - AMT: %v, Current Power: %v, Desired Power: %v", hostId, currentAmtState, currentState, desiredState)
+
+	if currentAmtState != computev1.AmtState_AMT_STATE_PROVISIONED {
+		log.Debug().Msgf("Host %v not provisioned (AMT state: %v), skipping power change", hostId, currentAmtState)
+		return false
+	}
+
 	// Standard case: different desired and current power states
 	if desiredState != currentState {
+		log.Info().Msgf("Host %v standard power change: %v -> %v", hostId, currentState, desiredState)
 		return true
 	}
 
@@ -265,17 +271,25 @@ func (dc *Controller) shouldHandlePowerChange(invHost *computev1.HostResource) b
 	// Handle consecutive RESET operations
 	if desiredState == computev1.PowerState_POWER_STATE_RESET &&
 		currentState == computev1.PowerState_POWER_STATE_RESET {
-		log.Info().Msgf("Allowing consecutive reset operation for host %v", invHost.GetResourceId())
+		log.Info().Msgf("Host %v allowing consecutive RESET operation (RESET -> RESET)", hostId)
 		return true
 	}
 
 	// Handle consecutive RESET_REPEAT operations
 	if desiredState == computev1.PowerState_POWER_STATE_RESET_REPEAT &&
 		currentState == computev1.PowerState_POWER_STATE_RESET_REPEAT {
-		log.Info().Msgf("Allowing consecutive reset repeat operation for host %v", invHost.GetResourceId())
+		log.Info().Msgf("Host %v allowing consecutive RESET_REPEAT operation (RESET_REPEAT -> RESET_REPEAT)", hostId)
 		return true
 	}
 
+	// Handle mixed consecutive operations (RESET_REPEAT when current is RESET)
+	if desiredState == computev1.PowerState_POWER_STATE_RESET_REPEAT &&
+		currentState == computev1.PowerState_POWER_STATE_RESET {
+		log.Info().Msgf("Host %v allowing RESET_REPEAT after RESET operation (RESET -> RESET_REPEAT)", hostId)
+		return true
+	}
+
+	log.Debug().Msgf("Host %v no power change needed (current=%v, desired=%v)", hostId, currentState, desiredState)
 	return false
 }
 
@@ -453,8 +467,24 @@ func (dc *Controller) handlePowerChange(
 	invHost *computev1.HostResource,
 	desiredPowerState computev1.PowerState,
 ) (rec_v2.Directive[ID], statusv1.StatusIndication, error) {
-	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID,
-		invHost.GetCurrentPowerState(), desiredPowerState)
+	hostId := request.ID.GetHostUUID()
+	currentState := invHost.GetCurrentPowerState()
+
+	log.Info().Msgf("Performing power change for host %v: %v -> %v",
+		hostId, currentState, desiredPowerState)
+
+	// Check if this is a consecutive reset operation
+	// for debugging purpose only
+	switch desiredPowerState {
+	case computev1.PowerState_POWER_STATE_RESET_REPEAT:
+		log.Info().Msgf("Processing consecutive RESET_REPEAT operation for host %v", hostId)
+	case computev1.PowerState_POWER_STATE_RESET:
+		if currentState == computev1.PowerState_POWER_STATE_RESET {
+			log.Info().Msgf("Processing consecutive RESET operation for host %v", hostId)
+		} else {
+			log.Info().Msgf("Processing standard RESET operation for host %v", hostId)
+		}
+	}
 
 	err := dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
@@ -465,22 +495,30 @@ func (dc *Controller) handlePowerChange(
 			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
 		})
 	if err != nil {
-		log.Err(err).Msgf("failed to update device info")
+		log.Err(err).Msgf("Failed to update device info for host %v", hostId)
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
+
+	// MPS action being sent
+	mpsAction := powerMapping[desiredPowerState]
+	log.Info().Msgf("Sending MPS power action for host %v: state=%v -> mps_action=%v",
+		hostId, desiredPowerState, mpsAction)
 
 	// assumption is that we don't have to check if power actions are supported, as AMT supports it since 1.0.0
 	// https://en.wikipedia.org/wiki/Intel_AMT_versions
 	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), request.ID.GetTenantID())
 	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(updatedCtx, request.ID.GetHostUUID(),
 		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
-			Action: powerMapping[desiredPowerState],
+			Action: mpsAction,
 		}, clientCallback())
 	if err != nil {
-		log.Err(err).Msgf("failed to send power action to MPS")
+		log.Err(err).Msgf("Failed to send power action to MPS for host %v", hostId)
 		return request.Fail(err),
 			statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
+
+	log.Info().Msgf("MPS power action sent successfully for host %v, response code: %v",
+		hostId, powerAction.StatusCode())
 
 	log.Debug().Msgf("power action response for %v with status code %v - %v", request.ID.GetHostUUID(),
 		powerAction.HTTPResponse, string(powerAction.Body))
