@@ -241,6 +241,12 @@ func (dc *Controller) shouldDeactivateAMT(invHost *computev1.HostResource) bool 
 }
 
 func (dc *Controller) shouldSyncPowerStatus(invHost *computev1.HostResource) bool {
+	// Exclude action based power states to allow proper state transitions
+	desiredState := invHost.GetDesiredPowerState()
+	if desiredState == computev1.PowerState_POWER_STATE_RESET_REPEAT ||
+		desiredState == computev1.PowerState_POWER_STATE_RESET {
+		return false
+	}
 	return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() == invHost.GetCurrentPowerState()
 }
@@ -259,34 +265,9 @@ func (dc *Controller) shouldHandlePowerChange(invHost *computev1.HostResource) b
 		return false
 	}
 
-	// Standard case: different desired and current power states
+	// different desired and current power states
 	if desiredState != currentState {
 		log.Info().Msgf("Host %v standard power change: %v -> %v", hostID, currentState, desiredState)
-		return true
-	}
-
-	// Special case for consecutive operations:
-	// Allow consecutive resets/power cycles even when current state matches desired state
-	// This enables multiple operations in sequence
-
-	// Handle consecutive RESET operations
-	if desiredState == computev1.PowerState_POWER_STATE_RESET &&
-		currentState == computev1.PowerState_POWER_STATE_RESET {
-		log.Info().Msgf("Host %v allowing consecutive RESET operation (RESET -> RESET)", hostID)
-		return true
-	}
-
-	// Handle consecutive RESET_REPEAT operations
-	if desiredState == computev1.PowerState_POWER_STATE_RESET_REPEAT &&
-		currentState == computev1.PowerState_POWER_STATE_RESET_REPEAT {
-		log.Info().Msgf("Host %v allowing consecutive RESET_REPEAT operation (RESET_REPEAT -> RESET_REPEAT)", hostID)
-		return true
-	}
-
-	// Handle mixed consecutive operations (RESET_REPEAT when current is RESET)
-	if desiredState == computev1.PowerState_POWER_STATE_RESET_REPEAT &&
-		currentState == computev1.PowerState_POWER_STATE_RESET {
-		log.Info().Msgf("Host %v allowing RESET_REPEAT after RESET operation (RESET -> RESET_REPEAT)", hostID)
 		return true
 	}
 
@@ -440,6 +421,7 @@ func (dc *Controller) syncPowerStatus(
 		}
 		return request.Ack()
 	}
+
 	if contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) &&
 		invHost.GetPowerStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE {
 		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
