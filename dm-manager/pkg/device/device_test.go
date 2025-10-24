@@ -538,23 +538,23 @@ func TestConsecutiveResetLogic(t *testing.T) {
 			currentPower:   computev1.PowerState_POWER_STATE_ON,
 			desiredPower:   computev1.PowerState_POWER_STATE_RESET,
 			expectedResult: true,
-			description:    "First reset should be allowed (different states)",
+			description:    "First reset should be allowed",
 		},
 		{
 			name:           "Consecutive Reset - RESET to RESET",
 			currentAmt:     computev1.AmtState_AMT_STATE_PROVISIONED,
 			currentPower:   computev1.PowerState_POWER_STATE_RESET,
 			desiredPower:   computev1.PowerState_POWER_STATE_RESET,
-			expectedResult: true,
-			description:    "Consecutive RESET operations should be allowed",
+			expectedResult: false,
+			description:    "Same reset states don't trigger action", // handling by apiv2
 		},
 		{
 			name:           "Consecutive Reset - RESET_REPEAT to RESET_REPEAT",
 			currentAmt:     computev1.AmtState_AMT_STATE_PROVISIONED,
 			currentPower:   computev1.PowerState_POWER_STATE_RESET_REPEAT,
 			desiredPower:   computev1.PowerState_POWER_STATE_RESET_REPEAT,
-			expectedResult: true,
-			description:    "Consecutive RESET_REPEAT operations should be allowed",
+			expectedResult: false,
+			description:    "Same reset_repeat states don't trigger action", // handling by apiv2
 		},
 		{
 			name:           "Mixed Consecutive - RESET to RESET_REPEAT",
