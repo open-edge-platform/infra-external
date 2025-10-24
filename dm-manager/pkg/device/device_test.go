@@ -613,7 +613,7 @@ func TestPowerStateMapping(t *testing.T) {
 
 	t.Run("RESET_REPEAT has correct idle state", func(t *testing.T) {
 		idleState := powerMappingToIdleState[computev1.PowerState_POWER_STATE_RESET_REPEAT]
-		expectedState := "Reset (repeat) successful"
+		expectedState := "Reset successful"
 		assert.Equal(t, expectedState, idleState, "RESET_REPEAT should have correct idle state")
 	})
 }

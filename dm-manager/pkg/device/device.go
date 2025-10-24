@@ -74,7 +74,7 @@ var powerMappingToIdleState = map[computev1.PowerState]string{
 	computev1.PowerState_POWER_STATE_RESET:        "Reset successful",
 	computev1.PowerState_POWER_STATE_HIBERNATE:    "Hibernate state",
 	computev1.PowerState_POWER_STATE_POWER_CYCLE:  "Power cycle successful",
-	computev1.PowerState_POWER_STATE_RESET_REPEAT: "Reset (repeat) successful",
+	computev1.PowerState_POWER_STATE_RESET_REPEAT: "Reset successful",
 }
 
 //nolint: godot // copied from swagger file
