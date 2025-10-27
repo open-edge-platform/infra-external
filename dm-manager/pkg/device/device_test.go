@@ -607,7 +607,7 @@ func TestPowerStateMapping(t *testing.T) {
 
 	t.Run("RESET_REPEAT has correct progress state", func(t *testing.T) {
 		progressState := powerMappingToInProgressState[computev1.PowerState_POWER_STATE_RESET_REPEAT]
-		expectedState := "Resetting (repeat)"
+		expectedState := "Resetting"
 		assert.Equal(t, expectedState, progressState, "RESET_REPEAT should have correct progress state")
 	})
 

@@ -63,7 +63,7 @@ var powerMappingToInProgressState = map[computev1.PowerState]string{
 	computev1.PowerState_POWER_STATE_RESET:        "Resetting",
 	computev1.PowerState_POWER_STATE_HIBERNATE:    "Hibernating",
 	computev1.PowerState_POWER_STATE_POWER_CYCLE:  "Power cycling",
-	computev1.PowerState_POWER_STATE_RESET_REPEAT: "Resetting (repeat)",
+	computev1.PowerState_POWER_STATE_RESET_REPEAT: "Resetting",
 }
 
 var powerMappingToIdleState = map[computev1.PowerState]string{
