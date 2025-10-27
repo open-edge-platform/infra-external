@@ -519,3 +519,101 @@ func TestDeviceController_MPS_HeaderValidation_UserAgent(t *testing.T) {
 
 	mpsMock.AssertExpectations(t)
 }
+
+// Tests for consecutive reset functionality.
+func TestConsecutiveResetLogic(t *testing.T) {
+	dc := &Controller{}
+
+	tests := []struct {
+		name           string
+		currentAmt     computev1.AmtState
+		currentPower   computev1.PowerState
+		desiredPower   computev1.PowerState
+		expectedResult bool
+		description    string
+	}{
+		{
+			name:           "Standard Reset - First Time",
+			currentAmt:     computev1.AmtState_AMT_STATE_PROVISIONED,
+			currentPower:   computev1.PowerState_POWER_STATE_ON,
+			desiredPower:   computev1.PowerState_POWER_STATE_RESET,
+			expectedResult: true,
+			description:    "First reset should be allowed",
+		},
+		{
+			name:           "Consecutive Reset - RESET to RESET",
+			currentAmt:     computev1.AmtState_AMT_STATE_PROVISIONED,
+			currentPower:   computev1.PowerState_POWER_STATE_RESET,
+			desiredPower:   computev1.PowerState_POWER_STATE_RESET,
+			expectedResult: false,
+			description:    "Same reset states don't trigger action", // handling by apiv2
+		},
+		{
+			name:           "Consecutive Reset - RESET_REPEAT to RESET_REPEAT",
+			currentAmt:     computev1.AmtState_AMT_STATE_PROVISIONED,
+			currentPower:   computev1.PowerState_POWER_STATE_RESET_REPEAT,
+			desiredPower:   computev1.PowerState_POWER_STATE_RESET_REPEAT,
+			expectedResult: false,
+			description:    "Same reset_repeat states don't trigger action", // handling by apiv2
+		},
+		{
+			name:           "Mixed Consecutive - RESET to RESET_REPEAT",
+			currentAmt:     computev1.AmtState_AMT_STATE_PROVISIONED,
+			currentPower:   computev1.PowerState_POWER_STATE_RESET,
+			desiredPower:   computev1.PowerState_POWER_STATE_RESET_REPEAT,
+			expectedResult: true,
+			description:    "RESET_REPEAT after RESET should be allowed",
+		},
+		{
+			name:           "Not Provisioned - Should Skip",
+			currentAmt:     computev1.AmtState_AMT_STATE_UNPROVISIONED,
+			currentPower:   computev1.PowerState_POWER_STATE_ON,
+			desiredPower:   computev1.PowerState_POWER_STATE_RESET,
+			expectedResult: false,
+			description:    "Unprovisioned devices should not handle power changes",
+		},
+		{
+			name:           "Same Non-Reset States",
+			currentAmt:     computev1.AmtState_AMT_STATE_PROVISIONED,
+			currentPower:   computev1.PowerState_POWER_STATE_ON,
+			desiredPower:   computev1.PowerState_POWER_STATE_ON,
+			expectedResult: false,
+			description:    "Same non-reset states should not trigger power change",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a mock host resource
+			hostResource := &computev1.HostResource{
+				ResourceId:        "test-host-123",
+				CurrentAmtState:   tt.currentAmt,
+				CurrentPowerState: tt.currentPower,
+				DesiredPowerState: tt.desiredPower,
+			}
+
+			result := dc.shouldHandlePowerChange(hostResource)
+			assert.Equal(t, tt.expectedResult, result, tt.description)
+		})
+	}
+}
+
+func TestPowerStateMapping(t *testing.T) {
+	t.Run("RESET_REPEAT maps to correct MPS action", func(t *testing.T) {
+		action := powerMapping[computev1.PowerState_POWER_STATE_RESET_REPEAT]
+		expectedAction := powerReset // Should be same as regular RESET
+		assert.Equal(t, expectedAction, action, "RESET_REPEAT should map to same MPS action as RESET")
+	})
+
+	t.Run("RESET_REPEAT has correct progress state", func(t *testing.T) {
+		progressState := powerMappingToInProgressState[computev1.PowerState_POWER_STATE_RESET_REPEAT]
+		expectedState := "Resetting"
+		assert.Equal(t, expectedState, progressState, "RESET_REPEAT should have correct progress state")
+	})
+
+	t.Run("RESET_REPEAT has correct idle state", func(t *testing.T) {
+		idleState := powerMappingToIdleState[computev1.PowerState_POWER_STATE_RESET_REPEAT]
+		expectedState := "Reset successful"
+		assert.Equal(t, expectedState, idleState, "RESET_REPEAT should have correct idle state")
+	})
+}

@@ -45,33 +45,36 @@ const (
 var log = logging.GetLogger("DeviceReconciler")
 
 var powerMapping = map[computev1.PowerState]mps.PowerActionRequestAction{
-	computev1.PowerState_POWER_STATE_UNSPECIFIED: powerOn, // todo: consider removing this mapping
-	computev1.PowerState_POWER_STATE_ON:          powerOn,
-	computev1.PowerState_POWER_STATE_OFF:         powerOff,
-	computev1.PowerState_POWER_STATE_SLEEP:       powerSleep,
-	computev1.PowerState_POWER_STATE_RESET:       powerReset,
-	computev1.PowerState_POWER_STATE_HIBERNATE:   powerHibernate,
-	computev1.PowerState_POWER_STATE_POWER_CYCLE: powerCycle,
+	computev1.PowerState_POWER_STATE_UNSPECIFIED:  powerOn, // todo: consider removing this mapping
+	computev1.PowerState_POWER_STATE_ON:           powerOn,
+	computev1.PowerState_POWER_STATE_OFF:          powerOff,
+	computev1.PowerState_POWER_STATE_SLEEP:        powerSleep,
+	computev1.PowerState_POWER_STATE_RESET:        powerReset,
+	computev1.PowerState_POWER_STATE_HIBERNATE:    powerHibernate,
+	computev1.PowerState_POWER_STATE_POWER_CYCLE:  powerCycle,
+	computev1.PowerState_POWER_STATE_RESET_REPEAT: powerReset, // Same MPS action as regular reset
 }
 
 var powerMappingToInProgressState = map[computev1.PowerState]string{
-	computev1.PowerState_POWER_STATE_UNSPECIFIED: "Unspecified",
-	computev1.PowerState_POWER_STATE_ON:          "Powering on",
-	computev1.PowerState_POWER_STATE_OFF:         "Powering off",
-	computev1.PowerState_POWER_STATE_SLEEP:       "Sleeping",
-	computev1.PowerState_POWER_STATE_RESET:       "Resetting",
-	computev1.PowerState_POWER_STATE_HIBERNATE:   "Hibernating",
-	computev1.PowerState_POWER_STATE_POWER_CYCLE: "Power cycling",
+	computev1.PowerState_POWER_STATE_UNSPECIFIED:  "Unspecified",
+	computev1.PowerState_POWER_STATE_ON:           "Powering on",
+	computev1.PowerState_POWER_STATE_OFF:          "Powering off",
+	computev1.PowerState_POWER_STATE_SLEEP:        "Sleeping",
+	computev1.PowerState_POWER_STATE_RESET:        "Resetting",
+	computev1.PowerState_POWER_STATE_HIBERNATE:    "Hibernating",
+	computev1.PowerState_POWER_STATE_POWER_CYCLE:  "Power cycling",
+	computev1.PowerState_POWER_STATE_RESET_REPEAT: "Resetting",
 }
 
 var powerMappingToIdleState = map[computev1.PowerState]string{
-	computev1.PowerState_POWER_STATE_UNSPECIFIED: "Unspecified",
-	computev1.PowerState_POWER_STATE_ON:          "Powered on",
-	computev1.PowerState_POWER_STATE_OFF:         "Powered off",
-	computev1.PowerState_POWER_STATE_SLEEP:       "Sleep state",
-	computev1.PowerState_POWER_STATE_RESET:       "Reset successful",
-	computev1.PowerState_POWER_STATE_HIBERNATE:   "Hibernate state",
-	computev1.PowerState_POWER_STATE_POWER_CYCLE: "Power cycle successful",
+	computev1.PowerState_POWER_STATE_UNSPECIFIED:  "Unspecified",
+	computev1.PowerState_POWER_STATE_ON:           "Powered on",
+	computev1.PowerState_POWER_STATE_OFF:          "Powered off",
+	computev1.PowerState_POWER_STATE_SLEEP:        "Sleep state",
+	computev1.PowerState_POWER_STATE_RESET:        "Reset successful",
+	computev1.PowerState_POWER_STATE_HIBERNATE:    "Hibernate state",
+	computev1.PowerState_POWER_STATE_POWER_CYCLE:  "Power cycle successful",
+	computev1.PowerState_POWER_STATE_RESET_REPEAT: "Reset successful",
 }
 
 //nolint: godot // copied from swagger file
@@ -92,13 +95,14 @@ for SLEEP/HIBERNATE, as MPS it returns 2 (POWER_ON)
 14	Soft reset	Powered up/on	Perform a shutdown and then a hardware reset	N/A
 */
 var allowedPowerStates = map[computev1.PowerState][]int32{
-	computev1.PowerState_POWER_STATE_UNSPECIFIED: {},
-	computev1.PowerState_POWER_STATE_ON:          {2},
-	computev1.PowerState_POWER_STATE_OFF:         {6, 8, 12, 13},
-	computev1.PowerState_POWER_STATE_SLEEP:       {2, 3, 4},
-	computev1.PowerState_POWER_STATE_RESET:       {2, 14},
-	computev1.PowerState_POWER_STATE_HIBERNATE:   {2, 7},
-	computev1.PowerState_POWER_STATE_POWER_CYCLE: {2, 9},
+	computev1.PowerState_POWER_STATE_UNSPECIFIED:  {},
+	computev1.PowerState_POWER_STATE_ON:           {2},
+	computev1.PowerState_POWER_STATE_OFF:          {6, 8, 12, 13},
+	computev1.PowerState_POWER_STATE_SLEEP:        {2, 3, 4},
+	computev1.PowerState_POWER_STATE_RESET:        {2, 14},
+	computev1.PowerState_POWER_STATE_HIBERNATE:    {2, 7},
+	computev1.PowerState_POWER_STATE_POWER_CYCLE:  {2, 9},
+	computev1.PowerState_POWER_STATE_RESET_REPEAT: {2, 14}, // Same allowed states as RESET
 }
 
 var mpsPowerStateToInventoryPowerState = map[int32]computev1.PowerState{
@@ -237,13 +241,38 @@ func (dc *Controller) shouldDeactivateAMT(invHost *computev1.HostResource) bool 
 }
 
 func (dc *Controller) shouldSyncPowerStatus(invHost *computev1.HostResource) bool {
+	// Exclude action based power states to allow proper state transitions
+	desiredState := invHost.GetDesiredPowerState()
+	if desiredState == computev1.PowerState_POWER_STATE_RESET_REPEAT ||
+		desiredState == computev1.PowerState_POWER_STATE_RESET {
+		return false
+	}
 	return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() == invHost.GetCurrentPowerState()
 }
 
 func (dc *Controller) shouldHandlePowerChange(invHost *computev1.HostResource) bool {
-	return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
-		invHost.GetDesiredPowerState() != invHost.GetCurrentPowerState()
+	hostID := invHost.GetResourceId()
+	currentAmtState := invHost.GetCurrentAmtState()
+	currentState := invHost.GetCurrentPowerState()
+	desiredState := invHost.GetDesiredPowerState()
+
+	log.Info().Msgf("Host %v states - AMT: %v, Current Power: %v, Desired Power: %v",
+		hostID, currentAmtState, currentState, desiredState)
+
+	if currentAmtState != computev1.AmtState_AMT_STATE_PROVISIONED {
+		log.Debug().Msgf("Host %v not provisioned (AMT state: %v), skipping power change", hostID, currentAmtState)
+		return false
+	}
+
+	// different desired and current power states
+	if desiredState != currentState {
+		log.Info().Msgf("Host %v standard power change: %v -> %v", hostID, currentState, desiredState)
+		return true
+	}
+
+	log.Debug().Msgf("Host %v no power change needed (current=%v, desired=%v)", hostID, currentState, desiredState)
+	return false
 }
 
 func (dc *Controller) handleDeactivateAMT(
@@ -392,6 +421,7 @@ func (dc *Controller) syncPowerStatus(
 		}
 		return request.Ack()
 	}
+
 	if contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) &&
 		invHost.GetPowerStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE {
 		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
@@ -414,14 +444,43 @@ func (dc *Controller) syncPowerStatus(
 	return request.Ack()
 }
 
+//nolint:cyclop,funlen // Power change handling requires complex state management and MPS integration
 func (dc *Controller) handlePowerChange(
 	ctx context.Context,
 	request rec_v2.Request[ID],
 	invHost *computev1.HostResource,
 	desiredPowerState computev1.PowerState,
 ) (rec_v2.Directive[ID], statusv1.StatusIndication, error) {
-	log.Info().Msgf("trying to change power state for %v from %v to %v", request.ID,
-		invHost.GetCurrentPowerState(), desiredPowerState)
+	hostID := request.ID.GetHostUUID()
+	currentState := invHost.GetCurrentPowerState()
+
+	log.Info().Msgf("Performing power change for host %v: %v -> %v",
+		hostID, currentState, desiredPowerState)
+
+	// Check if this is a consecutive reset operation
+	// for debugging purpose only
+	switch desiredPowerState {
+	case computev1.PowerState_POWER_STATE_UNSPECIFIED:
+		log.Info().Msgf("Processing unspecified power operation for host %v", hostID)
+	case computev1.PowerState_POWER_STATE_ON:
+		log.Info().Msgf("Processing power ON operation for host %v", hostID)
+	case computev1.PowerState_POWER_STATE_OFF:
+		log.Info().Msgf("Processing power OFF operation for host %v", hostID)
+	case computev1.PowerState_POWER_STATE_SLEEP:
+		log.Info().Msgf("Processing power SLEEP operation for host %v", hostID)
+	case computev1.PowerState_POWER_STATE_HIBERNATE:
+		log.Info().Msgf("Processing power HIBERNATE operation for host %v", hostID)
+	case computev1.PowerState_POWER_STATE_POWER_CYCLE:
+		log.Info().Msgf("Processing power CYCLE operation for host %v", hostID)
+	case computev1.PowerState_POWER_STATE_RESET_REPEAT:
+		log.Info().Msgf("Processing consecutive RESET_REPEAT operation for host %v", hostID)
+	case computev1.PowerState_POWER_STATE_RESET:
+		if currentState == computev1.PowerState_POWER_STATE_RESET {
+			log.Info().Msgf("Processing consecutive RESET operation for host %v", hostID)
+		} else {
+			log.Info().Msgf("Processing standard RESET operation for host %v", hostID)
+		}
+	}
 
 	err := dc.updateHost(ctx, request.ID.GetTenantID(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
@@ -432,22 +491,30 @@ func (dc *Controller) handlePowerChange(
 			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
 		})
 	if err != nil {
-		log.Err(err).Msgf("failed to update device info")
+		log.Err(err).Msgf("Failed to update device info for host %v", hostID)
 		return request.Fail(err), statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
+
+	// MPS action being sent
+	mpsAction := powerMapping[desiredPowerState]
+	log.Info().Msgf("Sending MPS power action for host %v: state=%v -> mps_action=%v",
+		hostID, desiredPowerState, mpsAction)
 
 	// assumption is that we don't have to check if power actions are supported, as AMT supports it since 1.0.0
 	// https://en.wikipedia.org/wiki/Intel_AMT_versions
 	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), request.ID.GetTenantID())
 	powerAction, err := dc.MpsClient.PostApiV1AmtPowerActionGuidWithResponse(updatedCtx, request.ID.GetHostUUID(),
 		mps.PostApiV1AmtPowerActionGuidJSONRequestBody{
-			Action: powerMapping[desiredPowerState],
+			Action: mpsAction,
 		}, clientCallback())
 	if err != nil {
-		log.Err(err).Msgf("failed to send power action to MPS")
+		log.Err(err).Msgf("Failed to send power action to MPS for host %v", hostID)
 		return request.Fail(err),
 			statusv1.StatusIndication_STATUS_INDICATION_ERROR, err
 	}
+
+	log.Info().Msgf("MPS power action sent successfully for host %v, response code: %v",
+		hostID, powerAction.StatusCode())
 
 	log.Debug().Msgf("power action response for %v with status code %v - %v", request.ID.GetHostUUID(),
 		powerAction.HTTPResponse, string(powerAction.Body))
