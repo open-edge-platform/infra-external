@@ -242,11 +242,19 @@ func (dc *Controller) shouldDeactivateAMT(invHost *computev1.HostResource) bool 
 
 func (dc *Controller) shouldSyncPowerStatus(invHost *computev1.HostResource) bool {
 	// Exclude action based power states to allow proper state transitions
+	// Check for reset completion and to update status from
+	// "Resetting" to "Reset successful"
 	desiredState := invHost.GetDesiredPowerState()
-	if desiredState == computev1.PowerState_POWER_STATE_RESET_REPEAT ||
-		desiredState == computev1.PowerState_POWER_STATE_RESET {
-		return false
+	isResetOperation := desiredState == computev1.PowerState_POWER_STATE_RESET ||
+		desiredState == computev1.PowerState_POWER_STATE_RESET_REPEAT
+
+	if isResetOperation {
+		// sync reset status if completion status update
+		return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
+			invHost.GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS
 	}
+
+	// Standard sync for non-reset operations
 	return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
 		invHost.GetDesiredPowerState() == invHost.GetCurrentPowerState()
 }
