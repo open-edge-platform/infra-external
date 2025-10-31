@@ -27,9 +27,9 @@ jobs:
       run_dep_version_check: true
       run_build: true
       run_docker_build: true
-      run_docker_push: false
-      run_version_tag: false
-      run_version_dev: false
+      run_docker_push: true
+      run_version_tag: true
+      run_version_dev: true
       prefix_tag_separator: "/"
       project_folder: "dm-manager"
     secrets:
