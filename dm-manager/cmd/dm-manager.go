@@ -242,7 +242,7 @@ func createDMHandler() (*grpc.DMHandler, error) {
 func getMpsAddress(filepath string) (string, int32) {
 	data, err := os.ReadFile(filepath)
 	if err != nil {
-		log.Fatal().Err(err).Msgf("Failed to read configuration file: %v", filepath)
+		log.Fatal().Err(err).Msgf("Failed to read config file: %v", filepath)
 		return "", 0
 	}
 
