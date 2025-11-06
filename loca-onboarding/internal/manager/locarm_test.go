@@ -1194,7 +1194,7 @@ func Test_ProvisioningCycle(t *testing.T) {
 				instanceResponse.Data.Operation = loca_testing.OperationDeploy
 				instanceResponse.Data.Stage = loca_testing.StageInstalled
 				instanceResponse.Data.Status = loca_testing.StatusFinishedSuccessfully
-			}, instancesInv[0].DesiredOs.ResourceId)
+			}, instancesInv[0].Os.ResourceId)
 	}, http.MethodGet)
 
 	// at this point the node agent did not kick in, it will happen later
@@ -1237,7 +1237,7 @@ func Test_ProvisioningCycle(t *testing.T) {
 
 	// Deactivating device and bringing Instance back to the provisioning failed state
 	locaTS.Override(loca_testing.InventoryDevicesPath, loca_testing.DevicesFunc, http.MethodGet)
-	locaTS.SeedOSResourceID(instancesInv[0].DesiredOs.ResourceId)
+	locaTS.SeedOSResourceID(instancesInv[0].Os.ResourceId)
 
 	// Give enough room to perform 1 provisioning cycle (update)
 	time.Sleep(loca_testing.TestReconciliationPeriod)

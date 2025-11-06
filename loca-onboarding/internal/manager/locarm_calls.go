@@ -700,7 +700,7 @@ func (lrm *LOCARM) synchronizeInventoryInstances(
 			zlog.InfraSec().Info().Msgf("Starting instance (%s) execution", invInstance.GetResourceId())
 
 			// get OS Resource ID and Server Model from Instance
-			osResID := invInstance.GetDesiredOs().GetResourceId()
+			osResID := invInstance.GetOs().GetResourceId()
 			serverModel := invInstance.GetHost().GetProductName()
 
 			// get template name based on the OS Resource ID and Server Model

@@ -133,7 +133,7 @@ func (ir *InstanceReconciler) onboardInstance(
 	}
 
 	// get OS Resource ID and Server Model from Instance
-	osResID := instance.GetDesiredOs().GetResourceId()
+	osResID := instance.GetOs().GetResourceId()
 	serverModel := instance.GetHost().GetProductName()
 
 	// get template name based on the OS Resource ID and Server Model

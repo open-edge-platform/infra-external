@@ -438,8 +438,8 @@ func BuildNewInstance(locaInstance *model.DtoInstance) (*computev1.InstanceResou
 	}
 	return &computev1.InstanceResource{
 		Name: locaInstance.ID,
-		DesiredOs: &osv1.OperatingSystemResource{
-			ResourceId: osResourceID, // this is safe, because DesiredOS is overwritten in the upper layers
+		Os: &osv1.OperatingSystemResource{
+			ResourceId: osResourceID, // this is safe, because OS is overwritten in the upper layers
 		},
 	}, nil
 }
@@ -449,7 +449,7 @@ func FindInstanceInList(instanceToFind *computev1.InstanceResource, listOfInstan
 ) {
 	for _, instance := range listOfInstances {
 		if instanceToFind.GetName() == instance.GetName() &&
-			instanceToFind.GetDesiredOs().GetResourceId() == instance.GetDesiredOs().GetResourceId() {
+			instanceToFind.GetOs().GetResourceId() == instance.GetOs().GetResourceId() {
 			zlog.Debug().Msgf("Instance (%s) is found", instanceToFind.GetName())
 			return instance, true
 		}
@@ -466,7 +466,7 @@ func FindInstanceInLOCAInstanceList(instanceToFind *computev1.InstanceResource, 
 			continue
 		}
 		if instanceToFind.GetName() == locaInstance.ID &&
-			instanceToFind.GetDesiredOs().GetResourceId() == osResourceID {
+			instanceToFind.GetOs().GetResourceId() == osResourceID {
 			zlog.Debug().Msgf("Instance (%s) is found", instanceToFind.GetName())
 			return instanceToFind, true
 		}
@@ -483,7 +483,7 @@ func FindLOCAInstanceInLOCAInstanceList(instanceToFind *computev1.InstanceResour
 			continue
 		}
 		if instanceToFind.GetName() == locaInstance.ID &&
-			instanceToFind.GetDesiredOs().GetResourceId() == osResourceID {
+			instanceToFind.GetOs().GetResourceId() == osResourceID {
 			zlog.Debug().Msgf("Instance (%s) is found", instanceToFind.GetName())
 			return locaInstance, true
 		}
