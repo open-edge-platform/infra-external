@@ -80,13 +80,12 @@ func OnboardPrerequisites(sigChan chan os.Signal) error {
 	locaInstanceFlavor := "Ubuntu 22.04.3"
 	checksum := util.GetOSSHA256FromOsNameAndOsVersion(locaInstanceFlavor, locaInstanceFlavor)
 	osRes := &os_v1.OperatingSystemResource{
-		Name:          locaInstanceFlavor,
-		Architecture:  "x86",
-		Sha256:        checksum,
-		ProfileName:   locaInstanceFlavor,
-		UpdateSources: []string{"some source #1", "some source #2"},
-		ImageUrl:      "some repo URL",
-		TenantId:      tenantID,
+		Name:         locaInstanceFlavor,
+		Architecture: "x86",
+		Sha256:       checksum,
+		ProfileName:  locaInstanceFlavor,
+		ImageUrl:     "some repo URL",
+		TenantId:     tenantID,
 	}
 
 	createOsResReq := &inv_v1.Resource{Resource: &inv_v1.Resource_Os{Os: osRes}}

@@ -194,8 +194,7 @@ func TestInvClient_GetInstanceResourceByName(t *testing.T) {
 	instanceInv := dao.CreateInstanceWithProvider(t, loca_testing.Tenant1, hostInv, osInv, providerInv)
 	// this is needed because returned instance would contain eager-loaded OS and Host resources
 	instanceInv.Host = hostInv
-	instanceInv.DesiredOs = osInv
-	instanceInv.CurrentOs = osInv
+	instanceInv.Os = osInv
 	instanceInv.Provider = providerInv
 
 	// retrieving instance back

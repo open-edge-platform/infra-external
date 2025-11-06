@@ -528,12 +528,12 @@ func CreateInstanceResource(
 	defer cancel()
 
 	// attaching OS and Host resources to the Instance
-	instRes.DesiredOs = osRes
+	instRes.Os = osRes
 	instRes.Host = hostres
 	instRes.TenantId = tenantID
 
 	zlog.Debug().Msgf("Creating an Instance resource: tenantID=%s, uuid=%s, osProfileName=%s, providerName=%s.",
-		tenantID, instRes.GetHost().GetUuid(), instRes.GetDesiredOs().GetProfileName(), instRes.GetHost().GetProvider().GetName())
+		tenantID, instRes.GetHost().GetUuid(), instRes.GetOs().GetProfileName(), instRes.GetHost().GetProvider().GetName())
 	createresreq := &inv_v1.Resource{
 		Resource: &inv_v1.Resource_Instance{
 			Instance: instRes,
