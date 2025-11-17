@@ -136,6 +136,7 @@ func (tc *Controller) handleTenantCreation(ctx context.Context,
 	tenantID string,
 ) error {
 	log.Info().Msgf("Handling tenant creation: %v", tenantID)
+
 	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), tenantID)
 	callbackFunc := clientCallback()
 
