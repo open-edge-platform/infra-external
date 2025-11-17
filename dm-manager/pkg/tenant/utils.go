@@ -70,7 +70,6 @@ func Ptr[T any](v T) *T {
 func clientCallback() func(ctx context.Context, req *http.Request) error {
 	callbackFunc := func(ctx context.Context, req *http.Request) error {
 		tenantID, ok := ctx.Value(contextValue("tenantId")).(string)
-		log.Info().Msgf("JAGRAT### TenantID from utils: %v", tenantID)
 		if ok {
 			req.Header.Add("ActiveProjectId", tenantID)
 		}
