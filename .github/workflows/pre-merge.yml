@@ -33,10 +33,10 @@ jobs:
         with:
           persist-credentials: false
       - name: "Verify Branch Name"
-        uses: open-edge-platform/orch-ci/verify-branch-name@da08a06e8aec70621e50ed4aec2fac5599839f45  # v0.1.56
+        uses: open-edge-platform/orch-ci/verify-branch-name@7d7ad575fb688f0071836ece55a8e4a170445bf5  # v0.1.56
       - name: "Discover Changed Subfolders"
         id: discover-changes
-        uses: open-edge-platform/orch-ci/discover-changed-subfolders@da08a06e8aec70621e50ed4aec2fac5599839f45  # v0.1.56
+        uses: open-edge-platform/orch-ci/discover-changed-subfolders@7d7ad575fb688f0071836ece55a8e4a170445bf5  # v0.1.56
       - name: "Filter Out Unwanted Changed Subfolders"
         id: filter-changes
         env:
@@ -90,8 +90,8 @@ jobs:
         project_folder: ${{ fromJson(needs.pre-checks.outputs.filtered_projects) }}
     uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@main
     with:
-      orch_ci_repo_ref: cf81328e4c9526e579181efb1f609af06071889b
-      run_version_check: true
+      orch_ci_repo_ref: 57ae89489027070792089531710c450af3b66c26
+      run_version_check: false
       run_dep_version_check: true
       run_build: true
       run_lint: true
@@ -115,6 +115,7 @@ jobs:
     if: ${{ contains(needs.pre-checks.outputs.other_changed_projects, 'loca-plugin') }}
     uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@main
     with:
+      orch_ci_repo_ref: 57ae89489027070792089531710c450af3b66c26
       run_version_check: true
       run_dep_version_check: false
       run_build: false
