@@ -90,7 +90,7 @@ jobs:
         project_folder: ${{ fromJson(needs.pre-checks.outputs.filtered_projects) }}
     uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@main
     with:
-      orch_ci_repo_ref: cf81328e4c9526e579181efb1f609af06071889b
+      orch_ci_repo_ref: da08a06e8aec70621e50ed4aec2fac5599839f45
       run_version_check: true
       run_dep_version_check: true
       run_build: true
@@ -115,6 +115,7 @@ jobs:
     if: ${{ contains(needs.pre-checks.outputs.other_changed_projects, 'loca-plugin') }}
     uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@main
     with:
+      orch_ci_repo_ref: da08a06e8aec70621e50ed4aec2fac5599839f45
       run_version_check: true
       run_dep_version_check: false
       run_build: false

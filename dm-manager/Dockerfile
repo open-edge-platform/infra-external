@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-FROM golang:1.24.6-bookworm AS build
+FROM golang:1.24.9-bookworm AS build
 
 ARG REPO_URL
 ARG VERSION
