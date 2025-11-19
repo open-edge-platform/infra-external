@@ -1,8 +1,3 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-# FIXME Upgrade of golang from 1.24.6 to 1.24.9 should fix these
-CVE-2025-58183
-CVE-2025-58186
-CVE-2025-58187
-CVE-2025-58188
