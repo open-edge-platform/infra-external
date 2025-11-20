@@ -69,8 +69,7 @@ func Ptr[T any](v T) *T {
 
 func clientCallback() func(ctx context.Context, req *http.Request) error {
 	callbackFunc := func(ctx context.Context, req *http.Request) error {
-		type headerValue string
-		tenantID, ok := ctx.Value(headerValue("tenantId")).(string)
+		tenantID, ok := ctx.Value(contextValue("tenantId")).(string)
 		if ok {
 			req.Header.Add("ActiveProjectId", tenantID)
 		}
