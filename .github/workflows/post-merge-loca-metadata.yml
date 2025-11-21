@@ -12,7 +12,8 @@ on:
     paths:
       - "loca-metadata/**"
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   post-merge-pipeline:

@@ -12,7 +12,8 @@ on:
     paths:
       - "MPS/**"
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   post-merge-pipeline:
