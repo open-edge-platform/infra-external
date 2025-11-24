@@ -12,7 +12,8 @@ on:
     paths:
       - "loca-onboarding/**"
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   post-merge-pipeline:
