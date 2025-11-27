@@ -363,6 +363,7 @@ func (dc *Controller) deactivateAMT(
 			AmtStatus:            "AMT deactivated",
 			AmtStatusIndicator:   statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
+			//TODO: will revist Power sync condition in reconciliation loop after AMT deactivation
 		})
 	if err != nil {
 		log.Err(err).Msgf("Failed to update AMT deactivation state info")
