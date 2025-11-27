@@ -352,15 +352,18 @@ func (dc *Controller) deactivateAMT(
 		}
 		return request.Fail(err)
 	}
+	// TODO: will revisit Power sync condition in reconciliation loop after AMT deactivation
 	err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentAmtState,
 			computev1.HostResourceFieldAmtStatus,
 			computev1.HostResourceFieldAmtStatusIndicator,
+			computev1.HostResourceFieldPowerStatusIndicator,
 		}}, &computev1.HostResource{
-			CurrentAmtState:    computev1.AmtState_AMT_STATE_UNPROVISIONED,
-			AmtStatus:          "AMT deactivated",
-			AmtStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+			CurrentAmtState:      computev1.AmtState_AMT_STATE_UNPROVISIONED,
+			AmtStatus:            "AMT deactivated",
+			AmtStatusIndicator:   statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
 		})
 	if err != nil {
 		log.Err(err).Msgf("Failed to update AMT deactivation state info")
