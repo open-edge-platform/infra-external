@@ -382,6 +382,7 @@ func clientCallback() func(ctx context.Context, req *http.Request) error {
 	return callbackFunc
 }
 
+//nolint:cyclop // power status sync
 func (dc *Controller) syncPowerStatus(
 	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
 ) rec_v2.Directive[ID] {
@@ -445,9 +446,9 @@ func (dc *Controller) syncPowerStatus(
 		// Set power on timestamp when MPS confirms device is powered ON
 		if invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_ON &&
 			mpsPowerStateToInventoryPowerState[powerStateCode] == computev1.PowerState_POWER_STATE_ON {
-			powerOnTime, err := inv_util.Int64ToUint64(time.Now().Unix())
-			if err != nil {
-				log.Warn().Err(err).Msgf("Failed to set power on time for host %v", invHost.GetUuid())
+			powerOnTime, convErr := inv_util.Int64ToUint64(time.Now().Unix())
+			if convErr != nil {
+				log.Warn().Err(convErr).Msgf("Failed to set power on time for host %v", invHost.GetUuid())
 			} else {
 				hostUpdate.PowerOnTime = powerOnTime
 				fieldPaths = append(fieldPaths, computev1.HostResourceFieldPowerOnTime)
