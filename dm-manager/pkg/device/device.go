@@ -432,14 +432,32 @@ func (dc *Controller) syncPowerStatus(
 
 	if contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) &&
 		invHost.GetPowerStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE {
+		// Prepare host resource update
+		hostUpdate := &computev1.HostResource{
+			PowerStatus:          powerMappingToIdleState[invHost.GetDesiredPowerState()],
+			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+		}
+		fieldPaths := []string{
+			computev1.HostResourceFieldPowerStatus,
+			computev1.HostResourceFieldPowerStatusIndicator,
+		}
+
+		// Set power on timestamp when MPS confirms device is powered ON
+		if invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_ON &&
+			mpsPowerStateToInventoryPowerState[powerStateCode] == computev1.PowerState_POWER_STATE_ON {
+			powerOnTime, err := inv_util.Int64ToUint64(time.Now().Unix())
+			if err != nil {
+				log.Warn().Err(err).Msgf("Failed to set power on time for host %v", invHost.GetUuid())
+			} else {
+				hostUpdate.PowerOnTime = powerOnTime
+				fieldPaths = append(fieldPaths, computev1.HostResourceFieldPowerOnTime)
+				log.Info().Msgf("set power on time %v for host %v MPS power state: %v)",
+					powerOnTime, invHost.GetUuid(), powerStateCode)
+			}
+		}
+
 		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
-			&fieldmaskpb.FieldMask{Paths: []string{
-				computev1.HostResourceFieldPowerStatus,
-				computev1.HostResourceFieldPowerStatusIndicator,
-			}}, &computev1.HostResource{
-				PowerStatus:          powerMappingToIdleState[invHost.GetDesiredPowerState()],
-				PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
-			})
+			&fieldmaskpb.FieldMask{Paths: fieldPaths}, hostUpdate)
 		if err != nil {
 			log.Err(err).Msgf("failed to update device info")
 			return request.Fail(err)
