@@ -8,7 +8,7 @@ go 1.24.9
 require (
 	github.com/google/uuid v1.6.0
 	github.com/open-edge-platform/infra-core/inventory/v2 v2.33.2
-	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.20.1
+	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.21.2
 	github.com/prometheus/client_golang v1.23.2
 	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.11.1
@@ -115,7 +115,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.1-0.20231216201459-8508981c8b6c // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
-	github.com/open-edge-platform/orch-library/go v0.6.2 // indirect
+	github.com/open-edge-platform/orch-library/go v0.6.3 // indirect
 	github.com/open-edge-platform/orch-library/go/dazl v0.5.4 // indirect
 	github.com/open-policy-agent/opa v1.10.1 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
