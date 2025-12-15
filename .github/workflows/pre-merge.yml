@@ -114,9 +114,9 @@ jobs:
       contents: read
     needs: pre-checks
     if: ${{ contains(needs.pre-checks.outputs.other_changed_projects, 'loca-plugin') }}
-    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@main
+    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@d3fe218ea585fb390b73c87f9e482cbe1424829c # 0.1.68
     with:
-      orch_ci_repo_ref: 57ae89489027070792089531710c450af3b66c26
+      orch_ci_repo_ref: d3fe218ea585fb390b73c87f9e482cbe1424829c # 0.1.68
       run_version_check: true
       run_dep_version_check: false
       run_build: false
