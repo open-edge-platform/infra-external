@@ -5,6 +5,7 @@ package tenant
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"os"
 	"sync"
@@ -381,12 +382,33 @@ func TestReconciler_ReconcileAll_shouldRemoveExcessiveConfigs(t *testing.T) {
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1CiracertResponse{}, errors.Errorf("mocked error"))
 
-	rpsMock.On("GetAllProfilesWithResponse", mock.Anything, mock.Anything).Return(&rps.GetAllProfilesResponse{
-		JSON200: &[]rps.ProfileResponse{{ProfileName: "willBeRemoved"}, {ProfileName: tenantID}},
-	}, nil)
-	rpsMock.On("GetAllCIRAConfigsWithResponse", mock.Anything, mock.Anything).Return(&rps.GetAllCIRAConfigsResponse{
-		JSON200: &[]rps.CIRAConfigResponse{{ConfigName: "deleteMe"}, {CommonName: tenantID}},
-	}, nil)
+	profiles := []rps.ProfileResponse{{ProfileName: "willBeRemoved"}, {ProfileName: tenantID}}
+	profilesJSON, err := json.Marshal(profiles)
+	assert.NoError(t, err)
+	profilesResp := &rps.GetAllProfilesResponse{
+		Body: profilesJSON,
+		HTTPResponse: &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		},
+	}
+	err = json.Unmarshal(profilesJSON, &profilesResp.JSON200)
+	assert.NoError(t, err)
+	rpsMock.On("GetAllProfilesWithResponse", mock.Anything, mock.Anything).Return(profilesResp, nil)
+
+	ciraConfigs := []rps.CIRAConfigResponse{{ConfigName: "deleteMe"}, {ConfigName: tenantID}}
+	ciraConfigsJSON, err := json.Marshal(ciraConfigs)
+	assert.NoError(t, err)
+	ciraConfigsResp := &rps.GetAllCIRAConfigsResponse{
+		Body: ciraConfigsJSON,
+		HTTPResponse: &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		},
+	}
+	err = json.Unmarshal(ciraConfigsJSON, &ciraConfigsResp.JSON200)
+	assert.NoError(t, err)
+	rpsMock.On("GetAllCIRAConfigsWithResponse", mock.Anything, mock.Anything).Return(ciraConfigsResp, nil)
 
 	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
 	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(

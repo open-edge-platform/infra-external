@@ -5,6 +5,7 @@ package tenant
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 	"sync"
@@ -239,7 +240,7 @@ func (tc *Controller) handleCiraConfig(ctx context.Context, tenantID string, cer
 			MpsServerAddress:    tc.Config.MpsAddress,
 			MpsPort:             tc.Config.MpsPort,
 			ConfigName:          tenantID,
-			MpsRootCertificate:  convertCertToCertBlob(cert),
+			MpsRootCertificate:  cert,
 			ProxyDetails:        "", // TODO: pass proxy from config
 			Username:            "admin",
 			Password:            &amtPassword,
@@ -310,8 +311,22 @@ func (tc *Controller) removeCIRAConfigs(ctx context.Context, tenants []string) {
 
 	if CIRAConfigsResp.JSON200 != nil {
 		presentCiraConfigs := []string{}
-		for _, ciraConfig := range *CIRAConfigsResp.JSON200 {
-			presentCiraConfigs = append(presentCiraConfigs, ciraConfig.ConfigName)
+		respJSON, err := json.Marshal(CIRAConfigsResp.JSON200)
+		if err != nil {
+			log.Err(err).Msgf("cannot marshal response")
+			return
+		}
+
+		// Unmarshal into the correct type
+		var configs []rps.CIRAConfigResponse
+		if err := json.Unmarshal(respJSON, &configs); err != nil {
+			log.Err(err).Msgf("cannot unmarshal CIRA configs")
+			return
+		}
+
+		for _, config := range configs {
+			configName := config.ConfigName
+			presentCiraConfigs = append(presentCiraConfigs, configName)
 		}
 
 		for _, ciraConfigName := range findExtraElements(presentCiraConfigs, tenants) {
@@ -330,7 +345,18 @@ func (tc *Controller) removeProfiles(ctx context.Context, tenants []string) {
 	}
 	if profilesResp.JSON200 != nil {
 		presentProfiles := []string{}
-		for _, profile := range *profilesResp.JSON200 {
+		respJSON, err := json.Marshal(profilesResp.JSON200)
+		if err != nil {
+			log.Err(err).Msgf("cannot marshal response")
+			return
+		}
+
+		var configs []rps.ProfileResponse
+		if err := json.Unmarshal(respJSON, &configs); err != nil {
+			log.Err(err).Msgf("cannot unmarshal CIRA configs")
+			return
+		}
+		for _, profile := range configs {
 			presentProfiles = append(presentProfiles, profile.ProfileName)
 		}
 		for _, profileName := range findExtraElements(presentProfiles, tenants) {

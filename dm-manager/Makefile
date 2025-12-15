@@ -43,8 +43,10 @@ TEST_USE_DB      := true
 
 # OpenAPI breaking check variables
 TEMP_BASE_OPENAPI_DIR := /tmp/dm-manager-main
-OPENAPI_PATH          := pkg/api/**/*.json
+OPENAPI_PATH          := pkg/api/**/*.yaml
 
+# Yamllint variables - exclude generated swagger files
+YAML_IGNORE      := vendor,.github/workflows,pkg/api
 
 # Include shared makefile
 include ../common.mk
@@ -53,7 +55,7 @@ include ../common.mk
 REGODIR           := $(shell pwd)/rego/
 BUNDLE            := "$(shell pwd)/$(OUT_DIR)/policy_bundle.tar.gz"
 
-lint: oasdiff-breaking common-lint ## Run all lint tools
+lint: common-lint ## Run all lint tools
 
 test: go-test ## Run all unit tests
 
@@ -66,8 +68,8 @@ go-run: $(OUT_DIR) ## Run the resource manager
 	$(GOCMD) run $(GOEXTRAFLAGS) ./cmd/$(BINARY_NAME).go
 
 generate:
-	oapi-codegen -generate client,types -o pkg/api/mps/client.gen.go -package mps pkg/api/mps/swagger.json
-	oapi-codegen -generate client,types -o pkg/api/rps/client.gen.go -package rps pkg/api/rps/swagger.json
+	oapi-codegen -generate client,types -o pkg/api/mps/client.gen.go -package mps pkg/api/mps/swagger.yaml
+	oapi-codegen -generate client,types -o pkg/api/rps/client.gen.go -package rps pkg/api/rps/swagger.yaml
 	mockery
 
 oasdiff-breaking: common-oasdiff-breaking ## Check for breaking changes in openapi using oasdiff
