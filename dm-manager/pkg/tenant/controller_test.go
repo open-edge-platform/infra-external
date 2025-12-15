@@ -383,27 +383,31 @@ func TestReconciler_ReconcileAll_shouldRemoveExcessiveConfigs(t *testing.T) {
 		Return(&mps.GetApiV1CiracertResponse{}, errors.Errorf("mocked error"))
 
 	profiles := []rps.ProfileResponse{{ProfileName: "willBeRemoved"}, {ProfileName: tenantID}}
-	profilesJSON, _ := json.Marshal(profiles)
+	profilesJSON, err := json.Marshal(profiles)
+	assert.NoError(t, err)
 	profilesResp := &rps.GetAllProfilesResponse{
 		Body: profilesJSON,
 		HTTPResponse: &http.Response{
-			StatusCode: 200,
+			StatusCode: http.StatusOK,
 			Header:     http.Header{"Content-Type": []string{"application/json"}},
 		},
 	}
-	_ = json.Unmarshal(profilesJSON, &profilesResp.JSON200)
+	err = json.Unmarshal(profilesJSON, &profilesResp.JSON200)
+	assert.NoError(t, err)
 	rpsMock.On("GetAllProfilesWithResponse", mock.Anything, mock.Anything).Return(profilesResp, nil)
 
 	ciraConfigs := []rps.CIRAConfigResponse{{ConfigName: "deleteMe"}, {ConfigName: tenantID}}
-	ciraConfigsJSON, _ := json.Marshal(ciraConfigs)
+	ciraConfigsJSON, err := json.Marshal(ciraConfigs)
+	assert.NoError(t, err)
 	ciraConfigsResp := &rps.GetAllCIRAConfigsResponse{
 		Body: ciraConfigsJSON,
 		HTTPResponse: &http.Response{
-			StatusCode: 200,
+			StatusCode: http.StatusOK,
 			Header:     http.Header{"Content-Type": []string{"application/json"}},
 		},
 	}
-	_ = json.Unmarshal(ciraConfigsJSON, &ciraConfigsResp.JSON200)
+	err = json.Unmarshal(ciraConfigsJSON, &ciraConfigsResp.JSON200)
+	assert.NoError(t, err)
 	rpsMock.On("GetAllCIRAConfigsWithResponse", mock.Anything, mock.Anything).Return(ciraConfigsResp, nil)
 
 	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
