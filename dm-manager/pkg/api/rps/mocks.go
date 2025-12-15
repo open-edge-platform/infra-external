@@ -570,6 +570,139 @@ func (_c *MockClientWithResponsesInterface_CreateProfileWithResponse_Call) RunAn
 	return _c
 }
 
+// CreateProxyconfigWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) CreateProxyconfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, contentType, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, contentType, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateProxyconfigWithBodyWithResponse")
+	}
+
+	var r0 *CreateProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, io.Reader, ...RequestEditorFn) (*CreateProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, contentType, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, io.Reader, ...RequestEditorFn) *CreateProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*CreateProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateProxyconfigWithBodyWithResponse'
+type MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// CreateProxyconfigWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - contentType
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) CreateProxyconfigWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call{Call: _e.mock.On("CreateProxyconfigWithBodyWithResponse",
+		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call) Return(createProxyconfigResponse *CreateProxyconfigResponse, err error) *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Return(createProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateProxyconfigResponse, error)) *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateProxyconfigWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) CreateProxyconfigWithResponse(ctx context.Context, body CreateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateProxyconfigWithResponse")
+	}
+
+	var r0 *CreateProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, CreateProxyconfigJSONRequestBody, ...RequestEditorFn) (*CreateProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, CreateProxyconfigJSONRequestBody, ...RequestEditorFn) *CreateProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*CreateProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, CreateProxyconfigJSONRequestBody, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateProxyconfigWithResponse'
+type MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call struct {
+	*mock.Call
+}
+
+// CreateProxyconfigWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) CreateProxyconfigWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call {
+	return &MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call{Call: _e.mock.On("CreateProxyconfigWithResponse",
+		append([]interface{}{ctx, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call) Run(run func(ctx context.Context, body CreateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[2].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(CreateProxyconfigJSONRequestBody), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call) Return(createProxyconfigResponse *CreateProxyconfigResponse, err error) *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call {
+	_c.Call.Return(createProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, body CreateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateProxyconfigResponse, error)) *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateWirelessConfigWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
 func (_mock *MockClientWithResponsesInterface) CreateWirelessConfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateWirelessConfigResponse, error) {
 	var tmpRet mock.Arguments
@@ -699,6 +832,72 @@ func (_c *MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call
 }
 
 func (_c *MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, body CreateWirelessConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWirelessConfigResponse, error)) *MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteProxyconfigWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) DeleteProxyconfigWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DeleteProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, name, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, name)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteProxyconfigWithResponse")
+	}
+
+	var r0 *DeleteProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) (*DeleteProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, name, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) *DeleteProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, name, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*DeleteProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, name, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteProxyconfigWithResponse'
+type MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call struct {
+	*mock.Call
+}
+
+// DeleteProxyconfigWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - name
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) DeleteProxyconfigWithResponse(ctx interface{}, name interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call {
+	return &MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call{Call: _e.mock.On("DeleteProxyconfigWithResponse",
+		append([]interface{}{ctx, name}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call) Run(run func(ctx context.Context, name string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[2].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call) Return(deleteProxyconfigResponse *DeleteProxyconfigResponse, err error) *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call {
+	_c.Call.Return(deleteProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DeleteProxyconfigResponse, error)) *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1432,6 +1631,72 @@ func (_c *MockClientWithResponsesInterface_GetAllProfilesWithResponse_Call) RunA
 	return _c
 }
 
+// GetAllProxyconfigsWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetAllProxyconfigsWithResponse(ctx context.Context, params *GetAllProxyconfigsParams, reqEditors ...RequestEditorFn) (*GetAllProxyconfigsResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, params, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, params)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllProxyconfigsWithResponse")
+	}
+
+	var r0 *GetAllProxyconfigsResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *GetAllProxyconfigsParams, ...RequestEditorFn) (*GetAllProxyconfigsResponse, error)); ok {
+		return returnFunc(ctx, params, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *GetAllProxyconfigsParams, ...RequestEditorFn) *GetAllProxyconfigsResponse); ok {
+		r0 = returnFunc(ctx, params, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetAllProxyconfigsResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *GetAllProxyconfigsParams, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, params, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllProxyconfigsWithResponse'
+type MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetAllProxyconfigsWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - params
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) GetAllProxyconfigsWithResponse(ctx interface{}, params interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call{Call: _e.mock.On("GetAllProxyconfigsWithResponse",
+		append([]interface{}{ctx, params}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call) Run(run func(ctx context.Context, params *GetAllProxyconfigsParams, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[2].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(*GetAllProxyconfigsParams), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call) Return(getAllProxyconfigsResponse *GetAllProxyconfigsResponse, err error) *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call {
+	_c.Call.Return(getAllProxyconfigsResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call) RunAndReturn(run func(ctx context.Context, params *GetAllProxyconfigsParams, reqEditors ...RequestEditorFn) (*GetAllProxyconfigsResponse, error)) *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAllWirelessConfigsWithResponse provides a mock function for the type MockClientWithResponsesInterface
 func (_mock *MockClientWithResponsesInterface) GetAllWirelessConfigsWithResponse(ctx context.Context, params *GetAllWirelessConfigsParams, reqEditors ...RequestEditorFn) (*GetAllWirelessConfigsResponse, error) {
 	var tmpRet mock.Arguments
@@ -1757,6 +2022,72 @@ func (_c *MockClientWithResponsesInterface_GetProfileWithResponse_Call) Return(g
 }
 
 func (_c *MockClientWithResponsesInterface_GetProfileWithResponse_Call) RunAndReturn(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn) (*GetProfileResponse, error)) *MockClientWithResponsesInterface_GetProfileWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetProxyconfigWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetProxyconfigWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*GetProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, name, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, name)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProxyconfigWithResponse")
+	}
+
+	var r0 *GetProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) (*GetProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, name, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) *GetProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, name, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, name, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetProxyconfigWithResponse'
+type MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetProxyconfigWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - name
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) GetProxyconfigWithResponse(ctx interface{}, name interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call{Call: _e.mock.On("GetProxyconfigWithResponse",
+		append([]interface{}{ctx, name}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call) Run(run func(ctx context.Context, name string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[2].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call) Return(getProxyconfigResponse *GetProxyconfigResponse, err error) *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call {
+	_c.Call.Return(getProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*GetProxyconfigResponse, error)) *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2484,6 +2815,139 @@ func (_c *MockClientWithResponsesInterface_UpdateProfileWithResponse_Call) Retur
 }
 
 func (_c *MockClientWithResponsesInterface_UpdateProfileWithResponse_Call) RunAndReturn(run func(ctx context.Context, body UpdateProfileJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProfileResponse, error)) *MockClientWithResponsesInterface_UpdateProfileWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateProxyconfigWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) UpdateProxyconfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, contentType, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, contentType, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateProxyconfigWithBodyWithResponse")
+	}
+
+	var r0 *UpdateProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, io.Reader, ...RequestEditorFn) (*UpdateProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, contentType, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, io.Reader, ...RequestEditorFn) *UpdateProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*UpdateProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateProxyconfigWithBodyWithResponse'
+type MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// UpdateProxyconfigWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - contentType
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) UpdateProxyconfigWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call{Call: _e.mock.On("UpdateProxyconfigWithBodyWithResponse",
+		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call) Return(updateProxyconfigResponse *UpdateProxyconfigResponse, err error) *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Return(updateProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProxyconfigResponse, error)) *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateProxyconfigWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) UpdateProxyconfigWithResponse(ctx context.Context, body UpdateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateProxyconfigWithResponse")
+	}
+
+	var r0 *UpdateProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, UpdateProxyconfigJSONRequestBody, ...RequestEditorFn) (*UpdateProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, UpdateProxyconfigJSONRequestBody, ...RequestEditorFn) *UpdateProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*UpdateProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, UpdateProxyconfigJSONRequestBody, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateProxyconfigWithResponse'
+type MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call struct {
+	*mock.Call
+}
+
+// UpdateProxyconfigWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) UpdateProxyconfigWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call {
+	return &MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call{Call: _e.mock.On("UpdateProxyconfigWithResponse",
+		append([]interface{}{ctx, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call) Run(run func(ctx context.Context, body UpdateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[2].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(UpdateProxyconfigJSONRequestBody), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call) Return(updateProxyconfigResponse *UpdateProxyconfigResponse, err error) *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call {
+	_c.Call.Return(updateProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, body UpdateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProxyconfigResponse, error)) *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }

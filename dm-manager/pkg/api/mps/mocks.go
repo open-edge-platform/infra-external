@@ -435,6 +435,72 @@ func (_c *MockClientWithResponsesInterface_GetApiV1AmtAlarmOccurrencesGuidWithRe
 	return _c
 }
 
+// GetApiV1AmtCertificatesGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetApiV1AmtCertificatesGuidWithResponse(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*GetApiV1AmtCertificatesGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, guid, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, guid)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetApiV1AmtCertificatesGuidWithResponse")
+	}
+
+	var r0 *GetApiV1AmtCertificatesGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) (*GetApiV1AmtCertificatesGuidResponse, error)); ok {
+		return returnFunc(ctx, guid, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) *GetApiV1AmtCertificatesGuidResponse); ok {
+		r0 = returnFunc(ctx, guid, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetApiV1AmtCertificatesGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, guid, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetApiV1AmtCertificatesGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetApiV1AmtCertificatesGuidWithResponse'
+type MockClientWithResponsesInterface_GetApiV1AmtCertificatesGuidWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetApiV1AmtCertificatesGuidWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - guid
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) GetApiV1AmtCertificatesGuidWithResponse(ctx interface{}, guid interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetApiV1AmtCertificatesGuidWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetApiV1AmtCertificatesGuidWithResponse_Call{Call: _e.mock.On("GetApiV1AmtCertificatesGuidWithResponse",
+		append([]interface{}{ctx, guid}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetApiV1AmtCertificatesGuidWithResponse_Call) Run(run func(ctx context.Context, guid string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetApiV1AmtCertificatesGuidWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[2].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetApiV1AmtCertificatesGuidWithResponse_Call) Return(getApiV1AmtCertificatesGuidResponse *GetApiV1AmtCertificatesGuidResponse, err error) *MockClientWithResponsesInterface_GetApiV1AmtCertificatesGuidWithResponse_Call {
+	_c.Call.Return(getApiV1AmtCertificatesGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetApiV1AmtCertificatesGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*GetApiV1AmtCertificatesGuidResponse, error)) *MockClientWithResponsesInterface_GetApiV1AmtCertificatesGuidWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetApiV1AmtFeaturesGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
 func (_mock *MockClientWithResponsesInterface) GetApiV1AmtFeaturesGuidWithResponse(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*GetApiV1AmtFeaturesGuidResponse, error) {
 	var tmpRet mock.Arguments
@@ -633,6 +699,72 @@ func (_c *MockClientWithResponsesInterface_GetApiV1AmtHardwareInfoGuidWithRespon
 	return _c
 }
 
+// GetApiV1AmtKvmDisplaysGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetApiV1AmtKvmDisplaysGuidWithResponse(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*GetApiV1AmtKvmDisplaysGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, guid, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, guid)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetApiV1AmtKvmDisplaysGuidWithResponse")
+	}
+
+	var r0 *GetApiV1AmtKvmDisplaysGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) (*GetApiV1AmtKvmDisplaysGuidResponse, error)); ok {
+		return returnFunc(ctx, guid, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) *GetApiV1AmtKvmDisplaysGuidResponse); ok {
+		r0 = returnFunc(ctx, guid, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetApiV1AmtKvmDisplaysGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, guid, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetApiV1AmtKvmDisplaysGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetApiV1AmtKvmDisplaysGuidWithResponse'
+type MockClientWithResponsesInterface_GetApiV1AmtKvmDisplaysGuidWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetApiV1AmtKvmDisplaysGuidWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - guid
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) GetApiV1AmtKvmDisplaysGuidWithResponse(ctx interface{}, guid interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetApiV1AmtKvmDisplaysGuidWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetApiV1AmtKvmDisplaysGuidWithResponse_Call{Call: _e.mock.On("GetApiV1AmtKvmDisplaysGuidWithResponse",
+		append([]interface{}{ctx, guid}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetApiV1AmtKvmDisplaysGuidWithResponse_Call) Run(run func(ctx context.Context, guid string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetApiV1AmtKvmDisplaysGuidWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[2].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetApiV1AmtKvmDisplaysGuidWithResponse_Call) Return(getApiV1AmtKvmDisplaysGuidResponse *GetApiV1AmtKvmDisplaysGuidResponse, err error) *MockClientWithResponsesInterface_GetApiV1AmtKvmDisplaysGuidWithResponse_Call {
+	_c.Call.Return(getApiV1AmtKvmDisplaysGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetApiV1AmtKvmDisplaysGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*GetApiV1AmtKvmDisplaysGuidResponse, error)) *MockClientWithResponsesInterface_GetApiV1AmtKvmDisplaysGuidWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetApiV1AmtLogAuditGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
 func (_mock *MockClientWithResponsesInterface) GetApiV1AmtLogAuditGuidWithResponse(ctx context.Context, guid string, params *GetApiV1AmtLogAuditGuidParams, reqEditors ...RequestEditorFn) (*GetApiV1AmtLogAuditGuidResponse, error) {
 	var tmpRet mock.Arguments
@@ -762,6 +894,72 @@ func (_c *MockClientWithResponsesInterface_GetApiV1AmtLogEventGuidWithResponse_C
 }
 
 func (_c *MockClientWithResponsesInterface_GetApiV1AmtLogEventGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*GetApiV1AmtLogEventGuidResponse, error)) *MockClientWithResponsesInterface_GetApiV1AmtLogEventGuidWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetApiV1AmtPowerBootSourcesGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetApiV1AmtPowerBootSourcesGuidWithResponse(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*GetApiV1AmtPowerBootSourcesGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, guid, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, guid)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetApiV1AmtPowerBootSourcesGuidWithResponse")
+	}
+
+	var r0 *GetApiV1AmtPowerBootSourcesGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) (*GetApiV1AmtPowerBootSourcesGuidResponse, error)); ok {
+		return returnFunc(ctx, guid, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) *GetApiV1AmtPowerBootSourcesGuidResponse); ok {
+		r0 = returnFunc(ctx, guid, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetApiV1AmtPowerBootSourcesGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, guid, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetApiV1AmtPowerBootSourcesGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetApiV1AmtPowerBootSourcesGuidWithResponse'
+type MockClientWithResponsesInterface_GetApiV1AmtPowerBootSourcesGuidWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetApiV1AmtPowerBootSourcesGuidWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - guid
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) GetApiV1AmtPowerBootSourcesGuidWithResponse(ctx interface{}, guid interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetApiV1AmtPowerBootSourcesGuidWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetApiV1AmtPowerBootSourcesGuidWithResponse_Call{Call: _e.mock.On("GetApiV1AmtPowerBootSourcesGuidWithResponse",
+		append([]interface{}{ctx, guid}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetApiV1AmtPowerBootSourcesGuidWithResponse_Call) Run(run func(ctx context.Context, guid string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetApiV1AmtPowerBootSourcesGuidWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[2].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetApiV1AmtPowerBootSourcesGuidWithResponse_Call) Return(getApiV1AmtPowerBootSourcesGuidResponse *GetApiV1AmtPowerBootSourcesGuidResponse, err error) *MockClientWithResponsesInterface_GetApiV1AmtPowerBootSourcesGuidWithResponse_Call {
+	_c.Call.Return(getApiV1AmtPowerBootSourcesGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetApiV1AmtPowerBootSourcesGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*GetApiV1AmtPowerBootSourcesGuidResponse, error)) *MockClientWithResponsesInterface_GetApiV1AmtPowerBootSourcesGuidWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1888,6 +2086,141 @@ func (_c *MockClientWithResponsesInterface_PostApiV1AmtAlarmOccurrencesGuidWithR
 	return _c
 }
 
+// PostApiV1AmtCertificatesGuidWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) PostApiV1AmtCertificatesGuidWithBodyWithResponse(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1AmtCertificatesGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, guid, contentType, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, guid, contentType, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for PostApiV1AmtCertificatesGuidWithBodyWithResponse")
+	}
+
+	var r0 *PostApiV1AmtCertificatesGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) (*PostApiV1AmtCertificatesGuidResponse, error)); ok {
+		return returnFunc(ctx, guid, contentType, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) *PostApiV1AmtCertificatesGuidResponse); ok {
+		r0 = returnFunc(ctx, guid, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*PostApiV1AmtCertificatesGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, guid, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PostApiV1AmtCertificatesGuidWithBodyWithResponse'
+type MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// PostApiV1AmtCertificatesGuidWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - guid
+//   - contentType
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) PostApiV1AmtCertificatesGuidWithBodyWithResponse(ctx interface{}, guid interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithBodyWithResponse_Call{Call: _e.mock.On("PostApiV1AmtCertificatesGuidWithBodyWithResponse",
+		append([]interface{}{ctx, guid, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithBodyWithResponse_Call) Run(run func(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[4].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(io.Reader), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithBodyWithResponse_Call) Return(postApiV1AmtCertificatesGuidResponse *PostApiV1AmtCertificatesGuidResponse, err error) *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithBodyWithResponse_Call {
+	_c.Call.Return(postApiV1AmtCertificatesGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1AmtCertificatesGuidResponse, error)) *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PostApiV1AmtCertificatesGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) PostApiV1AmtCertificatesGuidWithResponse(ctx context.Context, guid string, body PostApiV1AmtCertificatesGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1AmtCertificatesGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, guid, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, guid, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for PostApiV1AmtCertificatesGuidWithResponse")
+	}
+
+	var r0 *PostApiV1AmtCertificatesGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, PostApiV1AmtCertificatesGuidJSONRequestBody, ...RequestEditorFn) (*PostApiV1AmtCertificatesGuidResponse, error)); ok {
+		return returnFunc(ctx, guid, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, PostApiV1AmtCertificatesGuidJSONRequestBody, ...RequestEditorFn) *PostApiV1AmtCertificatesGuidResponse); ok {
+		r0 = returnFunc(ctx, guid, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*PostApiV1AmtCertificatesGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, PostApiV1AmtCertificatesGuidJSONRequestBody, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, guid, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PostApiV1AmtCertificatesGuidWithResponse'
+type MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithResponse_Call struct {
+	*mock.Call
+}
+
+// PostApiV1AmtCertificatesGuidWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - guid
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) PostApiV1AmtCertificatesGuidWithResponse(ctx interface{}, guid interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithResponse_Call {
+	return &MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithResponse_Call{Call: _e.mock.On("PostApiV1AmtCertificatesGuidWithResponse",
+		append([]interface{}{ctx, guid, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithResponse_Call) Run(run func(ctx context.Context, guid string, body PostApiV1AmtCertificatesGuidJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(PostApiV1AmtCertificatesGuidJSONRequestBody), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithResponse_Call) Return(postApiV1AmtCertificatesGuidResponse *PostApiV1AmtCertificatesGuidResponse, err error) *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithResponse_Call {
+	_c.Call.Return(postApiV1AmtCertificatesGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, body PostApiV1AmtCertificatesGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1AmtCertificatesGuidResponse, error)) *MockClientWithResponsesInterface_PostApiV1AmtCertificatesGuidWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PostApiV1AmtFeaturesGuidWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
 func (_mock *MockClientWithResponsesInterface) PostApiV1AmtFeaturesGuidWithBodyWithResponse(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1AmtFeaturesGuidResponse, error) {
 	var tmpRet mock.Arguments
@@ -2019,6 +2352,143 @@ func (_c *MockClientWithResponsesInterface_PostApiV1AmtFeaturesGuidWithResponse_
 }
 
 func (_c *MockClientWithResponsesInterface_PostApiV1AmtFeaturesGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, body PostApiV1AmtFeaturesGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1AmtFeaturesGuidResponse, error)) *MockClientWithResponsesInterface_PostApiV1AmtFeaturesGuidWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse(ctx context.Context, guid string, params *PostApiV1AmtNetworkLinkPreferenceGuidParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1AmtNetworkLinkPreferenceGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, guid, params, contentType, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, guid, params, contentType, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse")
+	}
+
+	var r0 *PostApiV1AmtNetworkLinkPreferenceGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *PostApiV1AmtNetworkLinkPreferenceGuidParams, string, io.Reader, ...RequestEditorFn) (*PostApiV1AmtNetworkLinkPreferenceGuidResponse, error)); ok {
+		return returnFunc(ctx, guid, params, contentType, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *PostApiV1AmtNetworkLinkPreferenceGuidParams, string, io.Reader, ...RequestEditorFn) *PostApiV1AmtNetworkLinkPreferenceGuidResponse); ok {
+		r0 = returnFunc(ctx, guid, params, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*PostApiV1AmtNetworkLinkPreferenceGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *PostApiV1AmtNetworkLinkPreferenceGuidParams, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, guid, params, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse'
+type MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - guid
+//   - params
+//   - contentType
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse(ctx interface{}, guid interface{}, params interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse_Call{Call: _e.mock.On("PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse",
+		append([]interface{}{ctx, guid, params, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse_Call) Run(run func(ctx context.Context, guid string, params *PostApiV1AmtNetworkLinkPreferenceGuidParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[5].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(*PostApiV1AmtNetworkLinkPreferenceGuidParams), args[3].(string), args[4].(io.Reader), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse_Call) Return(postApiV1AmtNetworkLinkPreferenceGuidResponse *PostApiV1AmtNetworkLinkPreferenceGuidResponse, err error) *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse_Call {
+	_c.Call.Return(postApiV1AmtNetworkLinkPreferenceGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, params *PostApiV1AmtNetworkLinkPreferenceGuidParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1AmtNetworkLinkPreferenceGuidResponse, error)) *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PostApiV1AmtNetworkLinkPreferenceGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) PostApiV1AmtNetworkLinkPreferenceGuidWithResponse(ctx context.Context, guid string, params *PostApiV1AmtNetworkLinkPreferenceGuidParams, body PostApiV1AmtNetworkLinkPreferenceGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1AmtNetworkLinkPreferenceGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, guid, params, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, guid, params, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for PostApiV1AmtNetworkLinkPreferenceGuidWithResponse")
+	}
+
+	var r0 *PostApiV1AmtNetworkLinkPreferenceGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *PostApiV1AmtNetworkLinkPreferenceGuidParams, PostApiV1AmtNetworkLinkPreferenceGuidJSONRequestBody, ...RequestEditorFn) (*PostApiV1AmtNetworkLinkPreferenceGuidResponse, error)); ok {
+		return returnFunc(ctx, guid, params, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *PostApiV1AmtNetworkLinkPreferenceGuidParams, PostApiV1AmtNetworkLinkPreferenceGuidJSONRequestBody, ...RequestEditorFn) *PostApiV1AmtNetworkLinkPreferenceGuidResponse); ok {
+		r0 = returnFunc(ctx, guid, params, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*PostApiV1AmtNetworkLinkPreferenceGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *PostApiV1AmtNetworkLinkPreferenceGuidParams, PostApiV1AmtNetworkLinkPreferenceGuidJSONRequestBody, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, guid, params, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PostApiV1AmtNetworkLinkPreferenceGuidWithResponse'
+type MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithResponse_Call struct {
+	*mock.Call
+}
+
+// PostApiV1AmtNetworkLinkPreferenceGuidWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - guid
+//   - params
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) PostApiV1AmtNetworkLinkPreferenceGuidWithResponse(ctx interface{}, guid interface{}, params interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithResponse_Call {
+	return &MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithResponse_Call{Call: _e.mock.On("PostApiV1AmtNetworkLinkPreferenceGuidWithResponse",
+		append([]interface{}{ctx, guid, params, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithResponse_Call) Run(run func(ctx context.Context, guid string, params *PostApiV1AmtNetworkLinkPreferenceGuidParams, body PostApiV1AmtNetworkLinkPreferenceGuidJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[4].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(*PostApiV1AmtNetworkLinkPreferenceGuidParams), args[3].(PostApiV1AmtNetworkLinkPreferenceGuidJSONRequestBody), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithResponse_Call) Return(postApiV1AmtNetworkLinkPreferenceGuidResponse *PostApiV1AmtNetworkLinkPreferenceGuidResponse, err error) *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithResponse_Call {
+	_c.Call.Return(postApiV1AmtNetworkLinkPreferenceGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, params *PostApiV1AmtNetworkLinkPreferenceGuidParams, body PostApiV1AmtNetworkLinkPreferenceGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1AmtNetworkLinkPreferenceGuidResponse, error)) *MockClientWithResponsesInterface_PostApiV1AmtNetworkLinkPreferenceGuidWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2158,8 +2628,8 @@ func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerActionGuidWithRespon
 	return _c
 }
 
-// PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
-func (_mock *MockClientWithResponsesInterface) PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1AmtPowerBootoptionsGuidResponse, error) {
+// PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1AmtPowerBootOptionsGuidResponse, error) {
 	var tmpRet mock.Arguments
 	if len(reqEditors) > 0 {
 		tmpRet = _mock.Called(ctx, guid, contentType, body, reqEditors)
@@ -2169,19 +2639,19 @@ func (_mock *MockClientWithResponsesInterface) PostApiV1AmtPowerBootoptionsGuidW
 	ret := tmpRet
 
 	if len(ret) == 0 {
-		panic("no return value specified for PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse")
+		panic("no return value specified for PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse")
 	}
 
-	var r0 *PostApiV1AmtPowerBootoptionsGuidResponse
+	var r0 *PostApiV1AmtPowerBootOptionsGuidResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) (*PostApiV1AmtPowerBootoptionsGuidResponse, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) (*PostApiV1AmtPowerBootOptionsGuidResponse, error)); ok {
 		return returnFunc(ctx, guid, contentType, body, reqEditors...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) *PostApiV1AmtPowerBootoptionsGuidResponse); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) *PostApiV1AmtPowerBootOptionsGuidResponse); ok {
 		r0 = returnFunc(ctx, guid, contentType, body, reqEditors...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*PostApiV1AmtPowerBootoptionsGuidResponse)
+			r0 = ret.Get(0).(*PostApiV1AmtPowerBootOptionsGuidResponse)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) error); ok {
@@ -2192,23 +2662,23 @@ func (_mock *MockClientWithResponsesInterface) PostApiV1AmtPowerBootoptionsGuidW
 	return r0, r1
 }
 
-// MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse'
-type MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse_Call struct {
+// MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse'
+type MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse_Call struct {
 	*mock.Call
 }
 
-// PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse is a helper method to define mock.On call
+// PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse is a helper method to define mock.On call
 //   - ctx
 //   - guid
 //   - contentType
 //   - body
 //   - reqEditors
-func (_e *MockClientWithResponsesInterface_Expecter) PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse(ctx interface{}, guid interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse_Call {
-	return &MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse_Call{Call: _e.mock.On("PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse",
+func (_e *MockClientWithResponsesInterface_Expecter) PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse(ctx interface{}, guid interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse_Call{Call: _e.mock.On("PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse",
 		append([]interface{}{ctx, guid, contentType, body}, reqEditors...)...)}
 }
 
-func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse_Call) Run(run func(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse_Call {
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse_Call) Run(run func(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		variadicArgs := args[4].([]RequestEditorFn)
 		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(io.Reader), variadicArgs...)
@@ -2216,18 +2686,18 @@ func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithB
 	return _c
 }
 
-func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse_Call) Return(postApiV1AmtPowerBootoptionsGuidResponse *PostApiV1AmtPowerBootoptionsGuidResponse, err error) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse_Call {
-	_c.Call.Return(postApiV1AmtPowerBootoptionsGuidResponse, err)
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse_Call) Return(postApiV1AmtPowerBootOptionsGuidResponse *PostApiV1AmtPowerBootOptionsGuidResponse, err error) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse_Call {
+	_c.Call.Return(postApiV1AmtPowerBootOptionsGuidResponse, err)
 	return _c
 }
 
-func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1AmtPowerBootoptionsGuidResponse, error)) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithBodyWithResponse_Call {
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1AmtPowerBootOptionsGuidResponse, error)) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithBodyWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// PostApiV1AmtPowerBootoptionsGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
-func (_mock *MockClientWithResponsesInterface) PostApiV1AmtPowerBootoptionsGuidWithResponse(ctx context.Context, guid string, body PostApiV1AmtPowerBootoptionsGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1AmtPowerBootoptionsGuidResponse, error) {
+// PostApiV1AmtPowerBootOptionsGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) PostApiV1AmtPowerBootOptionsGuidWithResponse(ctx context.Context, guid string, body PostApiV1AmtPowerBootOptionsGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1AmtPowerBootOptionsGuidResponse, error) {
 	var tmpRet mock.Arguments
 	if len(reqEditors) > 0 {
 		tmpRet = _mock.Called(ctx, guid, body, reqEditors)
@@ -2237,22 +2707,22 @@ func (_mock *MockClientWithResponsesInterface) PostApiV1AmtPowerBootoptionsGuidW
 	ret := tmpRet
 
 	if len(ret) == 0 {
-		panic("no return value specified for PostApiV1AmtPowerBootoptionsGuidWithResponse")
+		panic("no return value specified for PostApiV1AmtPowerBootOptionsGuidWithResponse")
 	}
 
-	var r0 *PostApiV1AmtPowerBootoptionsGuidResponse
+	var r0 *PostApiV1AmtPowerBootOptionsGuidResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, PostApiV1AmtPowerBootoptionsGuidJSONRequestBody, ...RequestEditorFn) (*PostApiV1AmtPowerBootoptionsGuidResponse, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, PostApiV1AmtPowerBootOptionsGuidJSONRequestBody, ...RequestEditorFn) (*PostApiV1AmtPowerBootOptionsGuidResponse, error)); ok {
 		return returnFunc(ctx, guid, body, reqEditors...)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, PostApiV1AmtPowerBootoptionsGuidJSONRequestBody, ...RequestEditorFn) *PostApiV1AmtPowerBootoptionsGuidResponse); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, PostApiV1AmtPowerBootOptionsGuidJSONRequestBody, ...RequestEditorFn) *PostApiV1AmtPowerBootOptionsGuidResponse); ok {
 		r0 = returnFunc(ctx, guid, body, reqEditors...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*PostApiV1AmtPowerBootoptionsGuidResponse)
+			r0 = ret.Get(0).(*PostApiV1AmtPowerBootOptionsGuidResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, PostApiV1AmtPowerBootoptionsGuidJSONRequestBody, ...RequestEditorFn) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, PostApiV1AmtPowerBootOptionsGuidJSONRequestBody, ...RequestEditorFn) error); ok {
 		r1 = returnFunc(ctx, guid, body, reqEditors...)
 	} else {
 		r1 = ret.Error(1)
@@ -2260,35 +2730,35 @@ func (_mock *MockClientWithResponsesInterface) PostApiV1AmtPowerBootoptionsGuidW
 	return r0, r1
 }
 
-// MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PostApiV1AmtPowerBootoptionsGuidWithResponse'
-type MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithResponse_Call struct {
+// MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PostApiV1AmtPowerBootOptionsGuidWithResponse'
+type MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithResponse_Call struct {
 	*mock.Call
 }
 
-// PostApiV1AmtPowerBootoptionsGuidWithResponse is a helper method to define mock.On call
+// PostApiV1AmtPowerBootOptionsGuidWithResponse is a helper method to define mock.On call
 //   - ctx
 //   - guid
 //   - body
 //   - reqEditors
-func (_e *MockClientWithResponsesInterface_Expecter) PostApiV1AmtPowerBootoptionsGuidWithResponse(ctx interface{}, guid interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithResponse_Call {
-	return &MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithResponse_Call{Call: _e.mock.On("PostApiV1AmtPowerBootoptionsGuidWithResponse",
+func (_e *MockClientWithResponsesInterface_Expecter) PostApiV1AmtPowerBootOptionsGuidWithResponse(ctx interface{}, guid interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithResponse_Call {
+	return &MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithResponse_Call{Call: _e.mock.On("PostApiV1AmtPowerBootOptionsGuidWithResponse",
 		append([]interface{}{ctx, guid, body}, reqEditors...)...)}
 }
 
-func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithResponse_Call) Run(run func(ctx context.Context, guid string, body PostApiV1AmtPowerBootoptionsGuidJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithResponse_Call {
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithResponse_Call) Run(run func(ctx context.Context, guid string, body PostApiV1AmtPowerBootOptionsGuidJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(PostApiV1AmtPowerBootoptionsGuidJSONRequestBody), variadicArgs...)
+		run(args[0].(context.Context), args[1].(string), args[2].(PostApiV1AmtPowerBootOptionsGuidJSONRequestBody), variadicArgs...)
 	})
 	return _c
 }
 
-func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithResponse_Call) Return(postApiV1AmtPowerBootoptionsGuidResponse *PostApiV1AmtPowerBootoptionsGuidResponse, err error) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithResponse_Call {
-	_c.Call.Return(postApiV1AmtPowerBootoptionsGuidResponse, err)
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithResponse_Call) Return(postApiV1AmtPowerBootOptionsGuidResponse *PostApiV1AmtPowerBootOptionsGuidResponse, err error) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithResponse_Call {
+	_c.Call.Return(postApiV1AmtPowerBootOptionsGuidResponse, err)
 	return _c
 }
 
-func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, body PostApiV1AmtPowerBootoptionsGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1AmtPowerBootoptionsGuidResponse, error)) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootoptionsGuidWithResponse_Call {
+func (_c *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, body PostApiV1AmtPowerBootOptionsGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1AmtPowerBootOptionsGuidResponse, error)) *MockClientWithResponsesInterface_PostApiV1AmtPowerBootOptionsGuidWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2690,6 +3160,141 @@ func (_c *MockClientWithResponsesInterface_PostApiV1DevicesWithResponse_Call) Re
 }
 
 func (_c *MockClientWithResponsesInterface_PostApiV1DevicesWithResponse_Call) RunAndReturn(run func(ctx context.Context, body PostApiV1DevicesJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1DevicesResponse, error)) *MockClientWithResponsesInterface_PostApiV1DevicesWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutApiV1AmtScreenGuidWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) PutApiV1AmtScreenGuidWithBodyWithResponse(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1AmtScreenGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, guid, contentType, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, guid, contentType, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutApiV1AmtScreenGuidWithBodyWithResponse")
+	}
+
+	var r0 *PutApiV1AmtScreenGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) (*PutApiV1AmtScreenGuidResponse, error)); ok {
+		return returnFunc(ctx, guid, contentType, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) *PutApiV1AmtScreenGuidResponse); ok {
+		r0 = returnFunc(ctx, guid, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*PutApiV1AmtScreenGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, guid, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutApiV1AmtScreenGuidWithBodyWithResponse'
+type MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// PutApiV1AmtScreenGuidWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - guid
+//   - contentType
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) PutApiV1AmtScreenGuidWithBodyWithResponse(ctx interface{}, guid interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithBodyWithResponse_Call{Call: _e.mock.On("PutApiV1AmtScreenGuidWithBodyWithResponse",
+		append([]interface{}{ctx, guid, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithBodyWithResponse_Call) Run(run func(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[4].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(io.Reader), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithBodyWithResponse_Call) Return(putApiV1AmtScreenGuidResponse *PutApiV1AmtScreenGuidResponse, err error) *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithBodyWithResponse_Call {
+	_c.Call.Return(putApiV1AmtScreenGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1AmtScreenGuidResponse, error)) *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutApiV1AmtScreenGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) PutApiV1AmtScreenGuidWithResponse(ctx context.Context, guid string, body PutApiV1AmtScreenGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1AmtScreenGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, guid, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, guid, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutApiV1AmtScreenGuidWithResponse")
+	}
+
+	var r0 *PutApiV1AmtScreenGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, PutApiV1AmtScreenGuidJSONRequestBody, ...RequestEditorFn) (*PutApiV1AmtScreenGuidResponse, error)); ok {
+		return returnFunc(ctx, guid, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, PutApiV1AmtScreenGuidJSONRequestBody, ...RequestEditorFn) *PutApiV1AmtScreenGuidResponse); ok {
+		r0 = returnFunc(ctx, guid, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*PutApiV1AmtScreenGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, PutApiV1AmtScreenGuidJSONRequestBody, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, guid, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutApiV1AmtScreenGuidWithResponse'
+type MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithResponse_Call struct {
+	*mock.Call
+}
+
+// PutApiV1AmtScreenGuidWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - guid
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) PutApiV1AmtScreenGuidWithResponse(ctx interface{}, guid interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithResponse_Call {
+	return &MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithResponse_Call{Call: _e.mock.On("PutApiV1AmtScreenGuidWithResponse",
+		append([]interface{}{ctx, guid, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithResponse_Call) Run(run func(ctx context.Context, guid string, body PutApiV1AmtScreenGuidJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(PutApiV1AmtScreenGuidJSONRequestBody), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithResponse_Call) Return(putApiV1AmtScreenGuidResponse *PutApiV1AmtScreenGuidResponse, err error) *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithResponse_Call {
+	_c.Call.Return(putApiV1AmtScreenGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, body PutApiV1AmtScreenGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1AmtScreenGuidResponse, error)) *MockClientWithResponsesInterface_PutApiV1AmtScreenGuidWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }

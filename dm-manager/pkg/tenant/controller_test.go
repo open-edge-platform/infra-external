@@ -5,6 +5,7 @@ package tenant
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"os"
 	"sync"
@@ -381,12 +382,29 @@ func TestReconciler_ReconcileAll_shouldRemoveExcessiveConfigs(t *testing.T) {
 	mpsMock.On("GetApiV1CiracertWithResponse", mock.Anything, mock.Anything).
 		Return(&mps.GetApiV1CiracertResponse{}, errors.Errorf("mocked error"))
 
-	rpsMock.On("GetAllProfilesWithResponse", mock.Anything, mock.Anything).Return(&rps.GetAllProfilesResponse{
-		JSON200: &[]rps.ProfileResponse{{ProfileName: "willBeRemoved"}, {ProfileName: tenantID}},
-	}, nil)
-	rpsMock.On("GetAllCIRAConfigsWithResponse", mock.Anything, mock.Anything).Return(&rps.GetAllCIRAConfigsResponse{
-		JSON200: &[]rps.CIRAConfigResponse{{ConfigName: "deleteMe"}, {CommonName: tenantID}},
-	}, nil)
+	profiles := []rps.ProfileResponse{{ProfileName: "willBeRemoved"}, {ProfileName: tenantID}}
+	profilesJSON, _ := json.Marshal(profiles)
+	profilesResp := &rps.GetAllProfilesResponse{
+		Body: profilesJSON,
+		HTTPResponse: &http.Response{
+			StatusCode: 200,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		},
+	}
+	_ = json.Unmarshal(profilesJSON, &profilesResp.JSON200)
+	rpsMock.On("GetAllProfilesWithResponse", mock.Anything, mock.Anything).Return(profilesResp, nil)
+
+	ciraConfigs := []rps.CIRAConfigResponse{{ConfigName: "deleteMe"}, {ConfigName: tenantID}}
+	ciraConfigsJSON, _ := json.Marshal(ciraConfigs)
+	ciraConfigsResp := &rps.GetAllCIRAConfigsResponse{
+		Body: ciraConfigsJSON,
+		HTTPResponse: &http.Response{
+			StatusCode: 200,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+		},
+	}
+	_ = json.Unmarshal(ciraConfigsJSON, &ciraConfigsResp.JSON200)
+	rpsMock.On("GetAllCIRAConfigsWithResponse", mock.Anything, mock.Anything).Return(ciraConfigsResp, nil)
 
 	rpsMock.On("RemoveProfileWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(&rps.RemoveProfileResponse{}, nil)
 	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).Return(
