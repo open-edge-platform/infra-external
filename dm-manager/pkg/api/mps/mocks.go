@@ -104,6 +104,73 @@ func (_c *MockClientWithResponsesInterface_DeleteApiV1AmtAlarmOccurrencesGuidWit
 	return _c
 }
 
+// DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse(ctx context.Context, guid string, instanceId string, reqEditors ...RequestEditorFn) (*DeleteApiV1AmtCertificatesGuidInstanceIdResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, guid, instanceId, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, guid, instanceId)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse")
+	}
+
+	var r0 *DeleteApiV1AmtCertificatesGuidInstanceIdResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...RequestEditorFn) (*DeleteApiV1AmtCertificatesGuidInstanceIdResponse, error)); ok {
+		return returnFunc(ctx, guid, instanceId, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...RequestEditorFn) *DeleteApiV1AmtCertificatesGuidInstanceIdResponse); ok {
+		r0 = returnFunc(ctx, guid, instanceId, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*DeleteApiV1AmtCertificatesGuidInstanceIdResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, guid, instanceId, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse'
+type MockClientWithResponsesInterface_DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse_Call struct {
+	*mock.Call
+}
+
+// DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - guid
+//   - instanceId
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse(ctx interface{}, guid interface{}, instanceId interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse_Call {
+	return &MockClientWithResponsesInterface_DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse_Call{Call: _e.mock.On("DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse",
+		append([]interface{}{ctx, guid, instanceId}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse_Call) Run(run func(ctx context.Context, guid string, instanceId string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse_Call) Return(deleteApiV1AmtCertificatesGuidInstanceIdResponse *DeleteApiV1AmtCertificatesGuidInstanceIdResponse, err error) *MockClientWithResponsesInterface_DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse_Call {
+	_c.Call.Return(deleteApiV1AmtCertificatesGuidInstanceIdResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse_Call) RunAndReturn(run func(ctx context.Context, guid string, instanceId string, reqEditors ...RequestEditorFn) (*DeleteApiV1AmtCertificatesGuidInstanceIdResponse, error)) *MockClientWithResponsesInterface_DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteApiV1AmtDeactivateGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
 func (_mock *MockClientWithResponsesInterface) DeleteApiV1AmtDeactivateGuidWithResponse(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*DeleteApiV1AmtDeactivateGuidResponse, error) {
 	var tmpRet mock.Arguments

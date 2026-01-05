@@ -303,30 +303,26 @@ func (tc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[Reco
 }
 
 func (tc *Controller) removeCIRAConfigs(ctx context.Context, tenants []string) {
-	CIRAConfigsResp, err := tc.RpsClient.GetAllCIRAConfigsWithResponse(ctx, &rps.GetAllCIRAConfigsParams{})
+	callbackFunc := clientCallback()
+	CIRAConfigsResp, err := tc.RpsClient.GetAllCIRAConfigsWithResponse(ctx, &rps.GetAllCIRAConfigsParams{}, callbackFunc)
 	if err != nil {
-		log.Err(err).Msgf("cannot list CIRA configs,continuing")
+		log.Err(err).Msgf("cannot list CIRA configs, continuing")
 		return
 	}
 
-	if CIRAConfigsResp.JSON200 != nil {
+	if CIRAConfigsResp.HTTPResponse != nil && CIRAConfigsResp.HTTPResponse.StatusCode == http.StatusOK {
 		presentCiraConfigs := []string{}
-		respJSON, err := json.Marshal(CIRAConfigsResp.JSON200)
-		if err != nil {
-			log.Err(err).Msgf("cannot marshal response")
-			return
-		}
+		log.Info().Msgf("got the profile reponse XXX")
 
-		// Unmarshal into the correct type
+		// Unmarshal directly from the response Body
 		var configs []rps.CIRAConfigResponse
-		if err := json.Unmarshal(respJSON, &configs); err != nil {
-			log.Err(err).Msgf("cannot unmarshal CIRA configs")
+		if unmarshalErr := json.Unmarshal(CIRAConfigsResp.Body, &configs); unmarshalErr != nil {
+			log.Err(unmarshalErr).Msgf("cannot unmarshal CIRA configs")
 			return
 		}
 
 		for _, config := range configs {
-			configName := config.ConfigName
-			presentCiraConfigs = append(presentCiraConfigs, configName)
+			presentCiraConfigs = append(presentCiraConfigs, config.ConfigName)
 		}
 
 		for _, ciraConfigName := range findExtraElements(presentCiraConfigs, tenants) {
@@ -339,26 +335,28 @@ func (tc *Controller) removeCIRAConfigs(ctx context.Context, tenants []string) {
 }
 
 func (tc *Controller) removeProfiles(ctx context.Context, tenants []string) {
-	profilesResp, err := tc.RpsClient.GetAllProfilesWithResponse(ctx, &rps.GetAllProfilesParams{})
+	callbackFunc := clientCallback()
+	profilesResp, err := tc.RpsClient.GetAllProfilesWithResponse(ctx, &rps.GetAllProfilesParams{}, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("cannot list profiles, continuing")
+		return
 	}
-	if profilesResp.JSON200 != nil {
+
+	if profilesResp.HTTPResponse != nil && profilesResp.HTTPResponse.StatusCode == http.StatusOK {
 		presentProfiles := []string{}
-		respJSON, err := json.Marshal(profilesResp.JSON200)
-		if err != nil {
-			log.Err(err).Msgf("cannot marshal response")
+		log.Info().Msgf("got the profile reponse XXX")
+
+		// Unmarshal directly from the response Body
+		var profiles []rps.ProfileResponse
+		if unmarshalErr := json.Unmarshal(profilesResp.Body, &profiles); unmarshalErr != nil {
+			log.Err(unmarshalErr).Msgf("cannot unmarshal profiles")
 			return
 		}
 
-		var configs []rps.ProfileResponse
-		if err := json.Unmarshal(respJSON, &configs); err != nil {
-			log.Err(err).Msgf("cannot unmarshal CIRA configs")
-			return
-		}
-		for _, profile := range configs {
+		for _, profile := range profiles {
 			presentProfiles = append(presentProfiles, profile.ProfileName)
 		}
+
 		for _, profileName := range findExtraElements(presentProfiles, tenants) {
 			log.Info().Msgf("%v profile doesn't have matching tenant - removing it", profileName)
 			if err = tc.TenantController.Reconcile(NewReconcilerID(false, profileName)); err != nil {

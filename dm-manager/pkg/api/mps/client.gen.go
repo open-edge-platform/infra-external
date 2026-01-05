@@ -258,6 +258,15 @@ type DeleteAlarmErrorResponse struct {
 	Success *int `json:"success,omitempty"`
 }
 
+// DeleteCertificateResponse defines model for DeleteCertificateResponse.
+type DeleteCertificateResponse struct {
+	// Handle Handle/Instance ID of the deleted certificate
+	Handle string `json:"handle"`
+
+	// Message Confirmation message for successful certificate deletion
+	Message string `json:"message"`
+}
+
 // DeleteErrorResponse defines model for DeleteErrorResponse.
 type DeleteErrorResponse struct {
 	// Error server error message
@@ -391,6 +400,15 @@ type EditDeviceResponse struct {
 	Mpsusername      string     `json:"mpsusername"`
 	Tags             []string   `json:"tags"`
 	TenantID         string     `json:"tenantID"`
+}
+
+// ErrorResponse defines model for ErrorResponse.
+type ErrorResponse struct {
+	// Error Error message or error code
+	Error string `json:"error"`
+
+	// ErrorDescription Detailed description of the error (optional)
+	ErrorDescription *string `json:"errorDescription,omitempty"`
 }
 
 // EventLogRecord defines model for EventLogRecord.
@@ -1200,6 +1218,9 @@ type ClientInterface interface {
 
 	PostApiV1AmtCertificatesGuid(ctx context.Context, guid string, body PostApiV1AmtCertificatesGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteApiV1AmtCertificatesGuidInstanceId request
+	DeleteApiV1AmtCertificatesGuidInstanceId(ctx context.Context, guid string, instanceId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteApiV1AmtDeactivateGuid request
 	DeleteApiV1AmtDeactivateGuid(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1392,6 +1413,18 @@ func (c *Client) PostApiV1AmtCertificatesGuidWithBody(ctx context.Context, guid 
 
 func (c *Client) PostApiV1AmtCertificatesGuid(ctx context.Context, guid string, body PostApiV1AmtCertificatesGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPostApiV1AmtCertificatesGuidRequest(c.Server, guid, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteApiV1AmtCertificatesGuidInstanceId(ctx context.Context, guid string, instanceId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteApiV1AmtCertificatesGuidInstanceIdRequest(c.Server, guid, instanceId)
 	if err != nil {
 		return nil, err
 	}
@@ -2098,6 +2131,47 @@ func NewPostApiV1AmtCertificatesGuidRequestWithBody(server string, guid string, 
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteApiV1AmtCertificatesGuidInstanceIdRequest generates requests for DeleteApiV1AmtCertificatesGuidInstanceId
+func NewDeleteApiV1AmtCertificatesGuidInstanceIdRequest(server string, guid string, instanceId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "guid", runtime.ParamLocationPath, guid)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "instanceId", runtime.ParamLocationPath, instanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/amt/certificates/%s/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -3547,6 +3621,9 @@ type ClientWithResponsesInterface interface {
 
 	PostApiV1AmtCertificatesGuidWithResponse(ctx context.Context, guid string, body PostApiV1AmtCertificatesGuidJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1AmtCertificatesGuidResponse, error)
 
+	// DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse request
+	DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse(ctx context.Context, guid string, instanceId string, reqEditors ...RequestEditorFn) (*DeleteApiV1AmtCertificatesGuidInstanceIdResponse, error)
+
 	// DeleteApiV1AmtDeactivateGuidWithResponse request
 	DeleteApiV1AmtDeactivateGuidWithResponse(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*DeleteApiV1AmtDeactivateGuidResponse, error)
 
@@ -3772,6 +3849,32 @@ func (r PostApiV1AmtCertificatesGuidResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PostApiV1AmtCertificatesGuidResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteApiV1AmtCertificatesGuidInstanceIdResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DeleteCertificateResponse
+	JSON400      *ErrorResponse
+	JSON404      *ErrorResponse
+	JSON409      *ErrorResponse
+	JSON500      *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteApiV1AmtCertificatesGuidInstanceIdResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteApiV1AmtCertificatesGuidInstanceIdResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -4598,6 +4701,15 @@ func (c *ClientWithResponses) PostApiV1AmtCertificatesGuidWithResponse(ctx conte
 	return ParsePostApiV1AmtCertificatesGuidResponse(rsp)
 }
 
+// DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse request returning *DeleteApiV1AmtCertificatesGuidInstanceIdResponse
+func (c *ClientWithResponses) DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse(ctx context.Context, guid string, instanceId string, reqEditors ...RequestEditorFn) (*DeleteApiV1AmtCertificatesGuidInstanceIdResponse, error) {
+	rsp, err := c.DeleteApiV1AmtCertificatesGuidInstanceId(ctx, guid, instanceId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteApiV1AmtCertificatesGuidInstanceIdResponse(rsp)
+}
+
 // DeleteApiV1AmtDeactivateGuidWithResponse request returning *DeleteApiV1AmtDeactivateGuidResponse
 func (c *ClientWithResponses) DeleteApiV1AmtDeactivateGuidWithResponse(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*DeleteApiV1AmtDeactivateGuidResponse, error) {
 	rsp, err := c.DeleteApiV1AmtDeactivateGuid(ctx, guid, reqEditors...)
@@ -5112,6 +5224,60 @@ func ParsePostApiV1AmtCertificatesGuidResponse(rsp *http.Response) (*PostApiV1Am
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteApiV1AmtCertificatesGuidInstanceIdResponse parses an HTTP response from a DeleteApiV1AmtCertificatesGuidInstanceIdWithResponse call
+func ParseDeleteApiV1AmtCertificatesGuidInstanceIdResponse(rsp *http.Response) (*DeleteApiV1AmtCertificatesGuidInstanceIdResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteApiV1AmtCertificatesGuidInstanceIdResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DeleteCertificateResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
 
 	}
 
