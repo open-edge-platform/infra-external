@@ -251,7 +251,8 @@ func (dc *Controller) shouldSyncPowerStatus(invHost *computev1.HostResource) boo
 	if isResetOperation {
 		// sync reset status if completion status update
 		return invHost.GetCurrentAmtState() == computev1.AmtState_AMT_STATE_PROVISIONED &&
-			invHost.GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS
+			(invHost.GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS ||
+				invHost.GetPowerStatusIndicator() == statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED)
 	}
 
 	// Standard sync for non-reset operations
@@ -352,15 +353,18 @@ func (dc *Controller) deactivateAMT(
 		}
 		return request.Fail(err)
 	}
+	// TODO: will revisit Power sync condition in reconciliation loop after AMT deactivation
 	err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentAmtState,
 			computev1.HostResourceFieldAmtStatus,
 			computev1.HostResourceFieldAmtStatusIndicator,
+			computev1.HostResourceFieldPowerStatusIndicator,
 		}}, &computev1.HostResource{
-			CurrentAmtState:    computev1.AmtState_AMT_STATE_UNPROVISIONED,
-			AmtStatus:          "AMT deactivated",
-			AmtStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+			CurrentAmtState:      computev1.AmtState_AMT_STATE_UNPROVISIONED,
+			AmtStatus:            "AMT deactivated",
+			AmtStatusIndicator:   statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_UNSPECIFIED,
 		})
 	if err != nil {
 		log.Err(err).Msgf("Failed to update AMT deactivation state info")
@@ -382,6 +386,7 @@ func clientCallback() func(ctx context.Context, req *http.Request) error {
 	return callbackFunc
 }
 
+//nolint:cyclop // power status sync
 func (dc *Controller) syncPowerStatus(
 	ctx context.Context, request rec_v2.Request[ID], invHost *computev1.HostResource,
 ) rec_v2.Directive[ID] {
@@ -432,14 +437,33 @@ func (dc *Controller) syncPowerStatus(
 
 	if contains(allowedPowerStates[invHost.GetDesiredPowerState()], powerStateCode) &&
 		invHost.GetPowerStatusIndicator() != statusv1.StatusIndication_STATUS_INDICATION_IDLE {
+		// Prepare host resource update
+		log.Info().Msgf("powerStateCode %v for host %v )", powerStateCode, invHost.GetUuid())
+		hostUpdate := &computev1.HostResource{
+			PowerStatus:          powerMappingToIdleState[invHost.GetDesiredPowerState()],
+			PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+		}
+		fieldPaths := []string{
+			computev1.HostResourceFieldPowerStatus,
+			computev1.HostResourceFieldPowerStatusIndicator,
+		}
+
+		// Set power on timestamp when MPS confirms device is powered ON
+		if invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_ON &&
+			mpsPowerStateToInventoryPowerState[powerStateCode] == computev1.PowerState_POWER_STATE_ON {
+			powerOnTime, convErr := inv_util.Int64ToUint64(time.Now().Unix())
+			if convErr != nil {
+				log.Warn().Err(convErr).Msgf("Failed to set power on time for host %v", invHost.GetUuid())
+			} else {
+				hostUpdate.PowerOnTime = powerOnTime
+				fieldPaths = append(fieldPaths, computev1.HostResourceFieldPowerOnTime)
+				log.Info().Msgf("set power on time %v for host %v MPS power state: %v)",
+					powerOnTime, invHost.GetUuid(), powerStateCode)
+			}
+		}
+
 		err = dc.updateHost(ctx, invHost.GetTenantId(), invHost.GetResourceId(),
-			&fieldmaskpb.FieldMask{Paths: []string{
-				computev1.HostResourceFieldPowerStatus,
-				computev1.HostResourceFieldPowerStatusIndicator,
-			}}, &computev1.HostResource{
-				PowerStatus:          powerMappingToIdleState[invHost.GetDesiredPowerState()],
-				PowerStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
-			})
+			&fieldmaskpb.FieldMask{Paths: fieldPaths}, hostUpdate)
 		if err != nil {
 			log.Err(err).Msgf("failed to update device info")
 			return request.Fail(err)

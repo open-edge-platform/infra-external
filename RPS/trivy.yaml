@@ -4,4 +4,4 @@
 
 # Same as '--ignorefile'
 # Default is '.trivyignore'
-ignorefile: DMT-server/.trivyignore
+ignorefile: RPS/.trivyignore
