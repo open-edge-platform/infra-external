@@ -71,7 +71,7 @@ ifeq ($(GOCOBERTURA), true)
 	$(GOCMD) install github.com/boumenot/gocover-cobertura@v$(GOCOBERTURAVERSION_REQ)
 endif
 ifeq ($(SWAGGER), true)
-	$(GOCMD) install github.com/go-swagger/go-swagger/cmd/swagger@v${SWAGGERVERSION_REQ}
+	$(GOCMD) install github.com/go-swagger/go-swagger/cmd/swagger@v0.33.1
 endif
 ifeq ($(MOCKERY), true)
 	$(GOCMD) install github.com/vektra/mockery/v3@${MOCKERYVERSION_REQ}
