@@ -23,7 +23,8 @@ jobs:
       id-token: write
     uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@8fc2349c02d438e1707f99343069963fb49d3eba  # 2026.0.6
     with:
-      orch_ci_repo_ref: 57ae89489027070792089531710c450af3b66c26
+      orch_ci_repo_ref: 8fc2349c02d438e1707f99343069963fb49d3eba # 2026.0.6
+      bootstrap_tools: "all,golangci-lint2"
       run_version_check: true
       run_dep_version_check: true
       run_build: true
