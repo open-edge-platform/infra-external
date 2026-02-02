@@ -7,6 +7,7 @@ package secrets
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type PostAPIV1SecretsVaultUpdateReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *PostAPIV1SecretsVaultUpdateReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *PostAPIV1SecretsVaultUpdateReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 400:
 		result := NewPostAPIV1SecretsVaultUpdateBadRequest()
@@ -110,7 +111,7 @@ func (o *PostAPIV1SecretsVaultUpdateBadRequest) readResponse(response runtime.Cl
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -180,7 +181,7 @@ func (o *PostAPIV1SecretsVaultUpdateUnauthorized) readResponse(response runtime.
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -250,7 +251,7 @@ func (o *PostAPIV1SecretsVaultUpdateInternalServerError) readResponse(response r
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

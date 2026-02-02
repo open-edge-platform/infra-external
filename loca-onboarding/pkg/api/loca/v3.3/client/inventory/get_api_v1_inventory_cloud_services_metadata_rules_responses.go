@@ -7,6 +7,7 @@ package inventory
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type GetAPIV1InventoryCloudServicesMetadataRulesReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *GetAPIV1InventoryCloudServicesMetadataRulesReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *GetAPIV1InventoryCloudServicesMetadataRulesReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 200:
 		result := NewGetAPIV1InventoryCloudServicesMetadataRulesOK()
@@ -110,7 +111,7 @@ func (o *GetAPIV1InventoryCloudServicesMetadataRulesOK) readResponse(response ru
 	o.Payload = new(model.DtoDtoSettingRuleListResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -180,7 +181,7 @@ func (o *GetAPIV1InventoryCloudServicesMetadataRulesUnauthorized) readResponse(r
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -250,7 +251,7 @@ func (o *GetAPIV1InventoryCloudServicesMetadataRulesInternalServerError) readRes
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

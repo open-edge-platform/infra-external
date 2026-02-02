@@ -7,6 +7,7 @@ package inventory
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type GetAPIV1InventoryDevicesRegistrationFileDownloadReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *GetAPIV1InventoryDevicesRegistrationFileDownloadReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *GetAPIV1InventoryDevicesRegistrationFileDownloadReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 200:
 		result := NewGetAPIV1InventoryDevicesRegistrationFileDownloadOK()
@@ -64,7 +65,7 @@ GetAPIV1InventoryDevicesRegistrationFileDownloadOK describes a response with sta
 success
 */
 type GetAPIV1InventoryDevicesRegistrationFileDownloadOK struct {
-	Payload interface{}
+	Payload any
 }
 
 // IsSuccess returns true when this get Api v1 inventory devices registration file download o k response has a 2xx status code
@@ -107,14 +108,14 @@ func (o *GetAPIV1InventoryDevicesRegistrationFileDownloadOK) String() string {
 	return fmt.Sprintf("[GET /api/v1/inventory/devices/registration-file-download][%d] getApiV1InventoryDevicesRegistrationFileDownloadOK %s", 200, payload)
 }
 
-func (o *GetAPIV1InventoryDevicesRegistrationFileDownloadOK) GetPayload() interface{} {
+func (o *GetAPIV1InventoryDevicesRegistrationFileDownloadOK) GetPayload() any {
 	return o.Payload
 }
 
 func (o *GetAPIV1InventoryDevicesRegistrationFileDownloadOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -184,7 +185,7 @@ func (o *GetAPIV1InventoryDevicesRegistrationFileDownloadBadRequest) readRespons
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -254,7 +255,7 @@ func (o *GetAPIV1InventoryDevicesRegistrationFileDownloadUnauthorized) readRespo
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -324,7 +325,7 @@ func (o *GetAPIV1InventoryDevicesRegistrationFileDownloadInternalServerError) re
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

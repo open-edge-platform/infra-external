@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -68,11 +69,15 @@ func (m *DtoInstanceSummary) validateHardwareDetails(formats strfmt.Registry) er
 
 		if m.HardwareDetails[i] != nil {
 			if err := m.HardwareDetails[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("hardwareDetails" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("hardwareDetails" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -94,11 +99,15 @@ func (m *DtoInstanceSummary) validateNetworkDetails(formats strfmt.Registry) err
 
 		if m.NetworkDetails[i] != nil {
 			if err := m.NetworkDetails[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("networkDetails" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("networkDetails" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -137,11 +146,15 @@ func (m *DtoInstanceSummary) contextValidateHardwareDetails(ctx context.Context,
 			}
 
 			if err := m.HardwareDetails[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("hardwareDetails" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("hardwareDetails" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -162,11 +175,15 @@ func (m *DtoInstanceSummary) contextValidateNetworkDetails(ctx context.Context, 
 			}
 
 			if err := m.NetworkDetails[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("networkDetails" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("networkDetails" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

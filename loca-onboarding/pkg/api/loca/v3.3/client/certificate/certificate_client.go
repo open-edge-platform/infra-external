@@ -75,7 +75,7 @@ type ClientService interface {
 GetAPIV1CertDownloadCrt downloads the installed signed certificate
 */
 func (a *Client) GetAPIV1CertDownloadCrt(params *GetAPIV1CertDownloadCrtParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1CertDownloadCrtOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1CertDownloadCrtParams()
 	}
@@ -95,17 +95,22 @@ func (a *Client) GetAPIV1CertDownloadCrt(params *GetAPIV1CertDownloadCrtParams, 
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1CertDownloadCrtOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1CertDownloadCrt: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -114,7 +119,7 @@ func (a *Client) GetAPIV1CertDownloadCrt(params *GetAPIV1CertDownloadCrtParams, 
 GetAPIV1CertDownloadCsr downloads the generated c s r
 */
 func (a *Client) GetAPIV1CertDownloadCsr(params *GetAPIV1CertDownloadCsrParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1CertDownloadCsrOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1CertDownloadCsrParams()
 	}
@@ -134,17 +139,22 @@ func (a *Client) GetAPIV1CertDownloadCsr(params *GetAPIV1CertDownloadCsrParams, 
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1CertDownloadCsrOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1CertDownloadCsr: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -153,7 +163,7 @@ func (a *Client) GetAPIV1CertDownloadCsr(params *GetAPIV1CertDownloadCsrParams, 
 GetAPIV1CertStatus gets certificate status
 */
 func (a *Client) GetAPIV1CertStatus(params *GetAPIV1CertStatusParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1CertStatusOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1CertStatusParams()
 	}
@@ -173,17 +183,22 @@ func (a *Client) GetAPIV1CertStatus(params *GetAPIV1CertStatusParams, authInfo r
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1CertStatusOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1CertStatus: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -192,7 +207,7 @@ func (a *Client) GetAPIV1CertStatus(params *GetAPIV1CertStatusParams, authInfo r
 PostAPIV1CertGenerateCsr creates c s r file
 */
 func (a *Client) PostAPIV1CertGenerateCsr(params *PostAPIV1CertGenerateCsrParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1CertGenerateCsrOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1CertGenerateCsrParams()
 	}
@@ -212,17 +227,22 @@ func (a *Client) PostAPIV1CertGenerateCsr(params *PostAPIV1CertGenerateCsrParams
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1CertGenerateCsrOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1CertGenerateCsr: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -231,7 +251,7 @@ func (a *Client) PostAPIV1CertGenerateCsr(params *PostAPIV1CertGenerateCsrParams
 PostAPIV1CertReset resets certificate
 */
 func (a *Client) PostAPIV1CertReset(params *PostAPIV1CertResetParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1CertResetOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1CertResetParams()
 	}
@@ -251,17 +271,22 @@ func (a *Client) PostAPIV1CertReset(params *PostAPIV1CertResetParams, authInfo r
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1CertResetOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1CertReset: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -270,7 +295,7 @@ func (a *Client) PostAPIV1CertReset(params *PostAPIV1CertResetParams, authInfo r
 PostAPIV1CertUpload imports signed certificate
 */
 func (a *Client) PostAPIV1CertUpload(params *PostAPIV1CertUploadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1CertUploadOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1CertUploadParams()
 	}
@@ -290,17 +315,22 @@ func (a *Client) PostAPIV1CertUpload(params *PostAPIV1CertUploadParams, authInfo
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1CertUploadOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1CertUpload: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }

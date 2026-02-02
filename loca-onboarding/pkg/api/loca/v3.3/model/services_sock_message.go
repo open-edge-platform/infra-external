@@ -24,10 +24,10 @@ type ServicesSockMessage struct {
 	CreateTime string `json:"create_time,omitempty"`
 
 	// data
-	Data interface{} `json:"data,omitempty"`
+	Data any `json:"data,omitempty"`
 
 	// NotificationExtra?
-	Extra interface{} `json:"extra,omitempty"`
+	Extra any `json:"extra,omitempty"`
 
 	// id
 	ID int64 `json:"id,omitempty"`

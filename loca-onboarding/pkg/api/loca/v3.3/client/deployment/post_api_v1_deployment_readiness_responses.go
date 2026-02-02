@@ -7,6 +7,7 @@ package deployment
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type PostAPIV1DeploymentReadinessReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *PostAPIV1DeploymentReadinessReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *PostAPIV1DeploymentReadinessReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 201:
 		result := NewPostAPIV1DeploymentReadinessCreated()
@@ -116,7 +117,7 @@ func (o *PostAPIV1DeploymentReadinessCreated) readResponse(response runtime.Clie
 	o.Payload = new(model.DtoCreatedWorkflowResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -186,7 +187,7 @@ func (o *PostAPIV1DeploymentReadinessBadRequest) readResponse(response runtime.C
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -256,7 +257,7 @@ func (o *PostAPIV1DeploymentReadinessUnauthorized) readResponse(response runtime
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -326,7 +327,7 @@ func (o *PostAPIV1DeploymentReadinessInternalServerError) readResponse(response 
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

@@ -7,6 +7,7 @@ package secrets
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type DeleteAPIV1SecretsCredentialPoliciesIDReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *DeleteAPIV1SecretsCredentialPoliciesIDReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *DeleteAPIV1SecretsCredentialPoliciesIDReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 200:
 		result := NewDeleteAPIV1SecretsCredentialPoliciesIDOK()
@@ -116,7 +117,7 @@ func (o *DeleteAPIV1SecretsCredentialPoliciesIDOK) readResponse(response runtime
 	o.Payload = new(model.DtoUpdateCredentialpoliciesResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -186,7 +187,7 @@ func (o *DeleteAPIV1SecretsCredentialPoliciesIDBadRequest) readResponse(response
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -256,7 +257,7 @@ func (o *DeleteAPIV1SecretsCredentialPoliciesIDUnauthorized) readResponse(respon
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -326,7 +327,7 @@ func (o *DeleteAPIV1SecretsCredentialPoliciesIDInternalServerError) readResponse
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

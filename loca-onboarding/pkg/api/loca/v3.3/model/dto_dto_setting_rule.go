@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -20,16 +21,16 @@ import (
 type DtoDtoSettingRule struct {
 
 	// default value
-	DefaultValue interface{} `json:"defaultValue,omitempty"`
+	DefaultValue any `json:"defaultValue,omitempty"`
 
 	// display name
 	DisplayName string `json:"displayName,omitempty"`
 
 	// enum
-	Enum []interface{} `json:"enum"`
+	Enum []any `json:"enum"`
 
 	// example
-	Example interface{} `json:"example,omitempty"`
+	Example any `json:"example,omitempty"`
 
 	// format
 	Format string `json:"format,omitempty"`
@@ -38,7 +39,7 @@ type DtoDtoSettingRule struct {
 	FormatExpression string `json:"formatExpression,omitempty"`
 
 	// item type
-	ItemType interface{} `json:"itemType,omitempty"`
+	ItemType any `json:"itemType,omitempty"`
 
 	// limitations
 	Limitations []*DtoLimitation `json:"limitations"`
@@ -56,7 +57,7 @@ type DtoDtoSettingRule struct {
 	ParamType string `json:"paramType,omitempty"`
 
 	// properties
-	Properties []interface{} `json:"properties"`
+	Properties []any `json:"properties"`
 
 	// read only
 	ReadOnly bool `json:"readOnly,omitempty"`
@@ -94,11 +95,15 @@ func (m *DtoDtoSettingRule) validateLimitations(formats strfmt.Registry) error {
 
 		if m.Limitations[i] != nil {
 			if err := m.Limitations[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("limitations" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("limitations" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -133,11 +138,15 @@ func (m *DtoDtoSettingRule) contextValidateLimitations(ctx context.Context, form
 			}
 
 			if err := m.Limitations[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("limitations" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("limitations" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

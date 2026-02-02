@@ -55,7 +55,7 @@ type DtoCloudServiceCreateRequest struct {
 	ServiceAddress *string `json:"serviceAddress"`
 
 	// service settings
-	ServiceSettings map[string]interface{} `json:"serviceSettings,omitempty"`
+	ServiceSettings map[string]any `json:"serviceSettings,omitempty"`
 
 	// site association
 	// Required: true

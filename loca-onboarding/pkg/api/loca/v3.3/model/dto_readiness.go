@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -93,11 +94,15 @@ func (m *DtoReadiness) validateHardwareDetails(formats strfmt.Registry) error {
 
 		if m.HardwareDetails[i] != nil {
 			if err := m.HardwareDetails[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("hardwareDetails" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("hardwareDetails" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -119,11 +124,15 @@ func (m *DtoReadiness) validateNetworkDetails(formats strfmt.Registry) error {
 
 		if m.NetworkDetails[i] != nil {
 			if err := m.NetworkDetails[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("networkDetails" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("networkDetails" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -140,11 +149,15 @@ func (m *DtoReadiness) validateSite(formats strfmt.Registry) error {
 
 	if m.Site != nil {
 		if err := m.Site.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("site")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("site")
 			}
+
 			return err
 		}
 	}
@@ -185,11 +198,15 @@ func (m *DtoReadiness) contextValidateHardwareDetails(ctx context.Context, forma
 			}
 
 			if err := m.HardwareDetails[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("hardwareDetails" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("hardwareDetails" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -210,11 +227,15 @@ func (m *DtoReadiness) contextValidateNetworkDetails(ctx context.Context, format
 			}
 
 			if err := m.NetworkDetails[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("networkDetails" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("networkDetails" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -233,11 +254,15 @@ func (m *DtoReadiness) contextValidateSite(ctx context.Context, formats strfmt.R
 		}
 
 		if err := m.Site.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("site")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("site")
 			}
+
 			return err
 		}
 	}

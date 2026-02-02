@@ -7,6 +7,7 @@ package inventory
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type GetAPIV1InventoryDeviceProfilesFlavorsIDReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *GetAPIV1InventoryDeviceProfilesFlavorsIDReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *GetAPIV1InventoryDeviceProfilesFlavorsIDReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 200:
 		result := NewGetAPIV1InventoryDeviceProfilesFlavorsIDOK()
@@ -116,7 +117,7 @@ func (o *GetAPIV1InventoryDeviceProfilesFlavorsIDOK) readResponse(response runti
 	o.Payload = new(model.DtoDeviceProfileResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -186,7 +187,7 @@ func (o *GetAPIV1InventoryDeviceProfilesFlavorsIDBadRequest) readResponse(respon
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -256,7 +257,7 @@ func (o *GetAPIV1InventoryDeviceProfilesFlavorsIDUnauthorized) readResponse(resp
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -326,7 +327,7 @@ func (o *GetAPIV1InventoryDeviceProfilesFlavorsIDInternalServerError) readRespon
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

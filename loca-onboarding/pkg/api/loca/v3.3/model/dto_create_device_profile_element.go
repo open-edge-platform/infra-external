@@ -20,7 +20,7 @@ import (
 type DtoCreateDeviceProfileElement struct {
 
 	// bmc
-	Bmc map[string]interface{} `json:"bmc,omitempty"`
+	Bmc map[string]any `json:"bmc,omitempty"`
 
 	// device models
 	// Required: true
@@ -38,7 +38,7 @@ type DtoCreateDeviceProfileElement struct {
 	Pattern string `json:"pattern,omitempty"`
 
 	// uefi
-	Uefi map[string]interface{} `json:"uefi,omitempty"`
+	Uefi map[string]any `json:"uefi,omitempty"`
 }
 
 // Validate validates this dto create device profile element

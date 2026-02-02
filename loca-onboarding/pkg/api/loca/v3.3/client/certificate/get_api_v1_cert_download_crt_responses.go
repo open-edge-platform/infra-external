@@ -7,6 +7,7 @@ package certificate
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type GetAPIV1CertDownloadCrtReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *GetAPIV1CertDownloadCrtReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *GetAPIV1CertDownloadCrtReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 200:
 		result := NewGetAPIV1CertDownloadCrtOK()
@@ -64,7 +65,7 @@ GetAPIV1CertDownloadCrtOK describes a response with status code 200, with defaul
 success
 */
 type GetAPIV1CertDownloadCrtOK struct {
-	Payload interface{}
+	Payload any
 }
 
 // IsSuccess returns true when this get Api v1 cert download crt o k response has a 2xx status code
@@ -107,14 +108,14 @@ func (o *GetAPIV1CertDownloadCrtOK) String() string {
 	return fmt.Sprintf("[GET /api/v1/cert/download-crt][%d] getApiV1CertDownloadCrtOK %s", 200, payload)
 }
 
-func (o *GetAPIV1CertDownloadCrtOK) GetPayload() interface{} {
+func (o *GetAPIV1CertDownloadCrtOK) GetPayload() any {
 	return o.Payload
 }
 
 func (o *GetAPIV1CertDownloadCrtOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -184,7 +185,7 @@ func (o *GetAPIV1CertDownloadCrtBadRequest) readResponse(response runtime.Client
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -254,7 +255,7 @@ func (o *GetAPIV1CertDownloadCrtUnauthorized) readResponse(response runtime.Clie
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -324,7 +325,7 @@ func (o *GetAPIV1CertDownloadCrtInternalServerError) readResponse(response runti
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

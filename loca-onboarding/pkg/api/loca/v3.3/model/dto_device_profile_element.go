@@ -21,7 +21,7 @@ type DtoDeviceProfileElement struct {
 	Alerts []string `json:"alerts"`
 
 	// bmc
-	Bmc map[string]interface{} `json:"bmc,omitempty"`
+	Bmc map[string]any `json:"bmc,omitempty"`
 
 	// created at
 	CreatedAt string `json:"created_at,omitempty"`
@@ -48,7 +48,7 @@ type DtoDeviceProfileElement struct {
 	Template []string `json:"template"`
 
 	// uefi
-	Uefi map[string]interface{} `json:"uefi,omitempty"`
+	Uefi map[string]any `json:"uefi,omitempty"`
 
 	// updated at
 	UpdatedAt string `json:"updated_at,omitempty"`

@@ -18,7 +18,7 @@ import (
 type DtoDeviceProfile struct {
 
 	// the bmc config of the device profile
-	Bmc map[string]interface{} `json:"bmc,omitempty"`
+	Bmc map[string]any `json:"bmc,omitempty"`
 
 	// the creation time of the device profile
 	CreatedAt string `json:"created_at,omitempty"`
@@ -42,7 +42,7 @@ type DtoDeviceProfile struct {
 	Template []string `json:"template"`
 
 	// the uefi config of the device profile
-	Uefi map[string]interface{} `json:"uefi,omitempty"`
+	Uefi map[string]any `json:"uefi,omitempty"`
 
 	// the deletion time of the device profile
 	UpdatedAt string `json:"updated_at,omitempty"`

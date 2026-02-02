@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -33,7 +34,7 @@ type DtoInstance struct {
 	DeviceProfile *DtoDeviceProfile `json:"deviceProfile,omitempty"`
 
 	// extra vars
-	ExtraVars map[string]interface{} `json:"extraVars,omitempty"`
+	ExtraVars map[string]any `json:"extraVars,omitempty"`
 
 	// extra vars vault internal secret path
 	ExtraVarsVaultInternalSecretPath map[string]string `json:"extraVarsVaultInternalSecretPath,omitempty"`
@@ -124,11 +125,15 @@ func (m *DtoInstance) validateCloudNetworks(formats strfmt.Registry) error {
 		}
 		if val, ok := m.CloudNetworks[k]; ok {
 			if err := val.Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("cloudNetworks" + "." + k)
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("cloudNetworks" + "." + k)
 				}
+
 				return err
 			}
 		}
@@ -152,11 +157,15 @@ func (m *DtoInstance) validateCloudServices(formats strfmt.Registry) error {
 		for i := 0; i < len(m.CloudServices[k]); i++ {
 
 			if err := m.CloudServices[k][i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("cloudServices" + "." + k + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("cloudServices" + "." + k + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 
@@ -174,11 +183,15 @@ func (m *DtoInstance) validateDeviceProfile(formats strfmt.Registry) error {
 
 	if m.DeviceProfile != nil {
 		if err := m.DeviceProfile.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("deviceProfile")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("deviceProfile")
 			}
+
 			return err
 		}
 	}
@@ -200,11 +213,15 @@ func (m *DtoInstance) validateNetworkServices(formats strfmt.Registry) error {
 		for i := 0; i < len(m.NetworkServices[k]); i++ {
 
 			if err := m.NetworkServices[k][i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("networkServices" + "." + k + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("networkServices" + "." + k + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 
@@ -227,11 +244,15 @@ func (m *DtoInstance) validateNodes(formats strfmt.Registry) error {
 
 		if m.Nodes[i] != nil {
 			if err := m.Nodes[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("nodes" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("nodes" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -248,11 +269,15 @@ func (m *DtoInstance) validateTemplate(formats strfmt.Registry) error {
 
 	if m.Template != nil {
 		if err := m.Template.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("template")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("template")
 			}
+
 			return err
 		}
 	}
@@ -320,11 +345,15 @@ func (m *DtoInstance) contextValidateCloudServices(ctx context.Context, formats 
 			}
 
 			if err := m.CloudServices[k][i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("cloudServices" + "." + k + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("cloudServices" + "." + k + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 
@@ -344,11 +373,15 @@ func (m *DtoInstance) contextValidateDeviceProfile(ctx context.Context, formats 
 		}
 
 		if err := m.DeviceProfile.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("deviceProfile")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("deviceProfile")
 			}
+
 			return err
 		}
 	}
@@ -367,11 +400,15 @@ func (m *DtoInstance) contextValidateNetworkServices(ctx context.Context, format
 			}
 
 			if err := m.NetworkServices[k][i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("networkServices" + "." + k + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("networkServices" + "." + k + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 
@@ -393,11 +430,15 @@ func (m *DtoInstance) contextValidateNodes(ctx context.Context, formats strfmt.R
 			}
 
 			if err := m.Nodes[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("nodes" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("nodes" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -416,11 +457,15 @@ func (m *DtoInstance) contextValidateTemplate(ctx context.Context, formats strfm
 		}
 
 		if err := m.Template.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("template")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("template")
 			}
+
 			return err
 		}
 	}

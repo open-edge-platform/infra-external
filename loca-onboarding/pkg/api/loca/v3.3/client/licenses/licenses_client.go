@@ -77,7 +77,7 @@ type ClientService interface {
 GetAPIV1Licenses queries licenses
 */
 func (a *Client) GetAPIV1Licenses(params *GetAPIV1LicensesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1LicensesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1LicensesParams()
 	}
@@ -97,17 +97,22 @@ func (a *Client) GetAPIV1Licenses(params *GetAPIV1LicensesParams, authInfo runti
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1LicensesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1Licenses: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -116,7 +121,7 @@ func (a *Client) GetAPIV1Licenses(params *GetAPIV1LicensesParams, authInfo runti
 GetAPIV1LicensesFlavorUsage gets the flavors usage of the license
 */
 func (a *Client) GetAPIV1LicensesFlavorUsage(params *GetAPIV1LicensesFlavorUsageParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1LicensesFlavorUsageOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1LicensesFlavorUsageParams()
 	}
@@ -136,17 +141,22 @@ func (a *Client) GetAPIV1LicensesFlavorUsage(params *GetAPIV1LicensesFlavorUsage
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1LicensesFlavorUsageOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1LicensesFlavorUsage: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -155,7 +165,7 @@ func (a *Client) GetAPIV1LicensesFlavorUsage(params *GetAPIV1LicensesFlavorUsage
 GetAPIV1LicensesID queries license by id
 */
 func (a *Client) GetAPIV1LicensesID(params *GetAPIV1LicensesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1LicensesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1LicensesIDParams()
 	}
@@ -175,17 +185,22 @@ func (a *Client) GetAPIV1LicensesID(params *GetAPIV1LicensesIDParams, authInfo r
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1LicensesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1LicensesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -194,7 +209,7 @@ func (a *Client) GetAPIV1LicensesID(params *GetAPIV1LicensesIDParams, authInfo r
 GetAPIV1LicensesNotification notifies about expired license
 */
 func (a *Client) GetAPIV1LicensesNotification(params *GetAPIV1LicensesNotificationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1LicensesNotificationOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1LicensesNotificationParams()
 	}
@@ -214,17 +229,22 @@ func (a *Client) GetAPIV1LicensesNotification(params *GetAPIV1LicensesNotificati
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1LicensesNotificationOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1LicensesNotification: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -233,7 +253,7 @@ func (a *Client) GetAPIV1LicensesNotification(params *GetAPIV1LicensesNotificati
 PostAPIV1LicensesExport exports a license to file
 */
 func (a *Client) PostAPIV1LicensesExport(params *PostAPIV1LicensesExportParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1LicensesExportOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1LicensesExportParams()
 	}
@@ -253,17 +273,22 @@ func (a *Client) PostAPIV1LicensesExport(params *PostAPIV1LicensesExportParams, 
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1LicensesExportOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1LicensesExport: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -272,7 +297,7 @@ func (a *Client) PostAPIV1LicensesExport(params *PostAPIV1LicensesExportParams, 
 PostAPIV1LicensesRemove removes licenses
 */
 func (a *Client) PostAPIV1LicensesRemove(params *PostAPIV1LicensesRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1LicensesRemoveOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1LicensesRemoveParams()
 	}
@@ -292,17 +317,22 @@ func (a *Client) PostAPIV1LicensesRemove(params *PostAPIV1LicensesRemoveParams, 
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1LicensesRemoveOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1LicensesRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -311,7 +341,7 @@ func (a *Client) PostAPIV1LicensesRemove(params *PostAPIV1LicensesRemoveParams, 
 PostAPIV1LicensesUpload uploads a license key file
 */
 func (a *Client) PostAPIV1LicensesUpload(params *PostAPIV1LicensesUploadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1LicensesUploadCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1LicensesUploadParams()
 	}
@@ -331,17 +361,22 @@ func (a *Client) PostAPIV1LicensesUpload(params *PostAPIV1LicensesUploadParams, 
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1LicensesUploadCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1LicensesUpload: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }

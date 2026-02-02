@@ -18,7 +18,7 @@ import (
 type DtoLdapValidateResponse struct {
 
 	// data
-	Data interface{} `json:"data,omitempty"`
+	Data any `json:"data,omitempty"`
 
 	// message
 	Message string `json:"message,omitempty"`

@@ -48,7 +48,7 @@ func (m *DtoDiscoverDeviceParams) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-var dtoDiscoverDeviceParamsTypeBmcDiscoveryMethodPropEnum []interface{}
+var dtoDiscoverDeviceParamsTypeBmcDiscoveryMethodPropEnum []any
 
 func init() {
 	var res []string

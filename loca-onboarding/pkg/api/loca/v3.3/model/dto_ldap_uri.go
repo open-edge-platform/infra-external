@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -64,11 +65,15 @@ func (m *DtoLdapURI) validateCertFiles(formats strfmt.Registry) error {
 
 		if m.CertFiles[i] != nil {
 			if err := m.CertFiles[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("cert_files" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("cert_files" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -103,11 +108,15 @@ func (m *DtoLdapURI) contextValidateCertFiles(ctx context.Context, formats strfm
 			}
 
 			if err := m.CertFiles[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("cert_files" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("cert_files" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

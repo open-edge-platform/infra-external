@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -20,7 +21,7 @@ import (
 type DtoDeviceListElement struct {
 
 	// connectivity check result
-	ConnectivityCheckResult interface{} `json:"connectivityCheckResult,omitempty"`
+	ConnectivityCheckResult any `json:"connectivityCheckResult,omitempty"`
 
 	// contact
 	Contact string `json:"contact,omitempty"`
@@ -89,7 +90,7 @@ type DtoDeviceListElement struct {
 	SerialNumber string `json:"serialNumber,omitempty"`
 
 	// settings
-	Settings map[string]interface{} `json:"settings,omitempty"`
+	Settings map[string]any `json:"settings,omitempty"`
 
 	// sideload
 	Sideload *DtoSideload `json:"sideload,omitempty"`
@@ -151,11 +152,15 @@ func (m *DtoDeviceListElement) validateCredentials(formats strfmt.Registry) erro
 
 		if m.Credentials[i] != nil {
 			if err := m.Credentials[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("credentials" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("credentials" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -172,11 +177,15 @@ func (m *DtoDeviceListElement) validateDeviceType(formats strfmt.Registry) error
 
 	if m.DeviceType != nil {
 		if err := m.DeviceType.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("deviceType")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("deviceType")
 			}
+
 			return err
 		}
 	}
@@ -196,11 +205,15 @@ func (m *DtoDeviceListElement) validateNics(formats strfmt.Registry) error {
 
 		if m.Nics[i] != nil {
 			if err := m.Nics[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("nics" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("nics" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -217,11 +230,15 @@ func (m *DtoDeviceListElement) validateSideload(formats strfmt.Registry) error {
 
 	if m.Sideload != nil {
 		if err := m.Sideload.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("sideload")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("sideload")
 			}
+
 			return err
 		}
 	}
@@ -266,11 +283,15 @@ func (m *DtoDeviceListElement) contextValidateCredentials(ctx context.Context, f
 			}
 
 			if err := m.Credentials[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("credentials" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("credentials" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -289,11 +310,15 @@ func (m *DtoDeviceListElement) contextValidateDeviceType(ctx context.Context, fo
 		}
 
 		if err := m.DeviceType.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("deviceType")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("deviceType")
 			}
+
 			return err
 		}
 	}
@@ -312,11 +337,15 @@ func (m *DtoDeviceListElement) contextValidateNics(ctx context.Context, formats 
 			}
 
 			if err := m.Nics[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("nics" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("nics" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -335,11 +364,15 @@ func (m *DtoDeviceListElement) contextValidateSideload(ctx context.Context, form
 		}
 
 		if err := m.Sideload.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("sideload")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("sideload")
 			}
+
 			return err
 		}
 	}

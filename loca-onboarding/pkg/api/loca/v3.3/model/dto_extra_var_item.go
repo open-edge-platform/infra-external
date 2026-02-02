@@ -21,7 +21,7 @@ type DtoExtraVarItem struct {
 	DisplayName string `json:"displayName,omitempty"`
 
 	// the value
-	Value interface{} `json:"value,omitempty"`
+	Value any `json:"value,omitempty"`
 }
 
 // Validate validates this dto extra var item

@@ -33,7 +33,7 @@ type HpcgitlabLabsLenovoComLocBackendCmdAPIModelsActivity struct {
 	Name string `json:"name,omitempty"`
 
 	// notification
-	Notification interface{} `json:"notification,omitempty"`
+	Notification any `json:"notification,omitempty"`
 }
 
 // Validate validates this hpcgitlab labs lenovo com loc backend cmd api models activity

@@ -21,7 +21,7 @@ type DtoAffinityItem struct {
 	AllocationStrategy string `json:"allocationStrategy,omitempty"`
 
 	// extra
-	Extra interface{} `json:"extra,omitempty"`
+	Extra any `json:"extra,omitempty"`
 
 	// name
 	Name string `json:"name,omitempty"`

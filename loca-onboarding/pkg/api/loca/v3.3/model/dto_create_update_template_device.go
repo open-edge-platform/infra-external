@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -78,11 +79,15 @@ func (m *DtoCreateUpdateTemplateDevice) validateNetworkSettings(formats strfmt.R
 
 	if m.NetworkSettings != nil {
 		if err := m.NetworkSettings.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("networkSettings")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("networkSettings")
 			}
+
 			return err
 		}
 	}
@@ -134,11 +139,15 @@ func (m *DtoCreateUpdateTemplateDevice) contextValidateNetworkSettings(ctx conte
 		}
 
 		if err := m.NetworkSettings.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("networkSettings")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("networkSettings")
 			}
+
 			return err
 		}
 	}

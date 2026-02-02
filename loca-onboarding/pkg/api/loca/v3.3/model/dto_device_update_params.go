@@ -18,7 +18,7 @@ import (
 type DtoDeviceUpdateParams struct {
 
 	// settings
-	Settings map[string]interface{} `json:"settings,omitempty"`
+	Settings map[string]any `json:"settings,omitempty"`
 }
 
 // Validate validates this dto device update params

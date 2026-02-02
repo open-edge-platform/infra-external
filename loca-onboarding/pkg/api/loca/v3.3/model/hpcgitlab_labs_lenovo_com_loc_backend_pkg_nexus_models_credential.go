@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -55,11 +56,15 @@ func (m *HpcgitlabLabsLenovoComLocBackendPkgNexusModelsCredential) validateCrede
 
 	if m.CredentialPolicy != nil {
 		if err := m.CredentialPolicy.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("credentialPolicy")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("credentialPolicy")
 			}
+
 			return err
 		}
 	}
@@ -90,11 +95,15 @@ func (m *HpcgitlabLabsLenovoComLocBackendPkgNexusModelsCredential) contextValida
 		}
 
 		if err := m.CredentialPolicy.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("credentialPolicy")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("credentialPolicy")
 			}
+
 			return err
 		}
 	}

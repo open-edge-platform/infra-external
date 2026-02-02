@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -38,7 +39,7 @@ type DtoInstanceInList struct {
 	Operation string `json:"operation,omitempty"`
 
 	// operation errors
-	OperationErrors interface{} `json:"operation_errors,omitempty"`
+	OperationErrors any `json:"operation_errors,omitempty"`
 
 	// site
 	Site string `json:"site,omitempty"`
@@ -76,11 +77,15 @@ func (m *DtoInstanceInList) validateCredentials(formats strfmt.Registry) error {
 
 		if m.Credentials[i] != nil {
 			if err := m.Credentials[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("credentials" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("credentials" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -115,11 +120,15 @@ func (m *DtoInstanceInList) contextValidateCredentials(ctx context.Context, form
 			}
 
 			if err := m.Credentials[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("credentials" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("credentials" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

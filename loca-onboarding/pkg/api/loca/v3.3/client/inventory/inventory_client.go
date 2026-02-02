@@ -147,7 +147,7 @@ type ClientService interface {
 GetAPIV1InventoryCloudServices queries cloud services
 */
 func (a *Client) GetAPIV1InventoryCloudServices(params *GetAPIV1InventoryCloudServicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryCloudServicesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryCloudServicesParams()
 	}
@@ -167,17 +167,22 @@ func (a *Client) GetAPIV1InventoryCloudServices(params *GetAPIV1InventoryCloudSe
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryCloudServicesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryCloudServices: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -186,7 +191,7 @@ func (a *Client) GetAPIV1InventoryCloudServices(params *GetAPIV1InventoryCloudSe
 GetAPIV1InventoryCloudServicesID queries cloud service by id
 */
 func (a *Client) GetAPIV1InventoryCloudServicesID(params *GetAPIV1InventoryCloudServicesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryCloudServicesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryCloudServicesIDParams()
 	}
@@ -206,17 +211,22 @@ func (a *Client) GetAPIV1InventoryCloudServicesID(params *GetAPIV1InventoryCloud
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryCloudServicesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryCloudServicesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -227,7 +237,7 @@ GetAPIV1InventoryCloudServicesMetadataRules retrieves cloud service metadata rul
 Retrieves all setting rules for cloud services to determine which fields can be modified in the cloud service table.
 */
 func (a *Client) GetAPIV1InventoryCloudServicesMetadataRules(params *GetAPIV1InventoryCloudServicesMetadataRulesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryCloudServicesMetadataRulesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryCloudServicesMetadataRulesParams()
 	}
@@ -247,17 +257,22 @@ func (a *Client) GetAPIV1InventoryCloudServicesMetadataRules(params *GetAPIV1Inv
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryCloudServicesMetadataRulesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryCloudServicesMetadataRules: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -266,7 +281,7 @@ func (a *Client) GetAPIV1InventoryCloudServicesMetadataRules(params *GetAPIV1Inv
 GetAPIV1InventoryDeviceProfiles queries device profiles
 */
 func (a *Client) GetAPIV1InventoryDeviceProfiles(params *GetAPIV1InventoryDeviceProfilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryDeviceProfilesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryDeviceProfilesParams()
 	}
@@ -286,17 +301,22 @@ func (a *Client) GetAPIV1InventoryDeviceProfiles(params *GetAPIV1InventoryDevice
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryDeviceProfilesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryDeviceProfiles: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -305,7 +325,7 @@ func (a *Client) GetAPIV1InventoryDeviceProfiles(params *GetAPIV1InventoryDevice
 GetAPIV1InventoryDeviceProfilesFlavorsID queries d c i m device profile by ID
 */
 func (a *Client) GetAPIV1InventoryDeviceProfilesFlavorsID(params *GetAPIV1InventoryDeviceProfilesFlavorsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryDeviceProfilesFlavorsIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryDeviceProfilesFlavorsIDParams()
 	}
@@ -325,17 +345,22 @@ func (a *Client) GetAPIV1InventoryDeviceProfilesFlavorsID(params *GetAPIV1Invent
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryDeviceProfilesFlavorsIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryDeviceProfilesFlavorsID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -344,7 +369,7 @@ func (a *Client) GetAPIV1InventoryDeviceProfilesFlavorsID(params *GetAPIV1Invent
 GetAPIV1InventoryDeviceProfilesID queries device profile by id
 */
 func (a *Client) GetAPIV1InventoryDeviceProfilesID(params *GetAPIV1InventoryDeviceProfilesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryDeviceProfilesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryDeviceProfilesIDParams()
 	}
@@ -364,17 +389,22 @@ func (a *Client) GetAPIV1InventoryDeviceProfilesID(params *GetAPIV1InventoryDevi
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryDeviceProfilesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryDeviceProfilesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -383,7 +413,7 @@ func (a *Client) GetAPIV1InventoryDeviceProfilesID(params *GetAPIV1InventoryDevi
 GetAPIV1InventoryDevices queries devices
 */
 func (a *Client) GetAPIV1InventoryDevices(params *GetAPIV1InventoryDevicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryDevicesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryDevicesParams()
 	}
@@ -403,17 +433,22 @@ func (a *Client) GetAPIV1InventoryDevices(params *GetAPIV1InventoryDevicesParams
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryDevicesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryDevices: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -422,7 +457,7 @@ func (a *Client) GetAPIV1InventoryDevices(params *GetAPIV1InventoryDevicesParams
 GetAPIV1InventoryDevicesDiscover gets discovered devices
 */
 func (a *Client) GetAPIV1InventoryDevicesDiscover(params *GetAPIV1InventoryDevicesDiscoverParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryDevicesDiscoverCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryDevicesDiscoverParams()
 	}
@@ -442,17 +477,22 @@ func (a *Client) GetAPIV1InventoryDevicesDiscover(params *GetAPIV1InventoryDevic
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryDevicesDiscoverCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryDevicesDiscover: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -461,7 +501,7 @@ func (a *Client) GetAPIV1InventoryDevicesDiscover(params *GetAPIV1InventoryDevic
 GetAPIV1InventoryDevicesID queries devices by id
 */
 func (a *Client) GetAPIV1InventoryDevicesID(params *GetAPIV1InventoryDevicesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryDevicesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryDevicesIDParams()
 	}
@@ -481,17 +521,22 @@ func (a *Client) GetAPIV1InventoryDevicesID(params *GetAPIV1InventoryDevicesIDPa
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryDevicesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryDevicesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -500,7 +545,7 @@ func (a *Client) GetAPIV1InventoryDevicesID(params *GetAPIV1InventoryDevicesIDPa
 GetAPIV1InventoryDevicesIDMetadataRules queries device setting rules by the device ID
 */
 func (a *Client) GetAPIV1InventoryDevicesIDMetadataRules(params *GetAPIV1InventoryDevicesIDMetadataRulesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryDevicesIDMetadataRulesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryDevicesIDMetadataRulesParams()
 	}
@@ -520,17 +565,22 @@ func (a *Client) GetAPIV1InventoryDevicesIDMetadataRules(params *GetAPIV1Invento
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryDevicesIDMetadataRulesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryDevicesIDMetadataRules: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -539,7 +589,7 @@ func (a *Client) GetAPIV1InventoryDevicesIDMetadataRules(params *GetAPIV1Invento
 GetAPIV1InventoryDevicesRegistrationFileDownload downloads a registration devices template file with excel format
 */
 func (a *Client) GetAPIV1InventoryDevicesRegistrationFileDownload(params *GetAPIV1InventoryDevicesRegistrationFileDownloadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryDevicesRegistrationFileDownloadOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryDevicesRegistrationFileDownloadParams()
 	}
@@ -559,17 +609,22 @@ func (a *Client) GetAPIV1InventoryDevicesRegistrationFileDownload(params *GetAPI
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryDevicesRegistrationFileDownloadOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryDevicesRegistrationFileDownload: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -578,7 +633,7 @@ func (a *Client) GetAPIV1InventoryDevicesRegistrationFileDownload(params *GetAPI
 GetAPIV1InventoryDownload downloads a cloud setup file with excel format
 */
 func (a *Client) GetAPIV1InventoryDownload(params *GetAPIV1InventoryDownloadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryDownloadOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryDownloadParams()
 	}
@@ -598,17 +653,22 @@ func (a *Client) GetAPIV1InventoryDownload(params *GetAPIV1InventoryDownloadPara
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryDownloadOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryDownload: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -617,7 +677,7 @@ func (a *Client) GetAPIV1InventoryDownload(params *GetAPIV1InventoryDownloadPara
 GetAPIV1InventoryIPRanges queries ip ranges
 */
 func (a *Client) GetAPIV1InventoryIPRanges(params *GetAPIV1InventoryIPRangesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryIPRangesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryIPRangesParams()
 	}
@@ -637,17 +697,22 @@ func (a *Client) GetAPIV1InventoryIPRanges(params *GetAPIV1InventoryIPRangesPara
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryIPRangesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryIPRanges: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -656,7 +721,7 @@ func (a *Client) GetAPIV1InventoryIPRanges(params *GetAPIV1InventoryIPRangesPara
 GetAPIV1InventoryIPRangesID queries ip range by id
 */
 func (a *Client) GetAPIV1InventoryIPRangesID(params *GetAPIV1InventoryIPRangesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryIPRangesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryIPRangesIDParams()
 	}
@@ -676,17 +741,22 @@ func (a *Client) GetAPIV1InventoryIPRangesID(params *GetAPIV1InventoryIPRangesID
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryIPRangesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryIPRangesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -697,7 +767,7 @@ GetAPIV1InventoryIPRangesMetadataRules retrieves IP range metadata rules
 Retrieves all setting rules for IP ranges to determine which fields can be modified in the IP range table.
 */
 func (a *Client) GetAPIV1InventoryIPRangesMetadataRules(params *GetAPIV1InventoryIPRangesMetadataRulesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryIPRangesMetadataRulesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryIPRangesMetadataRulesParams()
 	}
@@ -717,17 +787,22 @@ func (a *Client) GetAPIV1InventoryIPRangesMetadataRules(params *GetAPIV1Inventor
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryIPRangesMetadataRulesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryIPRangesMetadataRules: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -736,7 +811,7 @@ func (a *Client) GetAPIV1InventoryIPRangesMetadataRules(params *GetAPIV1Inventor
 GetAPIV1InventoryNetworkServices queries network services
 */
 func (a *Client) GetAPIV1InventoryNetworkServices(params *GetAPIV1InventoryNetworkServicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryNetworkServicesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryNetworkServicesParams()
 	}
@@ -756,17 +831,22 @@ func (a *Client) GetAPIV1InventoryNetworkServices(params *GetAPIV1InventoryNetwo
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryNetworkServicesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryNetworkServices: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -775,7 +855,7 @@ func (a *Client) GetAPIV1InventoryNetworkServices(params *GetAPIV1InventoryNetwo
 GetAPIV1InventoryNetworkServicesID queries network service by id
 */
 func (a *Client) GetAPIV1InventoryNetworkServicesID(params *GetAPIV1InventoryNetworkServicesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryNetworkServicesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryNetworkServicesIDParams()
 	}
@@ -795,17 +875,22 @@ func (a *Client) GetAPIV1InventoryNetworkServicesID(params *GetAPIV1InventoryNet
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryNetworkServicesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryNetworkServicesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -816,7 +901,7 @@ GetAPIV1InventoryNetworkServicesMetadataRules retrieves network service metadata
 Retrieves all setting rules for network services to determine which fields can be modified in the network service table.
 */
 func (a *Client) GetAPIV1InventoryNetworkServicesMetadataRules(params *GetAPIV1InventoryNetworkServicesMetadataRulesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryNetworkServicesMetadataRulesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryNetworkServicesMetadataRulesParams()
 	}
@@ -836,17 +921,22 @@ func (a *Client) GetAPIV1InventoryNetworkServicesMetadataRules(params *GetAPIV1I
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryNetworkServicesMetadataRulesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryNetworkServicesMetadataRules: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -855,7 +945,7 @@ func (a *Client) GetAPIV1InventoryNetworkServicesMetadataRules(params *GetAPIV1I
 GetAPIV1InventoryRepository refreshes images list to repository
 */
 func (a *Client) GetAPIV1InventoryRepository(params *GetAPIV1InventoryRepositoryParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventoryRepositoryOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventoryRepositoryParams()
 	}
@@ -875,17 +965,22 @@ func (a *Client) GetAPIV1InventoryRepository(params *GetAPIV1InventoryRepository
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventoryRepositoryOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventoryRepository: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -894,7 +989,7 @@ func (a *Client) GetAPIV1InventoryRepository(params *GetAPIV1InventoryRepository
 GetAPIV1InventorySites queries sites
 */
 func (a *Client) GetAPIV1InventorySites(params *GetAPIV1InventorySitesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventorySitesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventorySitesParams()
 	}
@@ -914,17 +1009,22 @@ func (a *Client) GetAPIV1InventorySites(params *GetAPIV1InventorySitesParams, au
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventorySitesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventorySites: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -933,7 +1033,7 @@ func (a *Client) GetAPIV1InventorySites(params *GetAPIV1InventorySitesParams, au
 GetAPIV1InventorySitesID queries site by id
 */
 func (a *Client) GetAPIV1InventorySitesID(params *GetAPIV1InventorySitesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventorySitesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventorySitesIDParams()
 	}
@@ -953,17 +1053,22 @@ func (a *Client) GetAPIV1InventorySitesID(params *GetAPIV1InventorySitesIDParams
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventorySitesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventorySitesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -974,7 +1079,7 @@ GetAPIV1InventorySitesMetadataRules retrieves site metadata rules
 Retrieves all setting rules for sites to determine which fields can be modified in the site table.
 */
 func (a *Client) GetAPIV1InventorySitesMetadataRules(params *GetAPIV1InventorySitesMetadataRulesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1InventorySitesMetadataRulesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1InventorySitesMetadataRulesParams()
 	}
@@ -994,17 +1099,22 @@ func (a *Client) GetAPIV1InventorySitesMetadataRules(params *GetAPIV1InventorySi
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1InventorySitesMetadataRulesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1InventorySitesMetadataRules: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1015,7 +1125,7 @@ PostAPIV1InventoryCloudServices creates cloud services
 Create one or multiple cloud services with the provided details.
 */
 func (a *Client) PostAPIV1InventoryCloudServices(params *PostAPIV1InventoryCloudServicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryCloudServicesCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryCloudServicesParams()
 	}
@@ -1035,17 +1145,22 @@ func (a *Client) PostAPIV1InventoryCloudServices(params *PostAPIV1InventoryCloud
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryCloudServicesCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryCloudServices: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1054,7 +1169,7 @@ func (a *Client) PostAPIV1InventoryCloudServices(params *PostAPIV1InventoryCloud
 PostAPIV1InventoryCloudServicesRemove removes cloud services
 */
 func (a *Client) PostAPIV1InventoryCloudServicesRemove(params *PostAPIV1InventoryCloudServicesRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryCloudServicesRemoveCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryCloudServicesRemoveParams()
 	}
@@ -1074,17 +1189,22 @@ func (a *Client) PostAPIV1InventoryCloudServicesRemove(params *PostAPIV1Inventor
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryCloudServicesRemoveCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryCloudServicesRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1095,7 +1215,7 @@ PostAPIV1InventoryCloudServicesUpdate updates a cloud service
 Update the details of an existing cloud service identified by its ID.
 */
 func (a *Client) PostAPIV1InventoryCloudServicesUpdate(params *PostAPIV1InventoryCloudServicesUpdateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryCloudServicesUpdateOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryCloudServicesUpdateParams()
 	}
@@ -1115,17 +1235,22 @@ func (a *Client) PostAPIV1InventoryCloudServicesUpdate(params *PostAPIV1Inventor
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryCloudServicesUpdateOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryCloudServicesUpdate: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1134,7 +1259,7 @@ func (a *Client) PostAPIV1InventoryCloudServicesUpdate(params *PostAPIV1Inventor
 PostAPIV1InventoryDeviceProfiles creates d c i m device profile
 */
 func (a *Client) PostAPIV1InventoryDeviceProfiles(params *PostAPIV1InventoryDeviceProfilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryDeviceProfilesCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryDeviceProfilesParams()
 	}
@@ -1154,17 +1279,22 @@ func (a *Client) PostAPIV1InventoryDeviceProfiles(params *PostAPIV1InventoryDevi
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryDeviceProfilesCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryDeviceProfiles: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1173,7 +1303,7 @@ func (a *Client) PostAPIV1InventoryDeviceProfiles(params *PostAPIV1InventoryDevi
 PostAPIV1InventoryDeviceProfilesRemove deletes d c i m device profile
 */
 func (a *Client) PostAPIV1InventoryDeviceProfilesRemove(params *PostAPIV1InventoryDeviceProfilesRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryDeviceProfilesRemoveCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryDeviceProfilesRemoveParams()
 	}
@@ -1193,17 +1323,22 @@ func (a *Client) PostAPIV1InventoryDeviceProfilesRemove(params *PostAPIV1Invento
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryDeviceProfilesRemoveCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryDeviceProfilesRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1212,7 +1347,7 @@ func (a *Client) PostAPIV1InventoryDeviceProfilesRemove(params *PostAPIV1Invento
 PostAPIV1InventoryDeviceProfilesUpdate updates device profiles
 */
 func (a *Client) PostAPIV1InventoryDeviceProfilesUpdate(params *PostAPIV1InventoryDeviceProfilesUpdateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryDeviceProfilesUpdateCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryDeviceProfilesUpdateParams()
 	}
@@ -1232,17 +1367,22 @@ func (a *Client) PostAPIV1InventoryDeviceProfilesUpdate(params *PostAPIV1Invento
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryDeviceProfilesUpdateCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryDeviceProfilesUpdate: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1251,7 +1391,7 @@ func (a *Client) PostAPIV1InventoryDeviceProfilesUpdate(params *PostAPIV1Invento
 PostAPIV1InventoryDevices adds devices by ip address
 */
 func (a *Client) PostAPIV1InventoryDevices(params *PostAPIV1InventoryDevicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryDevicesCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryDevicesParams()
 	}
@@ -1271,17 +1411,22 @@ func (a *Client) PostAPIV1InventoryDevices(params *PostAPIV1InventoryDevicesPara
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryDevicesCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryDevices: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1290,7 +1435,7 @@ func (a *Client) PostAPIV1InventoryDevices(params *PostAPIV1InventoryDevicesPara
 PostAPIV1InventoryDevicesDiscover adds devices through discovery
 */
 func (a *Client) PostAPIV1InventoryDevicesDiscover(params *PostAPIV1InventoryDevicesDiscoverParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryDevicesDiscoverCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryDevicesDiscoverParams()
 	}
@@ -1310,17 +1455,22 @@ func (a *Client) PostAPIV1InventoryDevicesDiscover(params *PostAPIV1InventoryDev
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryDevicesDiscoverCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryDevicesDiscover: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1329,7 +1479,7 @@ func (a *Client) PostAPIV1InventoryDevicesDiscover(params *PostAPIV1InventoryDev
 PostAPIV1InventoryDevicesIDUpdate updates device
 */
 func (a *Client) PostAPIV1InventoryDevicesIDUpdate(params *PostAPIV1InventoryDevicesIDUpdateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryDevicesIDUpdateOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryDevicesIDUpdateParams()
 	}
@@ -1349,17 +1499,22 @@ func (a *Client) PostAPIV1InventoryDevicesIDUpdate(params *PostAPIV1InventoryDev
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryDevicesIDUpdateOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryDevicesIDUpdate: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1368,7 +1523,7 @@ func (a *Client) PostAPIV1InventoryDevicesIDUpdate(params *PostAPIV1InventoryDev
 PostAPIV1InventoryDevicesRemove removes devices from inventory
 */
 func (a *Client) PostAPIV1InventoryDevicesRemove(params *PostAPIV1InventoryDevicesRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryDevicesRemoveCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryDevicesRemoveParams()
 	}
@@ -1388,17 +1543,22 @@ func (a *Client) PostAPIV1InventoryDevicesRemove(params *PostAPIV1InventoryDevic
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryDevicesRemoveCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryDevicesRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1407,7 +1567,7 @@ func (a *Client) PostAPIV1InventoryDevicesRemove(params *PostAPIV1InventoryDevic
 PostAPIV1InventoryDevicesUpload adds devices through file
 */
 func (a *Client) PostAPIV1InventoryDevicesUpload(params *PostAPIV1InventoryDevicesUploadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryDevicesUploadCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryDevicesUploadParams()
 	}
@@ -1427,17 +1587,22 @@ func (a *Client) PostAPIV1InventoryDevicesUpload(params *PostAPIV1InventoryDevic
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryDevicesUploadCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryDevicesUpload: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1448,7 +1613,7 @@ PostAPIV1InventoryIPRanges creates IP ranges
 Create one or multiple IP ranges with the provided details.
 */
 func (a *Client) PostAPIV1InventoryIPRanges(params *PostAPIV1InventoryIPRangesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryIPRangesCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryIPRangesParams()
 	}
@@ -1468,17 +1633,22 @@ func (a *Client) PostAPIV1InventoryIPRanges(params *PostAPIV1InventoryIPRangesPa
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryIPRangesCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryIPRanges: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1487,7 +1657,7 @@ func (a *Client) PostAPIV1InventoryIPRanges(params *PostAPIV1InventoryIPRangesPa
 PostAPIV1InventoryIPRangesRemove removes ip ranges
 */
 func (a *Client) PostAPIV1InventoryIPRangesRemove(params *PostAPIV1InventoryIPRangesRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryIPRangesRemoveOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryIPRangesRemoveParams()
 	}
@@ -1507,17 +1677,22 @@ func (a *Client) PostAPIV1InventoryIPRangesRemove(params *PostAPIV1InventoryIPRa
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryIPRangesRemoveOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryIPRangesRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1528,7 +1703,7 @@ PostAPIV1InventoryNetworkServices creates network services
 Create one or multiple network services with the provided details.
 */
 func (a *Client) PostAPIV1InventoryNetworkServices(params *PostAPIV1InventoryNetworkServicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryNetworkServicesCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryNetworkServicesParams()
 	}
@@ -1548,17 +1723,22 @@ func (a *Client) PostAPIV1InventoryNetworkServices(params *PostAPIV1InventoryNet
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryNetworkServicesCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryNetworkServices: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1567,7 +1747,7 @@ func (a *Client) PostAPIV1InventoryNetworkServices(params *PostAPIV1InventoryNet
 PostAPIV1InventoryNetworkServicesRemove removes network services
 */
 func (a *Client) PostAPIV1InventoryNetworkServicesRemove(params *PostAPIV1InventoryNetworkServicesRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryNetworkServicesRemoveOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryNetworkServicesRemoveParams()
 	}
@@ -1587,17 +1767,22 @@ func (a *Client) PostAPIV1InventoryNetworkServicesRemove(params *PostAPIV1Invent
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryNetworkServicesRemoveOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryNetworkServicesRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1606,7 +1791,7 @@ func (a *Client) PostAPIV1InventoryNetworkServicesRemove(params *PostAPIV1Invent
 PostAPIV1InventoryRepositoryRemove removes image from repository
 */
 func (a *Client) PostAPIV1InventoryRepositoryRemove(params *PostAPIV1InventoryRepositoryRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryRepositoryRemoveOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryRepositoryRemoveParams()
 	}
@@ -1626,17 +1811,22 @@ func (a *Client) PostAPIV1InventoryRepositoryRemove(params *PostAPIV1InventoryRe
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryRepositoryRemoveOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryRepositoryRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1645,7 +1835,7 @@ func (a *Client) PostAPIV1InventoryRepositoryRemove(params *PostAPIV1InventoryRe
 PostAPIV1InventoryRepositoryUpload uploads image to repository
 */
 func (a *Client) PostAPIV1InventoryRepositoryUpload(params *PostAPIV1InventoryRepositoryUploadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryRepositoryUploadOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryRepositoryUploadParams()
 	}
@@ -1665,17 +1855,22 @@ func (a *Client) PostAPIV1InventoryRepositoryUpload(params *PostAPIV1InventoryRe
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryRepositoryUploadOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryRepositoryUpload: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1686,7 +1881,7 @@ PostAPIV1InventorySites creates new sites
 Create one or multiple sites with the provided details.
 */
 func (a *Client) PostAPIV1InventorySites(params *PostAPIV1InventorySitesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventorySitesCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventorySitesParams()
 	}
@@ -1706,17 +1901,22 @@ func (a *Client) PostAPIV1InventorySites(params *PostAPIV1InventorySitesParams, 
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventorySitesCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventorySites: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1725,7 +1925,7 @@ func (a *Client) PostAPIV1InventorySites(params *PostAPIV1InventorySitesParams, 
 PostAPIV1InventorySitesRemove removes sites
 */
 func (a *Client) PostAPIV1InventorySitesRemove(params *PostAPIV1InventorySitesRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventorySitesRemoveCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventorySitesRemoveParams()
 	}
@@ -1745,17 +1945,22 @@ func (a *Client) PostAPIV1InventorySitesRemove(params *PostAPIV1InventorySitesRe
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventorySitesRemoveCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventorySitesRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -1764,7 +1969,7 @@ func (a *Client) PostAPIV1InventorySitesRemove(params *PostAPIV1InventorySitesRe
 PostAPIV1InventoryUpload uploads a cloud setup file with excel format
 */
 func (a *Client) PostAPIV1InventoryUpload(params *PostAPIV1InventoryUploadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1InventoryUploadOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1InventoryUploadParams()
 	}
@@ -1784,17 +1989,22 @@ func (a *Client) PostAPIV1InventoryUpload(params *PostAPIV1InventoryUploadParams
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1InventoryUploadOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1InventoryUpload: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }

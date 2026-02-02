@@ -18,7 +18,7 @@ import (
 type DtoInstanceInListCredential struct {
 
 	// credentials
-	Credentials interface{} `json:"credentials,omitempty"`
+	Credentials any `json:"credentials,omitempty"`
 
 	// sub instance name
 	SubInstanceName string `json:"subInstanceName,omitempty"`
