@@ -219,7 +219,7 @@ func TestNewDMHandlerWithListener(t *testing.T) {
 
 			// Clean up
 			if listener != nil {
-				listener.Close()
+				_ = listener.Close()
 			}
 		})
 	}
@@ -246,7 +246,7 @@ func runStartTest(t *testing.T, tt struct {
 	// Create handler with test listener
 	listener, err := createTestListener()
 	require.NoError(t, err)
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 
 	handler := grpcpkg.NewDMHandlerWithListener(listener, client, tt.config)
 	require.NotNil(t, handler)
@@ -306,7 +306,7 @@ func TestDMHandler_Start(t *testing.T) {
 				// Try to connect to the server address to verify it's running
 				conn, err := grpc.NewClient("127.0.0.1:0", grpc.WithTransportCredentials(insecure.NewCredentials()))
 				if err == nil {
-					defer conn.Close()
+					defer func() { _ = conn.Close() }()
 
 					// Create a client and try to call a method
 					client := pb.NewDeviceManagementClient(conn)
@@ -423,7 +423,7 @@ func TestDMHandler_Stop(t *testing.T) {
 			// Create handler with test listener
 			listener, err := createTestListener()
 			require.NoError(t, err)
-			defer listener.Close()
+			defer func() { _ = listener.Close() }()
 
 			handler := grpcpkg.NewDMHandlerWithListener(listener, client, tt.config)
 			require.NotNil(t, handler)
@@ -467,7 +467,7 @@ func TestDMHandler_StartStop_Integration(t *testing.T) {
 		// Create handler with test listener
 		listener, err := createTestListener()
 		require.NoError(t, err)
-		defer listener.Close()
+		defer func() { _ = listener.Close() }()
 
 		var client client.TenantAwareInventoryClient = mockClient
 		handler := grpcpkg.NewDMHandlerWithListener(listener, client, config)
@@ -516,7 +516,7 @@ func TestDMHandler_Concurrent_Access(t *testing.T) {
 		// Create handler with test listener
 		listener, err := createTestListener()
 		require.NoError(t, err)
-		defer listener.Close()
+		defer func() { _ = listener.Close() }()
 
 		var client client.TenantAwareInventoryClient = mockClient
 		handler := grpcpkg.NewDMHandlerWithListener(listener, client, config)
@@ -533,7 +533,7 @@ func TestDMHandler_Concurrent_Access(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 
 		// Test concurrent stops
-		for i := 0; i < numGoroutines; i++ {
+		for range numGoroutines {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()

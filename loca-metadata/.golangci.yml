@@ -13,10 +13,9 @@ run:
 
 linters:
   disable-all: true
-  disable:
+  enable:
     - errcheck
     - staticcheck
-  enable:
     - asasalint
     - asciicheck
     - bidichk

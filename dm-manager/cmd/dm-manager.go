@@ -87,8 +87,8 @@ var (
 
 func main() {
 	flag.Parse()
-	if !(strings.EqualFold(*passwordPolicy, tenant.StaticPasswordPolicy) ||
-		strings.EqualFold(*passwordPolicy, tenant.DynamicPasswordPolicy)) {
+	if !strings.EqualFold(*passwordPolicy, tenant.StaticPasswordPolicy) &&
+		!strings.EqualFold(*passwordPolicy, tenant.DynamicPasswordPolicy) {
 		log.Error().Msgf("Invalid password policy: %s. It should be either 'static' or 'dynamic'", *passwordPolicy)
 		os.Exit(1)
 	}

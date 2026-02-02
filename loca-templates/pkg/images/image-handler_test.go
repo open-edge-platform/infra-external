@@ -48,7 +48,7 @@ func Test_HandleImage(t *testing.T) {
 	filename := filepath.Join(tempDir, "ca-cert.crt")
 	file, err := os.Create(filename)
 	assert.NoError(t, err)
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	operatingSystem := prepareUbuntuImagesServer()
 	t.Run("Happy Path", func(t *testing.T) {

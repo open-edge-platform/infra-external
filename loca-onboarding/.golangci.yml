@@ -6,10 +6,9 @@ version: "2"
 
 linters:
   disable-all: true
-  disable:
+  enable:
     - errcheck
     - staticcheck
-  enable:
     - asasalint
     - asciicheck
     - bidichk
@@ -54,6 +53,12 @@ linters:
     - usestdlibvars
     - whitespace
   settings:
+    errcheck:
+      check-blank: false
+      ignore: fmt:.*,io:EOF,io:Copy
+      exclude-functions:
+        - (net/http.ResponseWriter).Write
+        - (*net/http.Request.Body).Close
     cyclop:
       max-complexity: 10
     gocritic:

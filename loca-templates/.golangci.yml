@@ -6,9 +6,6 @@ version: "2"
 
 linters:
   disable-all: true
-  disable:
-    - errcheck
-    - staticcheck
   enable:
     - asasalint
     - asciicheck
@@ -51,6 +48,8 @@ linters:
     - unparam
     - usestdlibvars
     - whitespace
+    - errcheck
+    - staticcheck
   settings:
     gofumpt:
       module-path: github.com/open-edge-platform/infra-external/loca-templates
@@ -159,10 +158,16 @@ issues:
   fix: false
 
   exclude:
-    - Error return value of `.*Close` is not checked
-    - Error return value of `.*Flush` is not checked
     - Error return value of `.*Write` is not checked
-    - Error return value of `.*Stop` is not checked
+
+  exclude-dirs:
+    - pkg/api/
+
+linters-settings:
+  errcheck:
+    check-blank: false
+    exclude-functions:
+      - (net/http.ResponseWriter).Write
 
 run:
   timeout: 10m

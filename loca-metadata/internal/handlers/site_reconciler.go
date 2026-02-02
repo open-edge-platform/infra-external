@@ -29,11 +29,13 @@ var (
 	zlog = logging.GetLogger(loggerName)
 )
 
+// SiteReconciler handles reconciliation of site resources with LOC-A providers.
 type SiteReconciler struct {
 	TracingEnabled bool
 	InvClient      client.TenantAwareInventoryClient
 }
 
+// NewSiteReconciler creates a new SiteReconciler with the specified tracing configuration and inventory client.
 func NewSiteReconciler(tracingEnabled bool, invClient client.TenantAwareInventoryClient) *SiteReconciler {
 	return &SiteReconciler{
 		TracingEnabled: tracingEnabled,
@@ -41,7 +43,7 @@ func NewSiteReconciler(tracingEnabled bool, invClient client.TenantAwareInventor
 	}
 }
 
-// check the type of event performed on site by inventory.
+// Reconcile checks the type of event performed on site by inventory and performs reconciliation.
 func (sr *SiteReconciler) Reconcile(ctx context.Context, request rec_v2.Request[ReconcilerID]) rec_v2.Directive[ReconcilerID] {
 	if sr.TracingEnabled {
 		ctx = tracing.StartTrace(ctx, "LOC-A MM", "SiteReconciler")
@@ -89,7 +91,7 @@ func (sr *SiteReconciler) Reconcile(ctx context.Context, request rec_v2.Request[
 	return request.Ack()
 }
 
-// reconcile site for each provider.
+// ReconcileSite performs reconciliation of a site resource for a specific LOC-A provider.
 //
 //nolint:cyclop // main logic
 func (sr *SiteReconciler) ReconcileSite(ctx context.Context, deleteSiteFromLOCA bool, reconcileSite *locationv1.SiteResource,

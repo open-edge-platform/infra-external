@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+// Package manager provides the LOC-A Metadata Manager implementation.
 package manager
 
 import (

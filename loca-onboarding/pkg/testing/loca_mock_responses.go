@@ -57,7 +57,7 @@ func authFunc(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		zlog.Fatal().Msgf("An error occurred while reading Body of the response: %v", err)
 	}
-	defer req.Body.Close()
+	defer func() { _ = req.Body.Close() }()
 
 	// parsing credentials
 	var data *Credentials
@@ -497,13 +497,13 @@ func getResourceIDFromRequest(req *http.Request) string {
 }
 
 func extractBodyFromTheRequest(req *http.Request) ([]byte, error) {
-	defer req.Body.Close()
+	defer func() { _ = req.Body.Close() }()
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		zlog.InfraErr(err).Msgf("An error occurred while reading Body of the response")
 		return nil, err
 	}
-	req.Body.Close()
+	_ = req.Body.Close()
 
 	return body, nil
 }

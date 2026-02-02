@@ -52,10 +52,10 @@ func TestNewDeviceID(t *testing.T) {
 
 	deviceID = NewID("zxc", "")
 	assert.Equal(t, "zxc", deviceID.GetTenantID())
-	assert.Equal(t, "", deviceID.GetHostUUID())
+	assert.Empty(t, deviceID.GetHostUUID())
 
 	deviceID = NewID("", "asd")
-	assert.Equal(t, "", deviceID.GetTenantID())
+	assert.Empty(t, deviceID.GetTenantID())
 	assert.Equal(t, "asd", deviceID.GetHostUUID())
 }
 
@@ -207,8 +207,6 @@ func TestDeviceController_Start(t *testing.T) {
 	case <-time.After(2 * time.Second):
 		t.Fatal("Timeout waiting for reconciler to stop")
 	}
-
-	assert.True(t, true, "Manager stopped successfully")
 }
 
 func TestDeviceController_ReconcileAll_shouldContinueOnErrorInReconcile(t *testing.T) {

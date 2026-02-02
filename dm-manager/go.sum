@@ -293,8 +293,8 @@ github.com/oapi-codegen/runtime v1.1.2 h1:P2+CubHq8fO4Q6fV1tqDBZHCwpVpvPg7oKiYzQ
 github.com/oapi-codegen/runtime v1.1.2/go.mod h1:SK9X900oXmPWilYR5/WKPzt3Kqxn/uS/+lbpREv+eCg=
 github.com/oklog/ulid v1.3.1 h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
-github.com/open-edge-platform/infra-core/inventory/v2 v2.33.2 h1:aX8s49KaMS4zkGnWJ+qiOBAK2WT4cy5Gr6Mg7IXWhcg=
-github.com/open-edge-platform/infra-core/inventory/v2 v2.33.2/go.mod h1:6utgen+dl47bYZCUW6Ug7NfL/NRAQjeHP0XljpnxhWQ=
+github.com/open-edge-platform/infra-core/inventory/v2 v2.34.0 h1:gIUF9tot7mFyTmjKysNp9+UuoS82+KQypCyZY6by498=
+github.com/open-edge-platform/infra-core/inventory/v2 v2.34.0/go.mod h1:NzKTZ1cCdSvixIvsA4Ig3zzsryIHQJHnF/bGQ1+JBbc=
 github.com/open-edge-platform/orch-library/go v0.6.2 h1:JbZCtsWRKFenjZrUHdPVlpHl3gu0/vmUrjJ6SGc2Gyg=
 github.com/open-edge-platform/orch-library/go v0.6.2/go.mod h1:3Tes/GJfwYbnQa/1scbKiLbjZrL4fJEouFk28oo5/c8=
 github.com/open-edge-platform/orch-library/go/dazl v0.5.4 h1:Rx/bSAZiLjEEBjUiJEzBvT0fQv5huT5FQ2Ke3IMUhiE=

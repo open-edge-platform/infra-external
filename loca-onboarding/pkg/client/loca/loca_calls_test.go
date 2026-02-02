@@ -20,7 +20,7 @@ import (
 func Test_newChunkFileReader_happyPath(t *testing.T) {
 	tmpFile, err := os.CreateTemp("/tmp", "test")
 	assert.NoError(t, err)
-	defer os.RemoveAll(tmpFile.Name())
+	defer func() { _ = os.RemoveAll(tmpFile.Name()) }()
 
 	testString := "abcd"
 	_, err = tmpFile.WriteString(testString)
@@ -46,7 +46,7 @@ func Test_newChunkFileReader_whenFileDoesntExistsShouldReturnError(t *testing.T)
 func TestLocaCli_handleChunk_happyPath(t *testing.T) {
 	tmpFile, err := os.CreateTemp("/tmp", "test")
 	assert.NoError(t, err)
-	defer os.RemoveAll(tmpFile.Name())
+	defer func() { _ = os.RemoveAll(tmpFile.Name()) }()
 
 	testString := "testString"
 	_, err = tmpFile.WriteString(testString)
@@ -83,7 +83,7 @@ func TestLocaCli_handleChunk_happyPath(t *testing.T) {
 func TestLocaCli_uploadImage_whenFileIs2ChunksShouldUploadSuccessfully(t *testing.T) {
 	tmpFile, err := os.CreateTemp("/tmp", "test")
 	assert.NoError(t, err)
-	defer os.RemoveAll(tmpFile.Name())
+	defer func() { _ = os.RemoveAll(tmpFile.Name()) }()
 
 	// creating file that will be read twice by chunkFile reader
 	_, err = tmpFile.WriteString(strings.Repeat("a", chunkSize+1))
@@ -110,7 +110,7 @@ func TestLocaCli_uploadImage_whenFileIs2ChunksShouldUploadSuccessfully(t *testin
 func TestLocaCli_uploadImage_whenSecondChunkUploadFailedShouldReturnError(t *testing.T) {
 	tmpFile, err := os.CreateTemp("/tmp", "test")
 	assert.NoError(t, err)
-	defer os.RemoveAll(tmpFile.Name())
+	defer func() { _ = os.RemoveAll(tmpFile.Name()) }()
 
 	// creating file that will be read twice by chunkFile reader
 	_, err = tmpFile.WriteString(strings.Repeat("a", chunkSize+1))

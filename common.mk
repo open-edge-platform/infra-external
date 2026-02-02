@@ -3,6 +3,10 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# Set shell to bash with pipefail to propagate pipe failures
+SHELL := /bin/bash
+.SHELLFLAGS := -o pipefail -c
+
 # Makefile Style Guide:
 # - Help will be generated from ## comments at end of any target line
 # - Use smooth parens $() for variables over curly brackets ${} for consistency

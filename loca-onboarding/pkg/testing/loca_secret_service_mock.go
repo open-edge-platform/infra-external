@@ -45,7 +45,6 @@ func (m *MockSecretsService) WriteSecret(_ context.Context, _ string, _ map[stri
 func (m *MockSecretsService) Logout(_ context.Context) {
 	// function is needed to be implemented, even if it does nothing,
 	// in order to comply with the secretservice interface
-	return //nolint:gosimple // keeping it as it is to do avoid confusion
 }
 
 func StartMockSecretService() {
