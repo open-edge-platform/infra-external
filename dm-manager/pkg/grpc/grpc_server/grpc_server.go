@@ -260,10 +260,23 @@ func (dms *DeviceManagementService) RetrieveActivationDetails(
 			log.Error().Msgf("Couldn't get password from secret provider for host %s", req.HostId)
 			return nil, errors.Errorfc(codes.Internal, "Failed to retrieve AMT password from secret provider")
 		}
+
+		// Determine profile name suffix based on AmtControlMode
+		var profileName string
+		switch hostInv.AmtControlMode {
+		case computev1.AmtControlMode_AMT_CONTROL_MODE_ACM:
+			profileName = tenantID + "_acm"
+		case computev1.AmtControlMode_AMT_CONTROL_MODE_CCM:
+			profileName = tenantID + "_ccm"
+		default:
+			// Default to CCM if unspecified
+			profileName = tenantID + "_ccm"
+		}
+
 		response = &pb.ActivationDetailsResponse{
 			Operation:      pb.OperationType_ACTIVATE,
 			HostId:         req.HostId,
-			ProfileName:    tenantID,
+			ProfileName:    profileName,
 			ActionPassword: amtPassword,
 		}
 	} else {
