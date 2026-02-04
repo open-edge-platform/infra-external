@@ -11,14 +11,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_getMpsAddress_happyPath(t *testing.T) {
 	tmpFile, err := os.CreateTemp("/tmp", "")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	_, err = fmt.Fprintf(tmpFile, `%v: test:1234`, orchMpsHostKey)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	address, port := getMpsAddress(tmpFile.Name())
 

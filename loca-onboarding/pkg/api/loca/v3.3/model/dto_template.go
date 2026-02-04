@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -38,7 +39,7 @@ type DtoTemplate struct {
 	Devices []*DtoTemplateDevice `json:"devices"`
 
 	// the extra vars of the template(the key should be a string and the value can be any type)  //Sorin TBD.....
-	ExtraVars map[string]interface{} `json:"extraVars,omitempty"`
+	ExtraVars map[string]any `json:"extraVars,omitempty"`
 
 	// extra vars vault internal secret path
 	ExtraVarsVaultInternalSecretPath map[string]string `json:"extraVarsVaultInternalSecretPath,omitempty"`
@@ -125,11 +126,15 @@ func (m *DtoTemplate) validateDevices(formats strfmt.Registry) error {
 
 		if m.Devices[i] != nil {
 			if err := m.Devices[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("devices" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("devices" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -151,11 +156,15 @@ func (m *DtoTemplate) validateExtraVarsWithDisplayName(formats strfmt.Registry) 
 		}
 		if val, ok := m.ExtraVarsWithDisplayName[k]; ok {
 			if err := val.Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("extraVarsWithDisplayName" + "." + k)
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("extraVarsWithDisplayName" + "." + k)
 				}
+
 				return err
 			}
 		}
@@ -227,11 +236,15 @@ func (m *DtoTemplate) contextValidateDevices(ctx context.Context, formats strfmt
 			}
 
 			if err := m.Devices[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("devices" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("devices" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

@@ -21,7 +21,7 @@ type DtoUserLogoutResponseData struct {
 	Code int64 `json:"code,omitempty"`
 
 	// msg
-	Msg interface{} `json:"msg,omitempty"`
+	Msg any `json:"msg,omitempty"`
 }
 
 // Validate validates this dto user logout response data

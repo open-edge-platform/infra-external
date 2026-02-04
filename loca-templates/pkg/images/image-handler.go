@@ -59,7 +59,7 @@ func HandleImage(locaClient *loca.LocaCli, operatingSystem *osv1.OperatingSystem
 		log.InfraErr(err).Msgf("failed to create tmp dir")
 		return err
 	}
-	defer os.RemoveAll(dir)
+	defer func() { _ = os.RemoveAll(dir) }()
 
 	secureClient := &http.Client{
 		Transport: &http.Transport{
@@ -119,9 +119,9 @@ func downloadImageFromUbuntuServer(ctx context.Context, secureClient *http.Clien
 	if err != nil {
 		return nil, inverror.Errorfc(codes.Unavailable, "failed to do GET request - %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
-	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		body, readAllErr := io.ReadAll(resp.Body)
 		if readAllErr != nil {
 			log.Error().Msgf("failed to read body - %v", readAllErr)
@@ -135,7 +135,7 @@ func downloadImageFromUbuntuServer(ctx context.Context, secureClient *http.Clien
 		log.InfraErr(err).Msgf("failed to create file")
 		return nil, inverror.Errorfc(codes.FailedPrecondition, "failed to create file - %v", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	_, err = io.Copy(file, resp.Body)
 	if err != nil {

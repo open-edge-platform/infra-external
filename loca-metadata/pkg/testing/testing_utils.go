@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+// Package testing provides testing utilities for LOC-A metadata integration tests.
 package testing
 
 import (
@@ -26,12 +27,15 @@ import (
 )
 
 const (
-	timeout            = 1 * time.Second
+	timeout = 1 * time.Second
+	// ReconciliationWait is the duration to wait between reconciliation checks in tests.
 	ReconciliationWait = 120 * time.Millisecond
 )
 
 var (
-	LocaRMClient       client.TenantAwareInventoryClient
+	// LocaRMClient is the global inventory client used in tests.
+	LocaRMClient client.TenantAwareInventoryClient
+	// LocaRMEventsClient is the global events channel used in tests.
 	LocaRMEventsClient chan *client.WatchEvents
 )
 

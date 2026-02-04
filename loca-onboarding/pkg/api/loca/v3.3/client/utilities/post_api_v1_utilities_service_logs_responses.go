@@ -7,6 +7,7 @@ package utilities
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type PostAPIV1UtilitiesServiceLogsReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *PostAPIV1UtilitiesServiceLogsReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *PostAPIV1UtilitiesServiceLogsReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 201:
 		result := NewPostAPIV1UtilitiesServiceLogsCreated()
@@ -104,7 +105,7 @@ func (o *PostAPIV1UtilitiesServiceLogsCreated) readResponse(response runtime.Cli
 	o.Payload = new(model.DtoFileResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -174,7 +175,7 @@ func (o *PostAPIV1UtilitiesServiceLogsBadRequest) readResponse(response runtime.
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

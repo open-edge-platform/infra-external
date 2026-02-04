@@ -329,7 +329,7 @@ func (tc *Controller) removeProfiles(ctx context.Context, tenants []string) {
 		log.Err(err).Msgf("cannot list profiles, continuing")
 	}
 	if profilesResp.JSON200 != nil {
-		presentProfiles := []string{}
+		presentProfiles := make([]string, 0, len(*profilesResp.JSON200))
 		for _, profile := range *profilesResp.JSON200 {
 			presentProfiles = append(presentProfiles, profile.ProfileName)
 		}

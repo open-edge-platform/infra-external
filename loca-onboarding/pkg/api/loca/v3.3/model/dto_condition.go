@@ -24,7 +24,7 @@ type DtoCondition struct {
 	Operator string `json:"operator,omitempty"`
 
 	// Value to compare against
-	Value interface{} `json:"value,omitempty"`
+	Value any `json:"value,omitempty"`
 }
 
 // Validate validates this dto condition

@@ -6,7 +6,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"sync"
 
 	"github.com/rs/zerolog/log"
@@ -81,9 +80,7 @@ func listHosts(invTenantClient invClient.TenantAwareInventoryClient) []*inventor
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to list hosts")
 	}
-	fmt.Println("")
 	log.Info().Msgf("hosts - %v, len - %v", hosts, len(hosts))
-	fmt.Println("")
 
 	return hosts
 }

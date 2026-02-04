@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -22,7 +23,7 @@ type ModelsInstancePlanningDetail struct {
 	DeploymentDetails *HpcgitlabLabsLenovoComLocBackendCmdAPIModelsDeploymentDetails `json:"deploymentDetails,omitempty"`
 
 	// deployment extra
-	DeploymentExtra interface{} `json:"deploymentExtra,omitempty"`
+	DeploymentExtra any `json:"deploymentExtra,omitempty"`
 
 	// instance summary
 	InstanceSummary *HpcgitlabLabsLenovoComLocBackendCmdAPIModelsInstanceSummary `json:"instanceSummary,omitempty"`
@@ -59,11 +60,15 @@ func (m *ModelsInstancePlanningDetail) validateDeploymentDetails(formats strfmt.
 
 	if m.DeploymentDetails != nil {
 		if err := m.DeploymentDetails.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("deploymentDetails")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("deploymentDetails")
 			}
+
 			return err
 		}
 	}
@@ -78,11 +83,15 @@ func (m *ModelsInstancePlanningDetail) validateInstanceSummary(formats strfmt.Re
 
 	if m.InstanceSummary != nil {
 		if err := m.InstanceSummary.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("instanceSummary")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("instanceSummary")
 			}
+
 			return err
 		}
 	}
@@ -117,11 +126,15 @@ func (m *ModelsInstancePlanningDetail) contextValidateDeploymentDetails(ctx cont
 		}
 
 		if err := m.DeploymentDetails.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("deploymentDetails")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("deploymentDetails")
 			}
+
 			return err
 		}
 	}
@@ -138,11 +151,15 @@ func (m *ModelsInstancePlanningDetail) contextValidateInstanceSummary(ctx contex
 		}
 
 		if err := m.InstanceSummary.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("instanceSummary")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("instanceSummary")
 			}
+
 			return err
 		}
 	}

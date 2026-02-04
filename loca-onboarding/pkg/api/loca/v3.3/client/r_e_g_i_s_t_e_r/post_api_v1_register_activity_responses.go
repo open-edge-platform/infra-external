@@ -7,6 +7,7 @@ package r_e_g_i_s_t_e_r
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type PostAPIV1RegisterActivityReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *PostAPIV1RegisterActivityReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *PostAPIV1RegisterActivityReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 200:
 		result := NewPostAPIV1RegisterActivityOK()
@@ -110,7 +111,7 @@ func (o *PostAPIV1RegisterActivityOK) readResponse(response runtime.ClientRespon
 	o.Payload = new(model.HpcgitlabLabsLenovoComLocBackendCmdAPIModelsActivity)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -128,7 +129,7 @@ PostAPIV1RegisterActivityBadRequest describes a response with status code 400, w
 auth fail
 */
 type PostAPIV1RegisterActivityBadRequest struct {
-	Payload interface{}
+	Payload any
 }
 
 // IsSuccess returns true when this post Api v1 register activity bad request response has a 2xx status code
@@ -171,14 +172,14 @@ func (o *PostAPIV1RegisterActivityBadRequest) String() string {
 	return fmt.Sprintf("[POST /api/v1/register/activity][%d] postApiV1RegisterActivityBadRequest %s", 400, payload)
 }
 
-func (o *PostAPIV1RegisterActivityBadRequest) GetPayload() interface{} {
+func (o *PostAPIV1RegisterActivityBadRequest) GetPayload() any {
 	return o.Payload
 }
 
 func (o *PostAPIV1RegisterActivityBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -196,7 +197,7 @@ PostAPIV1RegisterActivityInternalServerError describes a response with status co
 internal error
 */
 type PostAPIV1RegisterActivityInternalServerError struct {
-	Payload interface{}
+	Payload any
 }
 
 // IsSuccess returns true when this post Api v1 register activity internal server error response has a 2xx status code
@@ -239,14 +240,14 @@ func (o *PostAPIV1RegisterActivityInternalServerError) String() string {
 	return fmt.Sprintf("[POST /api/v1/register/activity][%d] postApiV1RegisterActivityInternalServerError %s", 500, payload)
 }
 
-func (o *PostAPIV1RegisterActivityInternalServerError) GetPayload() interface{} {
+func (o *PostAPIV1RegisterActivityInternalServerError) GetPayload() any {
 	return o.Payload
 }
 
 func (o *PostAPIV1RegisterActivityInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

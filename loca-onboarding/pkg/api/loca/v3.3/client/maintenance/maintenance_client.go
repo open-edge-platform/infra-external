@@ -67,7 +67,7 @@ type ClientService interface {
 GetAPIV1SystemMaintenance gets current maintenance mode
 */
 func (a *Client) GetAPIV1SystemMaintenance(params *GetAPIV1SystemMaintenanceParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1SystemMaintenanceOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1SystemMaintenanceParams()
 	}
@@ -87,17 +87,22 @@ func (a *Client) GetAPIV1SystemMaintenance(params *GetAPIV1SystemMaintenancePara
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1SystemMaintenanceOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1SystemMaintenance: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -106,7 +111,7 @@ func (a *Client) GetAPIV1SystemMaintenance(params *GetAPIV1SystemMaintenancePara
 PostAPIV1SystemMaintenance sets maintenance mode
 */
 func (a *Client) PostAPIV1SystemMaintenance(params *PostAPIV1SystemMaintenanceParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1SystemMaintenanceOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1SystemMaintenanceParams()
 	}
@@ -126,17 +131,22 @@ func (a *Client) PostAPIV1SystemMaintenance(params *PostAPIV1SystemMaintenancePa
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1SystemMaintenanceOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1SystemMaintenance: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }

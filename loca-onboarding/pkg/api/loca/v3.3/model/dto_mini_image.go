@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -73,11 +74,15 @@ func (m *DtoMiniImage) validatePasswordPolicy(formats strfmt.Registry) error {
 
 	if m.PasswordPolicy != nil {
 		if err := m.PasswordPolicy.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("password_policy")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("password_policy")
 			}
+
 			return err
 		}
 	}
@@ -108,11 +113,15 @@ func (m *DtoMiniImage) contextValidatePasswordPolicy(ctx context.Context, format
 		}
 
 		if err := m.PasswordPolicy.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("password_policy")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("password_policy")
 			}
+
 			return err
 		}
 	}

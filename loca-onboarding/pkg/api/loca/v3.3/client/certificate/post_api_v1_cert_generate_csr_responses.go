@@ -7,6 +7,7 @@ package certificate
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type PostAPIV1CertGenerateCsrReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *PostAPIV1CertGenerateCsrReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *PostAPIV1CertGenerateCsrReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 200:
 		result := NewPostAPIV1CertGenerateCsrOK()
@@ -70,7 +71,7 @@ PostAPIV1CertGenerateCsrOK describes a response with status code 200, with defau
 success
 */
 type PostAPIV1CertGenerateCsrOK struct {
-	Payload interface{}
+	Payload any
 }
 
 // IsSuccess returns true when this post Api v1 cert generate csr o k response has a 2xx status code
@@ -113,14 +114,14 @@ func (o *PostAPIV1CertGenerateCsrOK) String() string {
 	return fmt.Sprintf("[POST /api/v1/cert/generate-csr][%d] postApiV1CertGenerateCsrOK %s", 200, payload)
 }
 
-func (o *PostAPIV1CertGenerateCsrOK) GetPayload() interface{} {
+func (o *PostAPIV1CertGenerateCsrOK) GetPayload() any {
 	return o.Payload
 }
 
 func (o *PostAPIV1CertGenerateCsrOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -190,7 +191,7 @@ func (o *PostAPIV1CertGenerateCsrBadRequest) readResponse(response runtime.Clien
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -260,7 +261,7 @@ func (o *PostAPIV1CertGenerateCsrUnauthorized) readResponse(response runtime.Cli
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -330,7 +331,7 @@ func (o *PostAPIV1CertGenerateCsrTooManyRequests) readResponse(response runtime.
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -400,7 +401,7 @@ func (o *PostAPIV1CertGenerateCsrInternalServerError) readResponse(response runt
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

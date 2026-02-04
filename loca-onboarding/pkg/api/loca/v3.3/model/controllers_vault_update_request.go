@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -53,11 +54,15 @@ func (m *ControllersVaultUpdateRequest) validateFile(formats strfmt.Registry) er
 
 	if m.File != nil {
 		if err := m.File.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("file")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("file")
 			}
+
 			return err
 		}
 	}
@@ -72,11 +77,15 @@ func (m *ControllersVaultUpdateRequest) validateVaultAPIParams(formats strfmt.Re
 
 	if m.VaultAPIParams != nil {
 		if err := m.VaultAPIParams.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("vault_api_params")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("vault_api_params")
 			}
+
 			return err
 		}
 	}
@@ -111,11 +120,15 @@ func (m *ControllersVaultUpdateRequest) contextValidateFile(ctx context.Context,
 		}
 
 		if err := m.File.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("file")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("file")
 			}
+
 			return err
 		}
 	}
@@ -132,11 +145,15 @@ func (m *ControllersVaultUpdateRequest) contextValidateVaultAPIParams(ctx contex
 		}
 
 		if err := m.VaultAPIParams.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("vault_api_params")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("vault_api_params")
 			}
+
 			return err
 		}
 	}

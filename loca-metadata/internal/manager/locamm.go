@@ -33,6 +33,7 @@ var (
 	parallelism = 10
 )
 
+// LOCAMM represents the LOC-A Metadata Manager responsible for synchronizing metadata between inventory and LOC-A.
 type LOCAMM struct {
 	invClient            inv_client.TenantAwareInventoryClient
 	invEvents            chan *inv_client.WatchEvents
@@ -42,6 +43,7 @@ type LOCAMM struct {
 	reconciliationPeriod time.Duration
 }
 
+// NewLOCAMetadataManager creates a new LOC-A Metadata Manager with the specified configuration.
 func NewLOCAMetadataManager(
 	invClient inv_client.TenantAwareInventoryClient,
 	invEvents chan *inv_client.WatchEvents,
@@ -64,6 +66,7 @@ func NewLOCAMetadataManager(
 	}, nil
 }
 
+// Start begins the LOC-A Metadata Manager control loop and handles synchronization.
 func (lmm *LOCAMM) Start(readyChan chan bool) {
 	zlog.Info().Msgf("Starting LOC-A Metadata Manager control loop")
 	lmm.wg.Add(1)
@@ -81,6 +84,7 @@ func (lmm *LOCAMM) Start(readyChan chan bool) {
 	go lmm.controlLoop()
 }
 
+// Stop terminates the LOC-A Metadata Manager control loop.
 func (lmm *LOCAMM) Stop() {
 	close(lmm.sigTerm)
 	lmm.wg.Wait()
@@ -204,7 +208,7 @@ func (lmm *LOCAMM) filterEvent(event *inv_v1.SubscribeEventsResponse) bool {
 	return false
 }
 
-// Helper function to reconcile the resources.
+// ReconcileResource reconciles a resource by its tenant ID, resource ID, and name.
 func (lmm *LOCAMM) ReconcileResource(tenantID, resourceID, name string) {
 	expectedKind, err := util.GetResourceKindFromResourceID(resourceID)
 	if err != nil {

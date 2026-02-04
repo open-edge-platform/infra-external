@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -123,11 +124,15 @@ func (m *DtoSites) validateCloudServicesAffinityQ(formats strfmt.Registry) error
 
 	if m.CloudServicesAffinityQ != nil {
 		if err := m.CloudServicesAffinityQ.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("cloudServicesAffinityQ")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("cloudServicesAffinityQ")
 			}
+
 			return err
 		}
 	}
@@ -142,11 +147,15 @@ func (m *DtoSites) validateCustomServicesAffinityQ(formats strfmt.Registry) erro
 
 	if m.CustomServicesAffinityQ != nil {
 		if err := m.CustomServicesAffinityQ.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("customServicesAffinityQ")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("customServicesAffinityQ")
 			}
+
 			return err
 		}
 	}
@@ -161,11 +170,15 @@ func (m *DtoSites) validateIPRangesAffinityQ(formats strfmt.Registry) error {
 
 	if m.IPRangesAffinityQ != nil {
 		if err := m.IPRangesAffinityQ.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("ipRangesAffinityQ")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("ipRangesAffinityQ")
 			}
+
 			return err
 		}
 	}
@@ -180,11 +193,15 @@ func (m *DtoSites) validateNetworkServicesAffinityQ(formats strfmt.Registry) err
 
 	if m.NetworkServicesAffinityQ != nil {
 		if err := m.NetworkServicesAffinityQ.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
+			ve := new(errors.Validation)
+			if stderrors.As(err, &ve) {
 				return ve.ValidateName("networkServicesAffinityQ")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
+			}
+			ce := new(errors.CompositeError)
+			if stderrors.As(err, &ce) {
 				return ce.ValidateName("networkServicesAffinityQ")
 			}
+
 			return err
 		}
 	}
@@ -204,11 +221,15 @@ func (m *DtoSites) validateSanityCheckSummary(formats strfmt.Registry) error {
 
 		if m.SanityCheckSummary[i] != nil {
 			if err := m.SanityCheckSummary[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("sanityCheckSummary" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("sanityCheckSummary" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -255,11 +276,15 @@ func (m *DtoSites) contextValidateCloudServicesAffinityQ(ctx context.Context, fo
 	}
 
 	if err := m.CloudServicesAffinityQ.ContextValidate(ctx, formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
+		ve := new(errors.Validation)
+		if stderrors.As(err, &ve) {
 			return ve.ValidateName("cloudServicesAffinityQ")
-		} else if ce, ok := err.(*errors.CompositeError); ok {
+		}
+		ce := new(errors.CompositeError)
+		if stderrors.As(err, &ce) {
 			return ce.ValidateName("cloudServicesAffinityQ")
 		}
+
 		return err
 	}
 
@@ -273,11 +298,15 @@ func (m *DtoSites) contextValidateCustomServicesAffinityQ(ctx context.Context, f
 	}
 
 	if err := m.CustomServicesAffinityQ.ContextValidate(ctx, formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
+		ve := new(errors.Validation)
+		if stderrors.As(err, &ve) {
 			return ve.ValidateName("customServicesAffinityQ")
-		} else if ce, ok := err.(*errors.CompositeError); ok {
+		}
+		ce := new(errors.CompositeError)
+		if stderrors.As(err, &ce) {
 			return ce.ValidateName("customServicesAffinityQ")
 		}
+
 		return err
 	}
 
@@ -291,11 +320,15 @@ func (m *DtoSites) contextValidateIPRangesAffinityQ(ctx context.Context, formats
 	}
 
 	if err := m.IPRangesAffinityQ.ContextValidate(ctx, formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
+		ve := new(errors.Validation)
+		if stderrors.As(err, &ve) {
 			return ve.ValidateName("ipRangesAffinityQ")
-		} else if ce, ok := err.(*errors.CompositeError); ok {
+		}
+		ce := new(errors.CompositeError)
+		if stderrors.As(err, &ce) {
 			return ce.ValidateName("ipRangesAffinityQ")
 		}
+
 		return err
 	}
 
@@ -309,11 +342,15 @@ func (m *DtoSites) contextValidateNetworkServicesAffinityQ(ctx context.Context, 
 	}
 
 	if err := m.NetworkServicesAffinityQ.ContextValidate(ctx, formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
+		ve := new(errors.Validation)
+		if stderrors.As(err, &ve) {
 			return ve.ValidateName("networkServicesAffinityQ")
-		} else if ce, ok := err.(*errors.CompositeError); ok {
+		}
+		ce := new(errors.CompositeError)
+		if stderrors.As(err, &ce) {
 			return ce.ValidateName("networkServicesAffinityQ")
 		}
+
 		return err
 	}
 
@@ -331,11 +368,15 @@ func (m *DtoSites) contextValidateSanityCheckSummary(ctx context.Context, format
 			}
 
 			if err := m.SanityCheckSummary[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("sanityCheckSummary" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("sanityCheckSummary" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

@@ -1237,7 +1237,7 @@ func deleteCS(res http.ResponseWriter, req *http.Request, css *sync.Map) {
 // - return success.
 func createCS(res http.ResponseWriter, req *http.Request, css *sync.Map) {
 	convertToCloudServiceListElements := func(data []*model.DtoCloudServiceCreateRequest) []*model.DtoCloudServiceListElement {
-		var elements []*model.DtoCloudServiceListElement
+		elements := make([]*model.DtoCloudServiceListElement, 0, len(data))
 		for _, cs := range data {
 			elements = append(elements, &model.DtoCloudServiceListElement{
 				Name:            *cs.Name,

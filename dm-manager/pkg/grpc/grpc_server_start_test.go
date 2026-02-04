@@ -67,7 +67,8 @@ func (m *MockTenantAwareInventoryClient) Close() error {
 
 // Helper function to create a test listener.
 func createTestListener() (net.Listener, error) {
-	return net.Listen("tcp", "127.0.0.1:0")
+	lc := net.ListenConfig{}
+	return lc.Listen(context.Background(), "tcp", "127.0.0.1:0")
 }
 
 // setupTestEnvironment disables credentials management for testing.
@@ -137,9 +138,9 @@ func TestNewDMHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockClient := tt.setupMocks()
-			var client client.TenantAwareInventoryClient = mockClient
+			var invClient client.TenantAwareInventoryClient = mockClient
 
-			handler, err := grpcpkg.NewDMHandler(client, tt.config)
+			handler, err := grpcpkg.NewDMHandler(invClient, tt.config)
 
 			if tt.expectError {
 				assert.Error(t, err)
@@ -209,17 +210,17 @@ func TestNewDMHandlerWithListener(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockClient := tt.setupMocks()
-			var client client.TenantAwareInventoryClient = mockClient
+			var invClient client.TenantAwareInventoryClient = mockClient
 			listener := tt.setupListener()
 
-			handler := grpcpkg.NewDMHandlerWithListener(listener, client, tt.config)
+			handler := grpcpkg.NewDMHandlerWithListener(listener, invClient, tt.config)
 
 			assert.NotNil(t, handler)
 			// Cannot assert on private fields when using external test package
 
 			// Clean up
 			if listener != nil {
-				listener.Close()
+				_ = listener.Close()
 			}
 		})
 	}
@@ -241,14 +242,14 @@ func runStartTest(t *testing.T, tt struct {
 	setupTestEnvironment()
 
 	mockClient := tt.setupMocks()
-	var client client.TenantAwareInventoryClient = mockClient
+	var invClient client.TenantAwareInventoryClient = mockClient
 
 	// Create handler with test listener
 	listener, err := createTestListener()
 	require.NoError(t, err)
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 
-	handler := grpcpkg.NewDMHandlerWithListener(listener, client, tt.config)
+	handler := grpcpkg.NewDMHandlerWithListener(listener, invClient, tt.config)
 	require.NotNil(t, handler)
 
 	// Start the handler
@@ -306,7 +307,7 @@ func TestDMHandler_Start(t *testing.T) {
 				// Try to connect to the server address to verify it's running
 				conn, err := grpc.NewClient("127.0.0.1:0", grpc.WithTransportCredentials(insecure.NewCredentials()))
 				if err == nil {
-					defer conn.Close()
+					defer func() { _ = conn.Close() }()
 
 					// Create a client and try to call a method
 					client := pb.NewDeviceManagementClient(conn)
@@ -418,14 +419,14 @@ func TestDMHandler_Stop(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockClient := tt.setupMocks()
-			var client client.TenantAwareInventoryClient = mockClient
+			var invClient client.TenantAwareInventoryClient = mockClient
 
 			// Create handler with test listener
 			listener, err := createTestListener()
 			require.NoError(t, err)
-			defer listener.Close()
+			defer func() { _ = listener.Close() }()
 
-			handler := grpcpkg.NewDMHandlerWithListener(listener, client, tt.config)
+			handler := grpcpkg.NewDMHandlerWithListener(listener, invClient, tt.config)
 			require.NotNil(t, handler)
 
 			if tt.startFirst {
@@ -467,10 +468,10 @@ func TestDMHandler_StartStop_Integration(t *testing.T) {
 		// Create handler with test listener
 		listener, err := createTestListener()
 		require.NoError(t, err)
-		defer listener.Close()
+		defer func() { _ = listener.Close() }()
 
-		var client client.TenantAwareInventoryClient = mockClient
-		handler := grpcpkg.NewDMHandlerWithListener(listener, client, config)
+		var invClient client.TenantAwareInventoryClient = mockClient
+		handler := grpcpkg.NewDMHandlerWithListener(listener, invClient, config)
 		require.NotNil(t, handler)
 
 		// Test single start/stop cycle (typical usage)
@@ -516,10 +517,10 @@ func TestDMHandler_Concurrent_Access(t *testing.T) {
 		// Create handler with test listener
 		listener, err := createTestListener()
 		require.NoError(t, err)
-		defer listener.Close()
+		defer func() { _ = listener.Close() }()
 
-		var client client.TenantAwareInventoryClient = mockClient
-		handler := grpcpkg.NewDMHandlerWithListener(listener, client, config)
+		var invClient client.TenantAwareInventoryClient = mockClient
+		handler := grpcpkg.NewDMHandlerWithListener(listener, invClient, config)
 		require.NotNil(t, handler)
 
 		var wg sync.WaitGroup
@@ -528,12 +529,11 @@ func TestDMHandler_Concurrent_Access(t *testing.T) {
 		// Start the handler first
 		err = handler.Start()
 		require.NoError(t, err)
-
 		// Give the server a moment to start
 		time.Sleep(100 * time.Millisecond)
 
 		// Test concurrent stops
-		for i := 0; i < numGoroutines; i++ {
+		for range numGoroutines {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -598,9 +598,9 @@ func TestDMHandlerConfig_Validation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockClient := &MockTenantAwareInventoryClient{}
-			var client client.TenantAwareInventoryClient = mockClient
+			var invClient client.TenantAwareInventoryClient = mockClient
 
-			_, err := grpcpkg.NewDMHandler(client, tt.config)
+			_, err := grpcpkg.NewDMHandler(invClient, tt.config)
 
 			if !tt.valid {
 				assert.Error(t, err)

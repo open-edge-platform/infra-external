@@ -21,7 +21,7 @@ type DtoRepositoryListElement struct {
 	CreatedAt string `json:"created_at,omitempty"`
 
 	// details
-	Details interface{} `json:"details,omitempty"`
+	Details any `json:"details,omitempty"`
 
 	// id
 	ID string `json:"id,omitempty"`
