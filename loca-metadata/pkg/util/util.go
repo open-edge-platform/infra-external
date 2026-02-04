@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
+
+//nolint:revive // util is an acceptable package name for utility functions
 package util
 
 import (

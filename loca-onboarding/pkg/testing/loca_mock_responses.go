@@ -57,7 +57,7 @@ func authFunc(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		zlog.Fatal().Msgf("An error occurred while reading Body of the response: %v", err)
 	}
-	defer func() { _ = req.Body.Close() }()
+	defer req.Body.Close()
 
 	// parsing credentials
 	var data *Credentials
@@ -497,13 +497,13 @@ func getResourceIDFromRequest(req *http.Request) string {
 }
 
 func extractBodyFromTheRequest(req *http.Request) ([]byte, error) {
-	defer func() { _ = req.Body.Close() }()
+	defer req.Body.Close()
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		zlog.InfraErr(err).Msgf("An error occurred while reading Body of the response")
 		return nil, err
 	}
-	_ = req.Body.Close()
+	req.Body.Close()
 
 	return body, nil
 }
@@ -1237,7 +1237,7 @@ func deleteCS(res http.ResponseWriter, req *http.Request, css *sync.Map) {
 // - return success.
 func createCS(res http.ResponseWriter, req *http.Request, css *sync.Map) {
 	convertToCloudServiceListElements := func(data []*model.DtoCloudServiceCreateRequest) []*model.DtoCloudServiceListElement {
-		var elements []*model.DtoCloudServiceListElement
+		elements := make([]*model.DtoCloudServiceListElement, 0, len(data))
 		for _, cs := range data {
 			elements = append(elements, &model.DtoCloudServiceListElement{
 				Name:            *cs.Name,

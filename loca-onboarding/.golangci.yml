@@ -3,12 +3,20 @@
 # SPDX-License-Identifier: Apache-2.0
 
 version: "2"
-
+run:
+  go: ""
+  modules-download-mode: readonly
+  issues-exit-code: 1
+  tests: true
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+    html:
+      path: out/golangci-lint_report.html
 linters:
-  disable-all: true
   enable:
-    - errcheck
-    - staticcheck
     - asasalint
     - asciicheck
     - bidichk
@@ -17,6 +25,7 @@ linters:
     - cyclop
     - depguard
     - dogsled
+    - dupl
     - durationcheck
     - errname
     - errorlint
@@ -26,26 +35,26 @@ linters:
     - goconst
     - gocritic
     - gocyclo
-    # - godot  # Comment style warnings
-    # - goheader  # Header checks
+    - godot
+    - goheader
     - gomoddirectives
     - goprintffuncname
-    # - gosec  # Security warnings
+    - gosec
     - lll
     - misspell
     - mnd
     - nakedret
-    # - nilerr  # Not available
+    - nilerr
     - nilnil
-    # - noctx  # Context not always needed
-    # - nolintlint  # Noisy
-    # - prealloc  # Minor optimization
+    - noctx
+    - nolintlint
+    - prealloc
     - predeclared
-    # - revive  # Too many style warnings
-    # - stylecheck  # Style warnings
-    # - tagliatelle  # Tag formatting
-    # - testpackage  # Test package naming
+    - revive
+    - staticcheck
+    - tagliatelle
     - testableexamples
+    - testpackage
     - thelper
     - tparallel
     - unconvert
@@ -53,49 +62,14 @@ linters:
     - usestdlibvars
     - whitespace
   settings:
-    errcheck:
-      check-blank: false
-      ignore: fmt:.*,io:EOF,io:Copy
-      exclude-functions:
-        - (net/http.ResponseWriter).Write
-        - (*net/http.Request.Body).Close
     cyclop:
       max-complexity: 10
-    gocritic:
-      enabled-tags:
-        - diagnostic
-        - experimental
-        - opinionated
-        - performance
-        - style
-      disabled-checks:
-        - hugeParam
-        - rangeExprCopy
-        - rangeValCopy
-        - unnamedResult
-    exhaustive:
-      default-signifies-exhaustive: true
-    funlen:
-      lines: 100
-      statements: 50
-    lll:
-      line-length: 130
-      tab-width: 4
-    misspell:
-      locale: US
-    mnd:
-      ignored-functions:
-        - os.Chmod
-        - os.Mkdir
-        - os.MkdirAll
-        - os.OpenFile
-        - os.WriteFile
     depguard:
       rules:
-        main:
+        Main:
           files:
             - $all
-            - "!$test"
+            - '!$test'
           allow:
             - $gostd
             - github.com/open-edge-platform
@@ -114,8 +88,7 @@ linters:
             - github.com/rs/zerolog
             - google.golang.org/grpc
             - google.golang.org/protobuf
-          deny:
-        test:
+        Test:
           files:
             - $test
           allow:
@@ -134,98 +107,104 @@ linters:
             - github.com/rs/zerolog
             - google.golang.org/grpc
             - google.golang.org/protobuf
-          deny:
+    dupl:
+      threshold: 100
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+      exclude-functions:
+        - io/ioutil.ReadFile
+        - io.Copy(*bytes.Buffer)
+        - io.Copy(os.Stdout)
+    exhaustive:
+      default-signifies-exhaustive: true
+    funlen:
+      lines: 100
+      statements: 50
+    gocritic:
+      disabled-checks:
+        - hugeParam
+        - rangeExprCopy
+        - rangeValCopy
+        - unnamedResult
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+    govet:
+      enable:
+        - shadow
+    lll:
+      line-length: 130
+      tab-width: 4
+    misspell:
+      locale: US
+    nakedret:
+      max-func-lines: 1
+    tagliatelle:
+      case:
+        rules:
+          avro: snake
+          bson: camel
+          json: snake
+          mapstructure: kebab
+          xml: camel
+          yaml: snake
   exclusions:
     generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - testpackage
+        path: pkg/client/loca/loca_client_test.go
+      - linters:
+          - testpackage
+        path: pkg/client/loca/loca_calls_test.go
+      - linters:
+          - testpackage
+        path: pkg/client/loca/loca_util_test.go
+      - linters:
+          - testpackage
+        path: pkg/client/loca/loca_testing_util_test.go
+      - linters:
+          - testpackage
+        path: pkg/client/loca/loca_task_tracker_test.go
+      - linters:
+          - testpackage
+        path: pkg/flags/flags_test.go
+      - linters:
+          - testpackage
+        path: internal/manager/locarm_test.go
+      - linters:
+          - testpackage
+        path: internal/handlers/host_reconciler_test.go
+      - linters:
+          - testpackage
+        path: internal/handlers/instance_reconciler_test.go
+      - path: (.+)\.go$
+        text: Error return value of `.*Close` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `.*Flush` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `.*Write` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `.*Stop` is not checked
     paths:
-      - pkg/api/
       - third_party$
       - builtin$
       - examples$
-
-run:
-  timeout: 10m
-  issues-exit-code: 1
-  tests: true
-  modules-download-mode: readonly
-  go: ""
-
 issues:
   max-issues-per-linter: 0
-
   max-same-issues: 0
-
   uniq-by-line: false
-
-  # When set to `true` linter will analyze only new code which are
-  # not committed or after some specific revision. This is a cool
-  # feature when you're going to introduce linter into a big project.
-  # But I prefer going gradually package by package.
-  # So, it's set to `false` to scan all code.
   new: false
-
   fix: false
-
-  exclude:
-    - Error return value of `.*Close` is not checked
-    - Error return value of `.*Flush` is not checked
-    - Error return value of `.*Write` is not checked
-    - Error return value of `.*Stop` is not checked
-
-  exclude-rules:
-    - path: pkg/client/loca/loca_client_test.go
-      linters:
-        # setting it as a separate package, loca_test, would not allow to
-        # test unexported functions, which are main pillars of this codebase.
-        - testpackage
-    - path: pkg/client/loca/loca_calls_test.go
-      linters:
-        # setting it as a separate package, loca_test, would not allow to
-        # test unexported functions, which are main pillars of this codebase.
-        - testpackage
-    - path: pkg/client/loca/loca_util_test.go
-      linters:
-        # setting it as a separate package, loca_test, would not allow to
-        # test unexported functions, which are main pillars of this codebase.
-        - testpackage
-    - path: pkg/client/loca/loca_testing_util_test.go
-      linters:
-        # setting it as a separate package, loca_test, would not allow to
-        # test unexported functions, which are main pillars of this codebase.
-        - testpackage
-    - path: pkg/client/loca/loca_task_tracker_test.go
-      linters:
-        # setting it as a separate package, loca_test, would not allow to
-        # test unexported functions, which are main pillars of this codebase.
-        - testpackage
-    - path: pkg/flags/flags_test.go
-      linters:
-        # setting it as a separate package, loca_test, would not allow to
-        # test unexported functions, which are main pillars of this codebase.
-        - testpackage
-    - path: internal/manager/locarm_test.go
-      linters:
-        # setting it as a separate package, loca_test, would not allow to
-        # test unexported functions, which are main pillars of this codebase.
-        - testpackage
-    - path: internal/handlers/host_reconciler_test.go
-      linters:
-        # setting it as a separate package, loca_test, would not allow to
-        # test unexported functions, which are main pillars of this codebase.
-        - testpackage
-    - path: internal/handlers/instance_reconciler_test.go
-      linters:
-        # setting it as a separate package, loca_test, would not allow to
-        # test unexported functions, which are main pillars of this codebase.
-        - testpackage
-output:
-  formats:
-    text:
-      path: stdout
-      print-linter-name: true
-    html:
-      path: out/golangci-lint_report.html
-  sort-results: true
 formatters:
   enable:
     - gci
@@ -240,7 +219,6 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - pkg/api/
       - third_party$
       - builtin$
       - examples$

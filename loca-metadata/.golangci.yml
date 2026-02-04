@@ -3,49 +3,59 @@
 # SPDX-License-Identifier: Apache-2.0
 
 version: "2"
-
 run:
-  timeout: 10m
+  go: ""
+  modules-download-mode: readonly
   issues-exit-code: 1
   tests: true
-  modules-download-mode: readonly
-  go: ""
-
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+    html:
+      path: out/golangci-lint.html
+    junit-xml:
+      path: out/golangci-lint.xml
 linters:
-  disable-all: true
   enable:
-    - errcheck
-    - staticcheck
     - asasalint
     - asciicheck
     - bidichk
     - bodyclose
     - copyloopvar
     - cyclop
-    # - depguard  # Many import violations
+    - depguard
     - dogsled
+    - dupl
     - durationcheck
     - errname
     - errorlint
     - exhaustive
-    # - funlen  # Main function is too long
+    - funlen
     - gochecknoinits
     - goconst
     - gocritic
     - gocyclo
-    # - gosec  # Too many security warnings
+    - godot
+    - goheader
     - goprintffuncname
-    # - lll  # Many long lines in comments
+    - gosec
+    - lll
     - misspell
     - mnd
     - nakedret
+    - nilerr
     - nilnil
-    # - noctx  # Context not always needed
-    # - nolintlint  # Noisy
-    # - prealloc  # Minor optimization
+    - noctx
+    - nolintlint
+    - prealloc
     - predeclared
-    # - revive  # Too many style warnings
+    - revive
+    - staticcheck
+    - tagliatelle
     - testableexamples
+    - testpackage
     - thelper
     - tparallel
     - unconvert
@@ -54,64 +64,101 @@ linters:
     - whitespace
   settings:
     cyclop:
-      # SDL requirements dictate a maximum cyclomatic complexity of 10
       max-complexity: 10
+    depguard:
+      rules:
+        Main:
+          files:
+            - $all
+            - '!$test'
+          allow:
+            - $gostd
+            - github.com/open-edge-platform
+            - entgo.io/ent
+            - github.com/goccy/go-json
+            - github.com/google
+            - github.com/grpc-ecosystem
+            - github.com/mennanov/fmutils
+            - github.com/labstack/echo
+            - github.com/onosproject
+            - github.com/open-policy-agent
+            - github.com/pkg/errors
+            - github.com/rs/zerolog
+            - github.com/cenkalti/backoff
+            - github.com/stretchr/testify/require
+            - github.com/stretchr/testify/assert
+            - github.com/iancoleman/strcase
+            - github.com/jackc/pgx/v5/stdlib
+            - github.com/hashicorp/vault/api
+            - github.com/prometheus/client_golang/prometheus
+        Test:
+          files:
+            - $test
+          allow:
+            - $gostd
+            - github.com/open-edge-platform
+            - github.com/goccy/go-json
+            - github.com/google
+            - github.com/grpc-ecosystem
+            - github.com/mennanov/fmutils
+            - github.com/onosproject
+            - github.com/rs/zerolog
+            - github.com/stretchr/testify/require
+            - github.com/stretchr/testify/assert
+            - github.com/grpc-ecosystem/go-grpc-middleware/util/metautils
+            - github.com/hashicorp/vault/api
+            - github.com/stretchr/testify/mock
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+      exclude-functions:
+        - io/ioutil.ReadFile
+        - io.Copy(*bytes.Buffer)
+        - io.Copy(os.Stdout)
+    exhaustive:
+      default-signifies-exhaustive: true
+    funlen:
+      lines: 100
+      statements: 50
     gocritic:
+      disabled-checks:
+        - hugeParam
+        - rangeExprCopy
+        - rangeValCopy
+        - unnamedResult
       enabled-tags:
         - diagnostic
         - experimental
         - opinionated
         - performance
         - style
-      disabled-checks:
-        # These 3 will detect many cases, but they do sense
-        # if it's performance oriented code
-        - hugeParam
-        - rangeExprCopy
-        - rangeValCopy
-        - unnamedResult
-    exhaustive:
-      default-signifies-exhaustive: true
+    govet:
+      enable:
+        - shadow
+    lll:
+      line-length: 130
+      tab-width: 4
     misspell:
       locale: US
+    nakedret:
+      max-func-lines: 1
+    tagliatelle:
+      case:
+        rules:
+          avro: snake
+          bson: camel
+          json: snake
+          mapstructure: kebab
+          xml: camel
+          yaml: snake
   exclusions:
     generated: lax
-    paths:
-      - pkg/api/
-      - third_party$
-      - builtin$
-      - examples$
-
-issues:
-  max-issues-per-linter: 0
-
-  max-same-issues: 0
-
-  uniq-by-line: false
-
-  # When set to `true` linter will analyze only new code which are
-  # not committed or after some specific revision. This is a cool
-  # feature when you're going to introduce linter into a big project.
-  # But I prefer going gradually package by package.
-  # So, it's set to `false` to scan all code.
-  new: false
-
-  fix: false
-  exclusions:
-    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
     rules:
-      - linters:
-          - funlen
-        path: cmd/locametamgr.go
-      - linters:
-          - lll
-        path: internal/handlers/site_reconciler.go
-      - linters:
-          - lll
-        path: internal/manager/locamm.go
-      - linters:
-          - lll
-        path: pkg/util/util.go
       - linters:
           - testpackage
         path: internal/handlers/site_reconciler_test.go
@@ -136,21 +183,15 @@ issues:
       - path: (.+)\.go$
         text: Error return value of `.*Stop` is not checked
     paths:
-      - pkg/api/
       - third_party$
       - builtin$
       - examples$
-
-output:
-  formats:
-    text:
-      path: stdout
-      print-linter-name: true
-    html:
-      path: out/golangci-lint.html
-    junit-xml:
-      path: out/golangci-lint.xml
-  sort-results: true
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  uniq-by-line: false
+  new: false
+  fix: false
 formatters:
   enable:
     - gci
@@ -165,7 +206,6 @@ formatters:
   exclusions:
     generated: lax
     paths:
-      - pkg/api/
       - third_party$
       - builtin$
       - examples$

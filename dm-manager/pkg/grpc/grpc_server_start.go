@@ -4,6 +4,7 @@
 package grpc
 
 import (
+	"context"
 	"net"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -43,7 +44,8 @@ type DMHandler struct {
 }
 
 func NewDMHandler(invClient client.TenantAwareInventoryClient, config DMHandlerConfig) (*DMHandler, error) {
-	lis, err := net.Listen("tcp", config.ServerAddress)
+	lc := net.ListenConfig{}
+	lis, err := lc.Listen(context.Background(), "tcp", config.ServerAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +72,7 @@ func (dmh *DMHandler) Start() error {
 	if err != nil {
 		return err
 	}
-	var srvOpts []grpc.ServerOption
+	srvOpts := make([]grpc.ServerOption, 0, 1)
 	var unaryInter []grpc.UnaryServerInterceptor
 	unaryInter = append(unaryInter, inv_tenant.GetExtractTenantIDInterceptor(inv_tenant.GetAgentsRole()))
 	srvMetrics := metrics.GetServerMetricsWithLatency()

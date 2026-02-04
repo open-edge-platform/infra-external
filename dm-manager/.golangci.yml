@@ -1,7 +1,7 @@
+---
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
----
 version: "2"
 run:
   go: ""
@@ -16,59 +16,43 @@ output:
     html:
       path: out/golangci-lint_report.html
 linters:
-  disable-all: true
   enable:
     - asasalint
     - asciicheck
     - bidichk
     - bodyclose
+    - copyloopvar
     - cyclop
-    - decorder
     - depguard
     - dogsled
     - durationcheck
-    - errcheck  # Re-enabled but with proper exclusions
-    - errchkjson
     - errname
     - errorlint
     - exhaustive
-    - copyloopvar
-    - forbidigo  # Re-enabled after fixing fmt.Println
-    - forcetypeassert
     - funlen
-    - gocheckcompilerdirectives
-    # - gochecknoglobals  # Disabled - flags and package-level constants are idiomatic Go
     - gochecknoinits
-    - gochecksumtype
     - goconst
     - gocritic
     - gocyclo
-    # - godox  # Disabled - TODO comments are valuable documentation
-    - gomoddirectives
+    - godot
+    - goheader
     - goprintffuncname
-    - gosmopolitan
-    - grouper
-    - intrange  # Re-enabled after fixing loop
+    - gosec
     - lll
-    - loggercheck
-    - maintidx
-    - mirror
     - misspell
     - mnd
-    - musttag
     - nakedret
+    - nilerr
     - nilnil
-    - nosprintfhostport
-    - perfsprint
+    - noctx
+    - nolintlint
+    - prealloc
     - predeclared
-    - promlinter
-    - reassign
-    - sloglint
-    - spancheck
-    - staticcheck  # Re-enabled after fixing De Morgan's law
-    # - tagliatelle  # Disabled - test structs match external API format
+    - revive
+    - staticcheck
+    - tagliatelle
     - testableexamples
-    # - testifylint  # Disabled - assert.NoError is acceptable in tests
+    - testpackage
     - thelper
     - tparallel
     - unconvert
@@ -83,7 +67,7 @@ linters:
         main:
           files:
             - $all
-            - "!$test"
+            - '!$test'
           allow:
             - $gostd
             - github.com/open-edge-platform
@@ -98,7 +82,7 @@ linters:
             - google.golang.org/protobuf/types/known/fieldmaskpb
         test:
           files:
-            - "$test"
+            - $test
           allow:
             - $gostd
             - github.com/open-edge-platform
@@ -114,7 +98,7 @@ linters:
             - google.golang.org/protobuf/types/known/fieldmaskpb
     errcheck:
       check-type-assertions: true
-      check-blank: false  # Allow _ = for intentional ignoring
+      check-blank: true
       exclude-functions:
         - io/ioutil.ReadFile
         - io.Copy(*bytes.Buffer)
@@ -131,17 +115,12 @@ linters:
         - rangeExprCopy
         - rangeValCopy
         - whyNoLint
-        - importShadow  # Disabled as it's too noisy in test files
       enabled-tags:
         - diagnostic
         - experimental
         - opinionated
         - performance
         - style
-    gomoddirectives:
-      replace-allow-list:
-        - github.com/open-edge-platform/infra-external/loca-onboarding/v2
-      replace-local: true
     govet:
       enable:
         - shadow
@@ -163,81 +142,40 @@ linters:
           yaml: snake
   exclusions:
     generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - testpackage
+        path: pkg/tenant/controller_test.go
+      - linters:
+          - testpackage
+        path: pkg/tenant/utils_test.go
+      - linters:
+          - tagliatelle
+          - testpackage
+        path: pkg/device/device_test.go
+      - path: (.+)\.go$
+        text: Error return value of `.*Close` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `.*Flush` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `.*Write` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `.*Stop` is not checked
     paths:
-      - pkg/api/
       - third_party$
       - builtin$
       - examples$
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
+  uniq-by-line: false
   new: false
   fix: false
-  exclude-rules:
-    - linters:
-        - testpackage
-      path: pkg/tenant/controller_test.go
-    - linters:
-        - testpackage
-      path: pkg/tenant/utils_test.go
-    - linters:
-        - testpackage
-      path: pkg/device/device_test.go
-    - linters:
-        - intrange
-      path: pkg/grpc/grpc_server_start_test.go
-    - linters:
-        - staticcheck
-      path: cmd/dm-manager.go
-    # Exclude errcheck for intentionally ignored Close() calls in defers with blank identifier
-    - linters:
-        - errcheck
-      text: "Error return value of .* is not checked"
-    # Exclude global variables that are loggers
-    - linters:
-        - gochecknoglobals
-      text: "(log|zlog|loggerName|name) is a global variable"
-    # Exclude global variables that are flag definitions and channels in cmd
-    - linters:
-        - gochecknoglobals
-      path: cmd/
-    # Exclude global variables that are mapping constants
-    - linters:
-        - gochecknoglobals
-      path: pkg/device/device.go
-    # Exclude global variables that are status constants
-    - linters:
-        - gochecknoglobals
-      path: pkg/status/status.go
-    # Exclude global variables in grpc server
-    - linters:
-        - gochecknoglobals
-      path: pkg/grpc/
-    # Exclude TODO/FIXME comments as they indicate future work
-    - linters:
-        - godox
-    # Exclude tagliatelle for test structs matching external API format
-    - linters:
-        - tagliatelle
-      path: _test\.go$
-    # Exclude testifylint for legacy test patterns that are acceptable
-    - linters:
-        - testifylint
-    - path: (.+)\.go$
-      text: Error return value of `.*Close` is not checked
-    - path: (.+)\.go$
-      text: Error return value of `.*Flush` is not checked
-    - path: (.+)\.go$
-      text: Error return value of `.*Write` is not checked
-    - path: (.+)\.go$
-      text: Error return value of `.*Stop` is not checked
-  exclusions:
-    generated: lax
-    paths:
-      - pkg/api/
-      - third_party$
-      - builtin$
-      - examples$
 formatters:
   enable:
     - gci
@@ -251,11 +189,11 @@ formatters:
         - default
         - prefix(github.com/open-edge-platform)
     gofumpt:
-      module-path: github.com/open-edge-platform/infra-external/dm-manager
+      module-path: |
+        github.com/open-edge-platform/infra-external/dm-manager
   exclusions:
     generated: lax
     paths:
-      - pkg/api/
       - third_party$
       - builtin$
       - examples$
