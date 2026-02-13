@@ -7,6 +7,7 @@ package licenses
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type PostAPIV1LicensesExportReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *PostAPIV1LicensesExportReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *PostAPIV1LicensesExportReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 200:
 		result := NewPostAPIV1LicensesExportOK()
@@ -64,7 +65,7 @@ PostAPIV1LicensesExportOK describes a response with status code 200, with defaul
 success
 */
 type PostAPIV1LicensesExportOK struct {
-	Payload interface{}
+	Payload any
 }
 
 // IsSuccess returns true when this post Api v1 licenses export o k response has a 2xx status code
@@ -107,14 +108,14 @@ func (o *PostAPIV1LicensesExportOK) String() string {
 	return fmt.Sprintf("[POST /api/v1/licenses/export][%d] postApiV1LicensesExportOK %s", 200, payload)
 }
 
-func (o *PostAPIV1LicensesExportOK) GetPayload() interface{} {
+func (o *PostAPIV1LicensesExportOK) GetPayload() any {
 	return o.Payload
 }
 
 func (o *PostAPIV1LicensesExportOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -184,7 +185,7 @@ func (o *PostAPIV1LicensesExportBadRequest) readResponse(response runtime.Client
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -254,7 +255,7 @@ func (o *PostAPIV1LicensesExportUnauthorized) readResponse(response runtime.Clie
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -324,7 +325,7 @@ func (o *PostAPIV1LicensesExportInternalServerError) readResponse(response runti
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

@@ -159,7 +159,7 @@ func (tg *tenantGetter) startTenantGetter() {
 			case <-tg.stopChan:
 				zlog.Debug().Msg("stopping tenant getter")
 				if tg.inventoryClient != nil {
-					tg.inventoryClient.Close()
+					_ = tg.inventoryClient.Close()
 				}
 				return
 			}

@@ -109,7 +109,7 @@ type ClientService interface {
 GetAPIV1DeploymentImages gets all mini images
 */
 func (a *Client) GetAPIV1DeploymentImages(params *GetAPIV1DeploymentImagesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DeploymentImagesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1DeploymentImagesParams()
 	}
@@ -129,17 +129,22 @@ func (a *Client) GetAPIV1DeploymentImages(params *GetAPIV1DeploymentImagesParams
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1DeploymentImagesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1DeploymentImages: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -148,7 +153,7 @@ func (a *Client) GetAPIV1DeploymentImages(params *GetAPIV1DeploymentImagesParams
 GetAPIV1DeploymentImagesDownload downloads a mini image
 */
 func (a *Client) GetAPIV1DeploymentImagesDownload(params *GetAPIV1DeploymentImagesDownloadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DeploymentImagesDownloadOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1DeploymentImagesDownloadParams()
 	}
@@ -168,17 +173,22 @@ func (a *Client) GetAPIV1DeploymentImagesDownload(params *GetAPIV1DeploymentImag
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1DeploymentImagesDownloadOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1DeploymentImagesDownload: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -187,7 +197,7 @@ func (a *Client) GetAPIV1DeploymentImagesDownload(params *GetAPIV1DeploymentImag
 GetAPIV1DeploymentInstances gets instances metadata
 */
 func (a *Client) GetAPIV1DeploymentInstances(params *GetAPIV1DeploymentInstancesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DeploymentInstancesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1DeploymentInstancesParams()
 	}
@@ -207,17 +217,22 @@ func (a *Client) GetAPIV1DeploymentInstances(params *GetAPIV1DeploymentInstances
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1DeploymentInstancesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1DeploymentInstances: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -226,7 +241,7 @@ func (a *Client) GetAPIV1DeploymentInstances(params *GetAPIV1DeploymentInstances
 GetAPIV1DeploymentInstancesID queries instance by id
 */
 func (a *Client) GetAPIV1DeploymentInstancesID(params *GetAPIV1DeploymentInstancesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DeploymentInstancesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1DeploymentInstancesIDParams()
 	}
@@ -246,17 +261,22 @@ func (a *Client) GetAPIV1DeploymentInstancesID(params *GetAPIV1DeploymentInstanc
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1DeploymentInstancesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1DeploymentInstancesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -265,7 +285,7 @@ func (a *Client) GetAPIV1DeploymentInstancesID(params *GetAPIV1DeploymentInstanc
 GetAPIV1DeploymentInstancesPlanning gets instances planning metadata
 */
 func (a *Client) GetAPIV1DeploymentInstancesPlanning(params *GetAPIV1DeploymentInstancesPlanningParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DeploymentInstancesPlanningOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1DeploymentInstancesPlanningParams()
 	}
@@ -285,17 +305,22 @@ func (a *Client) GetAPIV1DeploymentInstancesPlanning(params *GetAPIV1DeploymentI
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1DeploymentInstancesPlanningOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1DeploymentInstancesPlanning: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -304,7 +329,7 @@ func (a *Client) GetAPIV1DeploymentInstancesPlanning(params *GetAPIV1DeploymentI
 GetAPIV1DeploymentReadiness queries readiness
 */
 func (a *Client) GetAPIV1DeploymentReadiness(params *GetAPIV1DeploymentReadinessParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DeploymentReadinessOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1DeploymentReadinessParams()
 	}
@@ -324,17 +349,22 @@ func (a *Client) GetAPIV1DeploymentReadiness(params *GetAPIV1DeploymentReadiness
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1DeploymentReadinessOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1DeploymentReadiness: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -343,7 +373,7 @@ func (a *Client) GetAPIV1DeploymentReadiness(params *GetAPIV1DeploymentReadiness
 GetAPIV1DeploymentRegistrationtoolDownload gets registration tool
 */
 func (a *Client) GetAPIV1DeploymentRegistrationtoolDownload(params *GetAPIV1DeploymentRegistrationtoolDownloadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DeploymentRegistrationtoolDownloadOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1DeploymentRegistrationtoolDownloadParams()
 	}
@@ -363,17 +393,22 @@ func (a *Client) GetAPIV1DeploymentRegistrationtoolDownload(params *GetAPIV1Depl
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1DeploymentRegistrationtoolDownloadOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1DeploymentRegistrationtoolDownload: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -382,7 +417,7 @@ func (a *Client) GetAPIV1DeploymentRegistrationtoolDownload(params *GetAPIV1Depl
 GetAPIV1DeploymentTemplates queries templates
 */
 func (a *Client) GetAPIV1DeploymentTemplates(params *GetAPIV1DeploymentTemplatesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DeploymentTemplatesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1DeploymentTemplatesParams()
 	}
@@ -402,17 +437,22 @@ func (a *Client) GetAPIV1DeploymentTemplates(params *GetAPIV1DeploymentTemplates
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1DeploymentTemplatesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1DeploymentTemplates: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -421,7 +461,7 @@ func (a *Client) GetAPIV1DeploymentTemplates(params *GetAPIV1DeploymentTemplates
 GetAPIV1DeploymentTemplatesID queries template by id
 */
 func (a *Client) GetAPIV1DeploymentTemplatesID(params *GetAPIV1DeploymentTemplatesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DeploymentTemplatesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1DeploymentTemplatesIDParams()
 	}
@@ -441,17 +481,22 @@ func (a *Client) GetAPIV1DeploymentTemplatesID(params *GetAPIV1DeploymentTemplat
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1DeploymentTemplatesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1DeploymentTemplatesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -460,7 +505,7 @@ func (a *Client) GetAPIV1DeploymentTemplatesID(params *GetAPIV1DeploymentTemplat
 PostAPIV1DeploymentImages creates mini image
 */
 func (a *Client) PostAPIV1DeploymentImages(params *PostAPIV1DeploymentImagesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentImagesCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentImagesParams()
 	}
@@ -480,17 +525,22 @@ func (a *Client) PostAPIV1DeploymentImages(params *PostAPIV1DeploymentImagesPara
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentImagesCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentImages: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -499,7 +549,7 @@ func (a *Client) PostAPIV1DeploymentImages(params *PostAPIV1DeploymentImagesPara
 PostAPIV1DeploymentInstances onboards and deploy instances by the planning metadata
 */
 func (a *Client) PostAPIV1DeploymentInstances(params *PostAPIV1DeploymentInstancesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentInstancesCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentInstancesParams()
 	}
@@ -519,17 +569,22 @@ func (a *Client) PostAPIV1DeploymentInstances(params *PostAPIV1DeploymentInstanc
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentInstancesCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentInstances: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -538,7 +593,7 @@ func (a *Client) PostAPIV1DeploymentInstances(params *PostAPIV1DeploymentInstanc
 PostAPIV1DeploymentInstancesCreate creates instances through a single request
 */
 func (a *Client) PostAPIV1DeploymentInstancesCreate(params *PostAPIV1DeploymentInstancesCreateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentInstancesCreateCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentInstancesCreateParams()
 	}
@@ -558,17 +613,22 @@ func (a *Client) PostAPIV1DeploymentInstancesCreate(params *PostAPIV1DeploymentI
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentInstancesCreateCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentInstancesCreate: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -577,7 +637,7 @@ func (a *Client) PostAPIV1DeploymentInstancesCreate(params *PostAPIV1DeploymentI
 PostAPIV1DeploymentInstancesDeploy deploys instance
 */
 func (a *Client) PostAPIV1DeploymentInstancesDeploy(params *PostAPIV1DeploymentInstancesDeployParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentInstancesDeployOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentInstancesDeployParams()
 	}
@@ -597,17 +657,22 @@ func (a *Client) PostAPIV1DeploymentInstancesDeploy(params *PostAPIV1DeploymentI
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentInstancesDeployOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentInstancesDeploy: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -616,7 +681,7 @@ func (a *Client) PostAPIV1DeploymentInstancesDeploy(params *PostAPIV1DeploymentI
 PostAPIV1DeploymentInstancesExpand expands instance
 */
 func (a *Client) PostAPIV1DeploymentInstancesExpand(params *PostAPIV1DeploymentInstancesExpandParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentInstancesExpandCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentInstancesExpandParams()
 	}
@@ -636,17 +701,22 @@ func (a *Client) PostAPIV1DeploymentInstancesExpand(params *PostAPIV1DeploymentI
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentInstancesExpandCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentInstancesExpand: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -655,7 +725,7 @@ func (a *Client) PostAPIV1DeploymentInstancesExpand(params *PostAPIV1DeploymentI
 PostAPIV1DeploymentInstancesOnboard onboards instances by the planning metadata
 */
 func (a *Client) PostAPIV1DeploymentInstancesOnboard(params *PostAPIV1DeploymentInstancesOnboardParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentInstancesOnboardCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentInstancesOnboardParams()
 	}
@@ -675,17 +745,22 @@ func (a *Client) PostAPIV1DeploymentInstancesOnboard(params *PostAPIV1Deployment
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentInstancesOnboardCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentInstancesOnboard: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -694,7 +769,7 @@ func (a *Client) PostAPIV1DeploymentInstancesOnboard(params *PostAPIV1Deployment
 PostAPIV1DeploymentInstancesPlanning plans instances metadata
 */
 func (a *Client) PostAPIV1DeploymentInstancesPlanning(params *PostAPIV1DeploymentInstancesPlanningParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentInstancesPlanningCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentInstancesPlanningParams()
 	}
@@ -714,17 +789,22 @@ func (a *Client) PostAPIV1DeploymentInstancesPlanning(params *PostAPIV1Deploymen
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentInstancesPlanningCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentInstancesPlanning: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -733,7 +813,7 @@ func (a *Client) PostAPIV1DeploymentInstancesPlanning(params *PostAPIV1Deploymen
 PostAPIV1DeploymentInstancesRemove removes instances
 */
 func (a *Client) PostAPIV1DeploymentInstancesRemove(params *PostAPIV1DeploymentInstancesRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentInstancesRemoveCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentInstancesRemoveParams()
 	}
@@ -753,17 +833,22 @@ func (a *Client) PostAPIV1DeploymentInstancesRemove(params *PostAPIV1DeploymentI
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentInstancesRemoveCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentInstancesRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -772,7 +857,7 @@ func (a *Client) PostAPIV1DeploymentInstancesRemove(params *PostAPIV1DeploymentI
 PostAPIV1DeploymentOsDeploy deploys os
 */
 func (a *Client) PostAPIV1DeploymentOsDeploy(params *PostAPIV1DeploymentOsDeployParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentOsDeployCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentOsDeployParams()
 	}
@@ -792,17 +877,22 @@ func (a *Client) PostAPIV1DeploymentOsDeploy(params *PostAPIV1DeploymentOsDeploy
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentOsDeployCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentOsDeploy: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -811,7 +901,7 @@ func (a *Client) PostAPIV1DeploymentOsDeploy(params *PostAPIV1DeploymentOsDeploy
 PostAPIV1DeploymentReadiness creates readiness
 */
 func (a *Client) PostAPIV1DeploymentReadiness(params *PostAPIV1DeploymentReadinessParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentReadinessCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentReadinessParams()
 	}
@@ -831,17 +921,22 @@ func (a *Client) PostAPIV1DeploymentReadiness(params *PostAPIV1DeploymentReadine
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentReadinessCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentReadiness: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -850,7 +945,7 @@ func (a *Client) PostAPIV1DeploymentReadiness(params *PostAPIV1DeploymentReadine
 PostAPIV1DeploymentTemplates creates a template
 */
 func (a *Client) PostAPIV1DeploymentTemplates(params *PostAPIV1DeploymentTemplatesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentTemplatesCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentTemplatesParams()
 	}
@@ -870,17 +965,22 @@ func (a *Client) PostAPIV1DeploymentTemplates(params *PostAPIV1DeploymentTemplat
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentTemplatesCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentTemplates: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -891,7 +991,7 @@ PostAPIV1DeploymentTemplatesMetadataRules retrieves template metadata rules for 
 Retrieves all setting rules for deployment templates to determine which fields can be modified in the template table
 */
 func (a *Client) PostAPIV1DeploymentTemplatesMetadataRules(params *PostAPIV1DeploymentTemplatesMetadataRulesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentTemplatesMetadataRulesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentTemplatesMetadataRulesParams()
 	}
@@ -911,17 +1011,22 @@ func (a *Client) PostAPIV1DeploymentTemplatesMetadataRules(params *PostAPIV1Depl
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentTemplatesMetadataRulesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentTemplatesMetadataRules: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -930,7 +1035,7 @@ func (a *Client) PostAPIV1DeploymentTemplatesMetadataRules(params *PostAPIV1Depl
 PostAPIV1DeploymentTemplatesRemove removes template
 */
 func (a *Client) PostAPIV1DeploymentTemplatesRemove(params *PostAPIV1DeploymentTemplatesRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentTemplatesRemoveOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentTemplatesRemoveParams()
 	}
@@ -950,17 +1055,22 @@ func (a *Client) PostAPIV1DeploymentTemplatesRemove(params *PostAPIV1DeploymentT
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentTemplatesRemoveOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentTemplatesRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -969,7 +1079,7 @@ func (a *Client) PostAPIV1DeploymentTemplatesRemove(params *PostAPIV1DeploymentT
 PostAPIV1DeploymentTemplatesUpdate updates a template
 */
 func (a *Client) PostAPIV1DeploymentTemplatesUpdate(params *PostAPIV1DeploymentTemplatesUpdateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1DeploymentTemplatesUpdateOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1DeploymentTemplatesUpdateParams()
 	}
@@ -989,17 +1099,22 @@ func (a *Client) PostAPIV1DeploymentTemplatesUpdate(params *PostAPIV1DeploymentT
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1DeploymentTemplatesUpdateOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1DeploymentTemplatesUpdate: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }

@@ -7,6 +7,7 @@ package certificate
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"io"
 
@@ -22,7 +23,7 @@ type PostAPIV1CertResetReader struct {
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *PostAPIV1CertResetReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *PostAPIV1CertResetReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (any, error) {
 	switch response.Code() {
 	case 200:
 		result := NewPostAPIV1CertResetOK()
@@ -64,7 +65,7 @@ PostAPIV1CertResetOK describes a response with status code 200, with default hea
 success
 */
 type PostAPIV1CertResetOK struct {
-	Payload interface{}
+	Payload any
 }
 
 // IsSuccess returns true when this post Api v1 cert reset o k response has a 2xx status code
@@ -107,14 +108,14 @@ func (o *PostAPIV1CertResetOK) String() string {
 	return fmt.Sprintf("[POST /api/v1/cert/reset][%d] postApiV1CertResetOK %s", 200, payload)
 }
 
-func (o *PostAPIV1CertResetOK) GetPayload() interface{} {
+func (o *PostAPIV1CertResetOK) GetPayload() any {
 	return o.Payload
 }
 
 func (o *PostAPIV1CertResetOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -184,7 +185,7 @@ func (o *PostAPIV1CertResetBadRequest) readResponse(response runtime.ClientRespo
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -254,7 +255,7 @@ func (o *PostAPIV1CertResetUnauthorized) readResponse(response runtime.ClientRes
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 
@@ -324,7 +325,7 @@ func (o *PostAPIV1CertResetInternalServerError) readResponse(response runtime.Cl
 	o.Payload = new(model.DtoErrResponse)
 
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && !stderrors.Is(err, io.EOF) {
 		return err
 	}
 

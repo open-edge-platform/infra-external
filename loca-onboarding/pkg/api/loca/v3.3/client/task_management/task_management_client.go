@@ -69,7 +69,7 @@ type ClientService interface {
 DeleteAPIV1TaskManagementTasksUUID deletes task with uuid
 */
 func (a *Client) DeleteAPIV1TaskManagementTasksUUID(params *DeleteAPIV1TaskManagementTasksUUIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteAPIV1TaskManagementTasksUUIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewDeleteAPIV1TaskManagementTasksUUIDParams()
 	}
@@ -89,17 +89,22 @@ func (a *Client) DeleteAPIV1TaskManagementTasksUUID(params *DeleteAPIV1TaskManag
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*DeleteAPIV1TaskManagementTasksUUIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for DeleteAPIV1TaskManagementTasksUUID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -108,7 +113,7 @@ func (a *Client) DeleteAPIV1TaskManagementTasksUUID(params *DeleteAPIV1TaskManag
 GetAPIV1TaskManagementTasks gets all tasks
 */
 func (a *Client) GetAPIV1TaskManagementTasks(params *GetAPIV1TaskManagementTasksParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1TaskManagementTasksOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1TaskManagementTasksParams()
 	}
@@ -128,17 +133,22 @@ func (a *Client) GetAPIV1TaskManagementTasks(params *GetAPIV1TaskManagementTasks
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1TaskManagementTasksOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1TaskManagementTasks: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -147,7 +157,7 @@ func (a *Client) GetAPIV1TaskManagementTasks(params *GetAPIV1TaskManagementTasks
 GetAPIV1TaskManagementTasksUUID gets task by uuid
 */
 func (a *Client) GetAPIV1TaskManagementTasksUUID(params *GetAPIV1TaskManagementTasksUUIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1TaskManagementTasksUUIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1TaskManagementTasksUUIDParams()
 	}
@@ -167,17 +177,22 @@ func (a *Client) GetAPIV1TaskManagementTasksUUID(params *GetAPIV1TaskManagementT
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1TaskManagementTasksUUIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1TaskManagementTasksUUID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }

@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -123,11 +124,15 @@ func (m *DtoSite) validateCloudServices(formats strfmt.Registry) error {
 
 		if m.CloudServices[i] != nil {
 			if err := m.CloudServices[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("cloudServices" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("cloudServices" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -149,11 +154,15 @@ func (m *DtoSite) validateCustomServices(formats strfmt.Registry) error {
 
 		if m.CustomServices[i] != nil {
 			if err := m.CustomServices[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("customServices" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("customServices" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -175,11 +184,15 @@ func (m *DtoSite) validateDNS(formats strfmt.Registry) error {
 
 		if m.DNS[i] != nil {
 			if err := m.DNS[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("dns" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("dns" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -201,11 +214,15 @@ func (m *DtoSite) validateIpranges(formats strfmt.Registry) error {
 
 		if m.Ipranges[i] != nil {
 			if err := m.Ipranges[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("ipranges" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("ipranges" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -227,11 +244,15 @@ func (m *DtoSite) validateNtp(formats strfmt.Registry) error {
 
 		if m.Ntp[i] != nil {
 			if err := m.Ntp[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("ntp" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("ntp" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -253,11 +274,15 @@ func (m *DtoSite) validateProxyServices(formats strfmt.Registry) error {
 
 		if m.ProxyServices[i] != nil {
 			if err := m.ProxyServices[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("proxyServices" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("proxyServices" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -312,11 +337,15 @@ func (m *DtoSite) contextValidateCloudServices(ctx context.Context, formats strf
 			}
 
 			if err := m.CloudServices[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("cloudServices" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("cloudServices" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -337,11 +366,15 @@ func (m *DtoSite) contextValidateCustomServices(ctx context.Context, formats str
 			}
 
 			if err := m.CustomServices[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("customServices" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("customServices" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -362,11 +395,15 @@ func (m *DtoSite) contextValidateDNS(ctx context.Context, formats strfmt.Registr
 			}
 
 			if err := m.DNS[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("dns" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("dns" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -387,11 +424,15 @@ func (m *DtoSite) contextValidateIpranges(ctx context.Context, formats strfmt.Re
 			}
 
 			if err := m.Ipranges[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("ipranges" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("ipranges" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -412,11 +453,15 @@ func (m *DtoSite) contextValidateNtp(ctx context.Context, formats strfmt.Registr
 			}
 
 			if err := m.Ntp[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("ntp" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("ntp" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -437,11 +482,15 @@ func (m *DtoSite) contextValidateProxyServices(ctx context.Context, formats strf
 			}
 
 			if err := m.ProxyServices[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("proxyServices" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("proxyServices" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

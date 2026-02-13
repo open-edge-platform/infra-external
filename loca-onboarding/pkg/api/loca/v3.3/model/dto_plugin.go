@@ -45,7 +45,7 @@ type DtoPlugin struct {
 	Name string `json:"name,omitempty"`
 
 	// options
-	Options map[string]interface{} `json:"options,omitempty"`
+	Options map[string]any `json:"options,omitempty"`
 
 	// support os deploy
 	SupportOsDeploy bool `json:"supportOsDeploy,omitempty"`

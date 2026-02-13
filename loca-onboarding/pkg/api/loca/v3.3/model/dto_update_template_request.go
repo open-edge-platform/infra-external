@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -30,7 +31,7 @@ type DtoUpdateTemplateRequest struct {
 	Devices []*DtoCreateUpdateTemplateDevice `json:"devices"`
 
 	// the extra vars of the template(the key should be a string and the value can be any type)
-	ExtraVars interface{} `json:"extraVars,omitempty"`
+	ExtraVars any `json:"extraVars,omitempty"`
 
 	// id
 	// Required: true
@@ -89,11 +90,15 @@ func (m *DtoUpdateTemplateRequest) validateDevices(formats strfmt.Registry) erro
 
 		if m.Devices[i] != nil {
 			if err := m.Devices[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("devices" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("devices" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -161,11 +166,15 @@ func (m *DtoUpdateTemplateRequest) contextValidateDevices(ctx context.Context, f
 			}
 
 			if err := m.Devices[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("devices" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("devices" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -90,11 +91,15 @@ func (m *HpcgitlabLabsLenovoComLocBackendCmdAPIModelsHardwareDetail) validateCre
 
 		if m.Credentials[i] != nil {
 			if err := m.Credentials[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("credentials" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("credentials" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -116,11 +121,15 @@ func (m *HpcgitlabLabsLenovoComLocBackendCmdAPIModelsHardwareDetail) validateInt
 
 		if m.Interfaces[i] != nil {
 			if err := m.Interfaces[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("interfaces" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("interfaces" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -142,11 +151,15 @@ func (m *HpcgitlabLabsLenovoComLocBackendCmdAPIModelsHardwareDetail) validateVau
 
 		if m.VaultCredentials[i] != nil {
 			if err := m.VaultCredentials[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("vaultCredentials" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("vaultCredentials" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -189,11 +202,15 @@ func (m *HpcgitlabLabsLenovoComLocBackendCmdAPIModelsHardwareDetail) contextVali
 			}
 
 			if err := m.Credentials[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("credentials" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("credentials" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -214,11 +231,15 @@ func (m *HpcgitlabLabsLenovoComLocBackendCmdAPIModelsHardwareDetail) contextVali
 			}
 
 			if err := m.Interfaces[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("interfaces" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("interfaces" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -239,11 +260,15 @@ func (m *HpcgitlabLabsLenovoComLocBackendCmdAPIModelsHardwareDetail) contextVali
 			}
 
 			if err := m.VaultCredentials[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("vaultCredentials" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("vaultCredentials" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

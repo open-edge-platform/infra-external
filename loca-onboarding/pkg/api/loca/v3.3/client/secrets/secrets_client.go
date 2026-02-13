@@ -87,7 +87,7 @@ type ClientService interface {
 DeleteAPIV1SecretsCredentialPoliciesID deletes a credential policy by id
 */
 func (a *Client) DeleteAPIV1SecretsCredentialPoliciesID(params *DeleteAPIV1SecretsCredentialPoliciesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteAPIV1SecretsCredentialPoliciesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewDeleteAPIV1SecretsCredentialPoliciesIDParams()
 	}
@@ -107,17 +107,22 @@ func (a *Client) DeleteAPIV1SecretsCredentialPoliciesID(params *DeleteAPIV1Secre
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*DeleteAPIV1SecretsCredentialPoliciesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for DeleteAPIV1SecretsCredentialPoliciesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -126,7 +131,7 @@ func (a *Client) DeleteAPIV1SecretsCredentialPoliciesID(params *DeleteAPIV1Secre
 GetAPIV1SecretsCredentialPolicies gets all credential policies
 */
 func (a *Client) GetAPIV1SecretsCredentialPolicies(params *GetAPIV1SecretsCredentialPoliciesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1SecretsCredentialPoliciesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1SecretsCredentialPoliciesParams()
 	}
@@ -146,17 +151,22 @@ func (a *Client) GetAPIV1SecretsCredentialPolicies(params *GetAPIV1SecretsCreden
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1SecretsCredentialPoliciesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1SecretsCredentialPolicies: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -165,7 +175,7 @@ func (a *Client) GetAPIV1SecretsCredentialPolicies(params *GetAPIV1SecretsCreden
 GetAPIV1SecretsCredentialPoliciesID queries a credential policy by id
 */
 func (a *Client) GetAPIV1SecretsCredentialPoliciesID(params *GetAPIV1SecretsCredentialPoliciesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1SecretsCredentialPoliciesIDOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1SecretsCredentialPoliciesIDParams()
 	}
@@ -185,17 +195,22 @@ func (a *Client) GetAPIV1SecretsCredentialPoliciesID(params *GetAPIV1SecretsCred
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1SecretsCredentialPoliciesIDOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1SecretsCredentialPoliciesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -204,7 +219,7 @@ func (a *Client) GetAPIV1SecretsCredentialPoliciesID(params *GetAPIV1SecretsCred
 GetAPIV1SecretsRegisteredVaults gets all registered vaults details
 */
 func (a *Client) GetAPIV1SecretsRegisteredVaults(params *GetAPIV1SecretsRegisteredVaultsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1SecretsRegisteredVaultsOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewGetAPIV1SecretsRegisteredVaultsParams()
 	}
@@ -224,17 +239,22 @@ func (a *Client) GetAPIV1SecretsRegisteredVaults(params *GetAPIV1SecretsRegister
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*GetAPIV1SecretsRegisteredVaultsOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1SecretsRegisteredVaults: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -243,7 +263,7 @@ func (a *Client) GetAPIV1SecretsRegisteredVaults(params *GetAPIV1SecretsRegister
 PostAPIV1SecretsCredentialPolicies creates credential policies
 */
 func (a *Client) PostAPIV1SecretsCredentialPolicies(params *PostAPIV1SecretsCredentialPoliciesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1SecretsCredentialPoliciesOK, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1SecretsCredentialPoliciesParams()
 	}
@@ -263,17 +283,22 @@ func (a *Client) PostAPIV1SecretsCredentialPolicies(params *PostAPIV1SecretsCred
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1SecretsCredentialPoliciesOK)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1SecretsCredentialPolicies: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -282,7 +307,7 @@ func (a *Client) PostAPIV1SecretsCredentialPolicies(params *PostAPIV1SecretsCred
 PostAPIV1SecretsCredentialPoliciesRemove updates credential policies
 */
 func (a *Client) PostAPIV1SecretsCredentialPoliciesRemove(params *PostAPIV1SecretsCredentialPoliciesRemoveParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1SecretsCredentialPoliciesRemoveCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1SecretsCredentialPoliciesRemoveParams()
 	}
@@ -302,17 +327,22 @@ func (a *Client) PostAPIV1SecretsCredentialPoliciesRemove(params *PostAPIV1Secre
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1SecretsCredentialPoliciesRemoveCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1SecretsCredentialPoliciesRemove: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -321,7 +351,7 @@ func (a *Client) PostAPIV1SecretsCredentialPoliciesRemove(params *PostAPIV1Secre
 PostAPIV1SecretsCredentialPoliciesUpdate updates credential policies
 */
 func (a *Client) PostAPIV1SecretsCredentialPoliciesUpdate(params *PostAPIV1SecretsCredentialPoliciesUpdateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1SecretsCredentialPoliciesUpdateCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1SecretsCredentialPoliciesUpdateParams()
 	}
@@ -341,17 +371,22 @@ func (a *Client) PostAPIV1SecretsCredentialPoliciesUpdate(params *PostAPIV1Secre
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1SecretsCredentialPoliciesUpdateCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1SecretsCredentialPoliciesUpdate: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -360,7 +395,7 @@ func (a *Client) PostAPIV1SecretsCredentialPoliciesUpdate(params *PostAPIV1Secre
 PostAPIV1SecretsSecretsFile gets an encrypted file with all l o c a secrets from vault
 */
 func (a *Client) PostAPIV1SecretsSecretsFile(params *PostAPIV1SecretsSecretsFileParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) error {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1SecretsSecretsFileParams()
 	}
@@ -380,11 +415,12 @@ func (a *Client) PostAPIV1SecretsSecretsFile(params *PostAPIV1SecretsSecretsFile
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	_, err := a.transport.Submit(op)
 	if err != nil {
 		return err
 	}
+	// no success response is defined: return nil
+
 	return nil
 }
 
@@ -392,7 +428,7 @@ func (a *Client) PostAPIV1SecretsSecretsFile(params *PostAPIV1SecretsSecretsFile
 PostAPIV1SecretsUnderPath gets the list of secrets under a certain secret path
 */
 func (a *Client) PostAPIV1SecretsUnderPath(params *PostAPIV1SecretsUnderPathParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) error {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1SecretsUnderPathParams()
 	}
@@ -412,11 +448,12 @@ func (a *Client) PostAPIV1SecretsUnderPath(params *PostAPIV1SecretsUnderPathPara
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	_, err := a.transport.Submit(op)
 	if err != nil {
 		return err
 	}
+	// no success response is defined: return nil
+
 	return nil
 }
 
@@ -424,7 +461,7 @@ func (a *Client) PostAPIV1SecretsUnderPath(params *PostAPIV1SecretsUnderPathPara
 PostAPIV1SecretsVaultRegister registers secret management vault service
 */
 func (a *Client) PostAPIV1SecretsVaultRegister(params *PostAPIV1SecretsVaultRegisterParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) error {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1SecretsVaultRegisterParams()
 	}
@@ -444,11 +481,12 @@ func (a *Client) PostAPIV1SecretsVaultRegister(params *PostAPIV1SecretsVaultRegi
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	_, err := a.transport.Submit(op)
 	if err != nil {
 		return err
 	}
+	// no success response is defined: return nil
+
 	return nil
 }
 
@@ -456,7 +494,7 @@ func (a *Client) PostAPIV1SecretsVaultRegister(params *PostAPIV1SecretsVaultRegi
 PostAPIV1SecretsVaultUnregister unregisters secret management vault service
 */
 func (a *Client) PostAPIV1SecretsVaultUnregister(params *PostAPIV1SecretsVaultUnregisterParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1SecretsVaultUnregisterCreated, error) {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1SecretsVaultUnregisterParams()
 	}
@@ -476,17 +514,22 @@ func (a *Client) PostAPIV1SecretsVaultUnregister(params *PostAPIV1SecretsVaultUn
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
+
+	// only one success response has to be checked
 	success, ok := result.(*PostAPIV1SecretsVaultUnregisterCreated)
 	if ok {
 		return success, nil
 	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+
+	// unexpected success response.
+
+	// no default response is defined.
+	//
+	// safeguard: normally, in the absence of a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAPIV1SecretsVaultUnregister: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
@@ -495,7 +538,7 @@ func (a *Client) PostAPIV1SecretsVaultUnregister(params *PostAPIV1SecretsVaultUn
 PostAPIV1SecretsVaultUpdate registers secret management vault service
 */
 func (a *Client) PostAPIV1SecretsVaultUpdate(params *PostAPIV1SecretsVaultUpdateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) error {
-	// TODO: Validate the params before sending
+	// NOTE: parameters are not validated before sending
 	if params == nil {
 		params = NewPostAPIV1SecretsVaultUpdateParams()
 	}
@@ -515,11 +558,12 @@ func (a *Client) PostAPIV1SecretsVaultUpdate(params *PostAPIV1SecretsVaultUpdate
 	for _, opt := range opts {
 		opt(op)
 	}
-
 	_, err := a.transport.Submit(op)
 	if err != nil {
 		return err
 	}
+	// no success response is defined: return nil
+
 	return nil
 }
 

@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -61,11 +62,15 @@ func (m *ModelsInstancesPlanningParams) validatePlanSites(formats strfmt.Registr
 
 		if m.PlanSites[i] != nil {
 			if err := m.PlanSites[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("planSites" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("planSites" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -100,11 +105,15 @@ func (m *ModelsInstancesPlanningParams) contextValidatePlanSites(ctx context.Con
 			}
 
 			if err := m.PlanSites[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("planSites" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("planSites" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

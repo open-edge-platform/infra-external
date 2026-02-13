@@ -7,6 +7,7 @@ package model
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 
 	"github.com/go-openapi/errors"
@@ -53,10 +54,10 @@ type DtoTaskInList struct {
 	Name string `json:"name,omitempty"`
 
 	// output
-	Output interface{} `json:"output,omitempty"`
+	Output any `json:"output,omitempty"`
 
 	// params
-	Params interface{} `json:"params,omitempty"`
+	Params any `json:"params,omitempty"`
 
 	// progress
 	Progress string `json:"progress,omitempty"`
@@ -71,7 +72,7 @@ type DtoTaskInList struct {
 	StopTime string `json:"stop_time,omitempty"`
 
 	// targets
-	Targets interface{} `json:"targets,omitempty"`
+	Targets any `json:"targets,omitempty"`
 
 	// type
 	Type int64 `json:"type,omitempty"`
@@ -109,11 +110,15 @@ func (m *DtoTaskInList) validateDetails(formats strfmt.Registry) error {
 
 		if m.Details[i] != nil {
 			if err := m.Details[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("details" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("details" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}
@@ -148,11 +153,15 @@ func (m *DtoTaskInList) contextValidateDetails(ctx context.Context, formats strf
 			}
 
 			if err := m.Details[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
+				ve := new(errors.Validation)
+				if stderrors.As(err, &ve) {
 					return ve.ValidateName("details" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
+				}
+				ce := new(errors.CompositeError)
+				if stderrors.As(err, &ce) {
 					return ce.ValidateName("details" + "." + strconv.Itoa(i))
 				}
+
 				return err
 			}
 		}

@@ -667,9 +667,8 @@ func Test_findHostInList(t *testing.T) {
 	host4 := util.BuildNewHost(uuid.NewString(), "BCD983ABC98")
 	host4.ResourceId = "host-abcdef78"
 
-	hostList := []*computev1.HostResource{
-		host1, host2, host3,
-	}
+	hostList := make([]*computev1.HostResource, 0, 4)
+	hostList = append(hostList, host1, host2, host3)
 
 	// Searching for Host, which exists
 	foundHost, exist, err := util.FindHostInList(host3, hostList)
@@ -1245,10 +1244,10 @@ func TestFindWhichCloudServiceAttachedToSite(t *testing.T) {
 		Name:            "No association Cloud Service",
 		SiteAssociation: make([]string, 0),
 	}
-	list1 := make([]*model.DtoCloudServiceListElement, 0)
+	list1 := make([]*model.DtoCloudServiceListElement, 0, 4)
 	list1 = append(list1, cs1, cs2, cs3, csNoSiteAssociation)
 
-	list2 := make([]*model.DtoCloudServiceListElement, 0)
+	list2 := make([]*model.DtoCloudServiceListElement, 0, 2)
 	list2 = append(list2, cs1, csNoSiteAssociation)
 
 	_, found := util.FindWhichCloudServiceAttachedToSite(siteName3, list1)

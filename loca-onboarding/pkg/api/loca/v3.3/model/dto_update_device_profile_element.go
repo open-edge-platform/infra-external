@@ -18,7 +18,7 @@ import (
 type DtoUpdateDeviceProfileElement struct {
 
 	// bmc
-	Bmc map[string]interface{} `json:"bmc,omitempty"`
+	Bmc map[string]any `json:"bmc,omitempty"`
 
 	// device models
 	DeviceModels []string `json:"deviceModels"`
@@ -27,7 +27,7 @@ type DtoUpdateDeviceProfileElement struct {
 	ID string `json:"id,omitempty"`
 
 	// uefi
-	Uefi map[string]interface{} `json:"uefi,omitempty"`
+	Uefi map[string]any `json:"uefi,omitempty"`
 }
 
 // Validate validates this dto update device profile element
