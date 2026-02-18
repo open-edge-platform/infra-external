@@ -11,6 +11,7 @@ on:
       - release-*
     paths:
       - "loca-templates/**"
+  workflow_dispatch:
 
 permissions:
   contents: read
