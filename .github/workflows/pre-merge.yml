@@ -34,10 +34,10 @@ jobs:
         with:
           persist-credentials: false
       - name: "Verify Branch Name"
-        uses: open-edge-platform/orch-ci/verify-branch-name@dfa4b9751dcaaa8207662fb43de90742b024210b  # 2026.0.8
+        uses: open-edge-platform/orch-ci/verify-branch-name@cd0b18b2ef0e2c52665525fa5503b8ec5edd232f  # 2026.0.8
       - name: "Discover Changed Subfolders"
         id: discover-changes
-        uses: open-edge-platform/orch-ci/discover-changed-subfolders@dfa4b9751dcaaa8207662fb43de90742b024210b  # 2026.0.8
+        uses: open-edge-platform/orch-ci/discover-changed-subfolders@cd0b18b2ef0e2c52665525fa5503b8ec5edd232f  # 2026.0.8
       - name: "Filter Out Unwanted Changed Subfolders"
         id: filter-changes
         env:
