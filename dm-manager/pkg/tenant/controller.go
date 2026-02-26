@@ -37,6 +37,10 @@ const (
 
 	StaticPasswordPolicy  = "static"
 	DynamicPasswordPolicy = "dynamic"
+
+	// Profile name suffixes for CCM and ACM activation modes.
+	ccmProfileSuffix = "_ccm"
+	acmProfileSuffix = "_acm"
 )
 
 var log = logging.GetLogger("DmReconciler")
@@ -115,7 +119,7 @@ func (tc *Controller) handleTenantRemoval(ctx context.Context,
 	callbackFunc := clientCallback()
 
 	// Remove CCM profile
-	ccmProfileResp, err := tc.RpsClient.RemoveProfileWithResponse(updatedCtx, tenantID+"_ccm", callbackFunc)
+	ccmProfileResp, err := tc.RpsClient.RemoveProfileWithResponse(updatedCtx, tenantID+ccmProfileSuffix, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("cannot remove CCM profile for %v tenant", tenantID)
 		return err
@@ -123,7 +127,7 @@ func (tc *Controller) handleTenantRemoval(ctx context.Context,
 	log.Debug().Msgf("CCM profile removal response: %v", string(ccmProfileResp.Body))
 
 	// Remove ACM profile
-	acmProfileResp, err := tc.RpsClient.RemoveProfileWithResponse(updatedCtx, tenantID+"_acm", callbackFunc)
+	acmProfileResp, err := tc.RpsClient.RemoveProfileWithResponse(updatedCtx, tenantID+acmProfileSuffix, callbackFunc)
 	if err != nil {
 		log.Err(err).Msgf("cannot remove ACM profile for %v tenant", tenantID)
 		return err
@@ -171,12 +175,12 @@ func (tc *Controller) handleProfile(ctx context.Context, tenantID string,
 	callbackFunc func(ctx context.Context, req *http.Request) error,
 ) error {
 	// Create CCM profile
-	if err := tc.createProfile(ctx, tenantID, tenantID+"_ccm", "ccmactivate", callbackFunc); err != nil {
+	if err := tc.createProfile(ctx, tenantID, tenantID+ccmProfileSuffix, "ccmactivate", callbackFunc); err != nil {
 		return err
 	}
 
 	// Create ACM profile
-	if err := tc.createProfile(ctx, tenantID, tenantID+"_acm", "acmactivate", callbackFunc); err != nil {
+	if err := tc.createProfile(ctx, tenantID, tenantID+acmProfileSuffix, "acmactivate", callbackFunc); err != nil {
 		return err
 	}
 
@@ -357,7 +361,7 @@ func (tc *Controller) removeProfiles(ctx context.Context, tenants []string) {
 		// Build expected profile names from tenants (each tenant has _ccm and _acm profiles)
 		expectedProfiles := []string{}
 		for _, tenant := range tenants {
-			expectedProfiles = append(expectedProfiles, tenant+"_ccm", tenant+"_acm")
+			expectedProfiles = append(expectedProfiles, tenant+ccmProfileSuffix, tenant+acmProfileSuffix)
 		}
 
 		presentProfiles := []string{}
@@ -366,7 +370,7 @@ func (tc *Controller) removeProfiles(ctx context.Context, tenants []string) {
 		}
 		for _, profileName := range findExtraElements(presentProfiles, expectedProfiles) {
 			// Extract tenant ID from profile name by removing _ccm or _acm suffix
-			tenantID := strings.TrimSuffix(strings.TrimSuffix(profileName, "_ccm"), "_acm")
+			tenantID := strings.TrimSuffix(strings.TrimSuffix(profileName, ccmProfileSuffix), acmProfileSuffix)
 			log.Info().Msgf("%v profile doesn't have matching tenant - removing it", profileName)
 			if err = tc.TenantController.Reconcile(NewReconcilerID(false, tenantID)); err != nil {
 				log.Err(err).Msgf("failed to create reconcile request for %v tenant", tenantID)
