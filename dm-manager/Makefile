@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 .DEFAULT_GOAL := help
-.PHONY: help build test lint generate-proto
+.PHONY: help build test lint generate-proto generate
 
 #### Variables ####
 
@@ -17,6 +17,17 @@ GOJUNITREPORT      := true
 MOCKERY            := true
 OAPI_CODEGEN       := true
 OASDIFF            := true
+
+# Open DMT service versions
+OPEN_DMT_MPS_SERVICE_VERSION     := v2.26.0
+OPEN_DMT_RPS_SERVICE_VERSION     := v2.31.3
+
+# GitHub raw content base URL
+GITHUB_RAW_BASE := https://raw.githubusercontent.com/device-management-toolkit
+
+# Swagger file URLs - using src/ path as per DMT repo structure
+OPEN_DMT_MPS_CLIENT_SWAGGER_FILE := $(GITHUB_RAW_BASE)/mps/$(OPEN_DMT_MPS_SERVICE_VERSION)/swagger.yaml
+OPEN_DMT_RPS_CLIENT_SWAGGER_FILE := $(GITHUB_RAW_BASE)/rps/$(OPEN_DMT_RPS_SERVICE_VERSION)/swagger.yaml
 
 # Project variables
 PROJECT_NAME       := dm-manager
@@ -65,9 +76,22 @@ $(OUT_DIR)/$(BINARY_NAME): $(SRC) $(DEPS) ## Build if sources or dependencies ch
 go-run: $(OUT_DIR) ## Run the resource manager
 	$(GOCMD) run $(GOEXTRAFLAGS) ./cmd/$(BINARY_NAME).go
 
-generate:
-	oapi-codegen -generate client,types -o pkg/api/mps/client.gen.go -package mps pkg/api/mps/swagger.json
-	oapi-codegen -generate client,types -o pkg/api/rps/client.gen.go -package rps pkg/api/rps/swagger.json
+generate: ## Generate API clients from swagger specs
+	$(info >>> MPS swagger URL: $(OPEN_DMT_MPS_CLIENT_SWAGGER_FILE))
+	$(info >>> RPS swagger URL: $(OPEN_DMT_RPS_CLIENT_SWAGGER_FILE))
+	@mkdir -p pkg/api/mps pkg/api/rps
+	wget -q -O pkg/api/mps/swagger.yaml "$(OPEN_DMT_MPS_CLIENT_SWAGGER_FILE)"
+	wget -q -O pkg/api/rps/swagger.yaml "$(OPEN_DMT_RPS_CLIENT_SWAGGER_FILE)"
+	@rm -f pkg/api/mps/client.gen.go pkg/api/rps/client.gen.go
+	@rm -f pkg/api/mps/interface.gen.go pkg/api/rps/interface.gen.go
+	oapi-codegen --config pkg/api/mps/.oapi-codegen.yaml pkg/api/mps/swagger.yaml
+	oapi-codegen --config pkg/api/rps/.oapi-codegen.yaml pkg/api/rps/swagger.yaml
+	GOPROXY=https://proxy.golang.org,direct GOSUMDB=sum.golang.org go mod tidy
+	@echo ">>> Removing stale mocks before regeneration..."
+	@rm -f pkg/api/mps/mocks.go
+	@rm -f pkg/api/rps/mocks.go
+	@rm -rf pkg/api/mps/mocks/
+	@rm -rf pkg/api/rps/mocks/
 	mockery
 
 oasdiff-breaking: common-oasdiff-breaking ## Check for breaking changes in openapi using oasdiff

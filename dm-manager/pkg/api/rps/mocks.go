@@ -78,10 +78,10 @@ type MockClientWithResponsesInterface_Create8021xConfigWithBodyWithResponse_Call
 }
 
 // Create8021xConfigWithBodyWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - contentType
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) Create8021xConfigWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_Create8021xConfigWithBodyWithResponse_Call {
 	return &MockClientWithResponsesInterface_Create8021xConfigWithBodyWithResponse_Call{Call: _e.mock.On("Create8021xConfigWithBodyWithResponse",
 		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
@@ -89,8 +89,30 @@ func (_e *MockClientWithResponsesInterface_Expecter) Create8021xConfigWithBodyWi
 
 func (_c *MockClientWithResponsesInterface_Create8021xConfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_Create8021xConfigWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }
@@ -145,9 +167,9 @@ type MockClientWithResponsesInterface_Create8021xConfigWithResponse_Call struct 
 }
 
 // Create8021xConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - body Create8021xConfigJSONRequestBody
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) Create8021xConfigWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_Create8021xConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_Create8021xConfigWithResponse_Call{Call: _e.mock.On("Create8021xConfigWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
@@ -155,8 +177,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) Create8021xConfigWithRespon
 
 func (_c *MockClientWithResponsesInterface_Create8021xConfigWithResponse_Call) Run(run func(ctx context.Context, body Create8021xConfigJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_Create8021xConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(Create8021xConfigJSONRequestBody), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 Create8021xConfigJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(Create8021xConfigJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -211,10 +250,10 @@ type MockClientWithResponsesInterface_CreateCIRAConfigWithBodyWithResponse_Call 
 }
 
 // CreateCIRAConfigWithBodyWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - contentType
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) CreateCIRAConfigWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateCIRAConfigWithBodyWithResponse_Call {
 	return &MockClientWithResponsesInterface_CreateCIRAConfigWithBodyWithResponse_Call{Call: _e.mock.On("CreateCIRAConfigWithBodyWithResponse",
 		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
@@ -222,8 +261,30 @@ func (_e *MockClientWithResponsesInterface_Expecter) CreateCIRAConfigWithBodyWit
 
 func (_c *MockClientWithResponsesInterface_CreateCIRAConfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateCIRAConfigWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }
@@ -278,9 +339,9 @@ type MockClientWithResponsesInterface_CreateCIRAConfigWithResponse_Call struct {
 }
 
 // CreateCIRAConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - body CreateCIRAConfigJSONRequestBody
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) CreateCIRAConfigWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateCIRAConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_CreateCIRAConfigWithResponse_Call{Call: _e.mock.On("CreateCIRAConfigWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
@@ -288,8 +349,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) CreateCIRAConfigWithRespons
 
 func (_c *MockClientWithResponsesInterface_CreateCIRAConfigWithResponse_Call) Run(run func(ctx context.Context, body CreateCIRAConfigJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateCIRAConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(CreateCIRAConfigJSONRequestBody), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 CreateCIRAConfigJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(CreateCIRAConfigJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -344,10 +422,10 @@ type MockClientWithResponsesInterface_CreateDomainWithBodyWithResponse_Call stru
 }
 
 // CreateDomainWithBodyWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - contentType
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) CreateDomainWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateDomainWithBodyWithResponse_Call {
 	return &MockClientWithResponsesInterface_CreateDomainWithBodyWithResponse_Call{Call: _e.mock.On("CreateDomainWithBodyWithResponse",
 		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
@@ -355,8 +433,30 @@ func (_e *MockClientWithResponsesInterface_Expecter) CreateDomainWithBodyWithRes
 
 func (_c *MockClientWithResponsesInterface_CreateDomainWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateDomainWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }
@@ -411,9 +511,9 @@ type MockClientWithResponsesInterface_CreateDomainWithResponse_Call struct {
 }
 
 // CreateDomainWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - body CreateDomainJSONRequestBody
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) CreateDomainWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateDomainWithResponse_Call {
 	return &MockClientWithResponsesInterface_CreateDomainWithResponse_Call{Call: _e.mock.On("CreateDomainWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
@@ -421,8 +521,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) CreateDomainWithResponse(ct
 
 func (_c *MockClientWithResponsesInterface_CreateDomainWithResponse_Call) Run(run func(ctx context.Context, body CreateDomainJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateDomainWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(CreateDomainJSONRequestBody), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 CreateDomainJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(CreateDomainJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -477,10 +594,10 @@ type MockClientWithResponsesInterface_CreateProfileWithBodyWithResponse_Call str
 }
 
 // CreateProfileWithBodyWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - contentType
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) CreateProfileWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateProfileWithBodyWithResponse_Call {
 	return &MockClientWithResponsesInterface_CreateProfileWithBodyWithResponse_Call{Call: _e.mock.On("CreateProfileWithBodyWithResponse",
 		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
@@ -488,8 +605,30 @@ func (_e *MockClientWithResponsesInterface_Expecter) CreateProfileWithBodyWithRe
 
 func (_c *MockClientWithResponsesInterface_CreateProfileWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateProfileWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }
@@ -544,9 +683,9 @@ type MockClientWithResponsesInterface_CreateProfileWithResponse_Call struct {
 }
 
 // CreateProfileWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - body CreateProfileJSONRequestBody
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) CreateProfileWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateProfileWithResponse_Call {
 	return &MockClientWithResponsesInterface_CreateProfileWithResponse_Call{Call: _e.mock.On("CreateProfileWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
@@ -554,8 +693,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) CreateProfileWithResponse(c
 
 func (_c *MockClientWithResponsesInterface_CreateProfileWithResponse_Call) Run(run func(ctx context.Context, body CreateProfileJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateProfileWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(CreateProfileJSONRequestBody), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 CreateProfileJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(CreateProfileJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -566,6 +722,178 @@ func (_c *MockClientWithResponsesInterface_CreateProfileWithResponse_Call) Retur
 }
 
 func (_c *MockClientWithResponsesInterface_CreateProfileWithResponse_Call) RunAndReturn(run func(ctx context.Context, body CreateProfileJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateProfileResponse, error)) *MockClientWithResponsesInterface_CreateProfileWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateProxyconfigWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) CreateProxyconfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, contentType, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, contentType, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateProxyconfigWithBodyWithResponse")
+	}
+
+	var r0 *CreateProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, io.Reader, ...RequestEditorFn) (*CreateProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, contentType, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, io.Reader, ...RequestEditorFn) *CreateProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*CreateProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateProxyconfigWithBodyWithResponse'
+type MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// CreateProxyconfigWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
+func (_e *MockClientWithResponsesInterface_Expecter) CreateProxyconfigWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call{Call: _e.mock.On("CreateProxyconfigWithBodyWithResponse",
+		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call) Return(createProxyconfigResponse *CreateProxyconfigResponse, err error) *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Return(createProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateProxyconfigResponse, error)) *MockClientWithResponsesInterface_CreateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateProxyconfigWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) CreateProxyconfigWithResponse(ctx context.Context, body CreateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateProxyconfigWithResponse")
+	}
+
+	var r0 *CreateProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, CreateProxyconfigJSONRequestBody, ...RequestEditorFn) (*CreateProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, CreateProxyconfigJSONRequestBody, ...RequestEditorFn) *CreateProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*CreateProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, CreateProxyconfigJSONRequestBody, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateProxyconfigWithResponse'
+type MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call struct {
+	*mock.Call
+}
+
+// CreateProxyconfigWithResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - body CreateProxyconfigJSONRequestBody
+//   - reqEditors ...RequestEditorFn
+func (_e *MockClientWithResponsesInterface_Expecter) CreateProxyconfigWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call {
+	return &MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call{Call: _e.mock.On("CreateProxyconfigWithResponse",
+		append([]interface{}{ctx, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call) Run(run func(ctx context.Context, body CreateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 CreateProxyconfigJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(CreateProxyconfigJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call) Return(createProxyconfigResponse *CreateProxyconfigResponse, err error) *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call {
+	_c.Call.Return(createProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, body CreateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateProxyconfigResponse, error)) *MockClientWithResponsesInterface_CreateProxyconfigWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -610,10 +938,10 @@ type MockClientWithResponsesInterface_CreateWirelessConfigWithBodyWithResponse_C
 }
 
 // CreateWirelessConfigWithBodyWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - contentType
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) CreateWirelessConfigWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateWirelessConfigWithBodyWithResponse_Call {
 	return &MockClientWithResponsesInterface_CreateWirelessConfigWithBodyWithResponse_Call{Call: _e.mock.On("CreateWirelessConfigWithBodyWithResponse",
 		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
@@ -621,8 +949,30 @@ func (_e *MockClientWithResponsesInterface_Expecter) CreateWirelessConfigWithBod
 
 func (_c *MockClientWithResponsesInterface_CreateWirelessConfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateWirelessConfigWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }
@@ -677,9 +1027,9 @@ type MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call stru
 }
 
 // CreateWirelessConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - body CreateWirelessConfigJSONRequestBody
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) CreateWirelessConfigWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call{Call: _e.mock.On("CreateWirelessConfigWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
@@ -687,8 +1037,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) CreateWirelessConfigWithRes
 
 func (_c *MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call) Run(run func(ctx context.Context, body CreateWirelessConfigJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(CreateWirelessConfigJSONRequestBody), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 CreateWirelessConfigJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(CreateWirelessConfigJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -699,6 +1066,89 @@ func (_c *MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call
 }
 
 func (_c *MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, body CreateWirelessConfigJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateWirelessConfigResponse, error)) *MockClientWithResponsesInterface_CreateWirelessConfigWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteProxyconfigWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) DeleteProxyconfigWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DeleteProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, name, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, name)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteProxyconfigWithResponse")
+	}
+
+	var r0 *DeleteProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) (*DeleteProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, name, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) *DeleteProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, name, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*DeleteProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, name, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteProxyconfigWithResponse'
+type MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call struct {
+	*mock.Call
+}
+
+// DeleteProxyconfigWithResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+//   - reqEditors ...RequestEditorFn
+func (_e *MockClientWithResponsesInterface_Expecter) DeleteProxyconfigWithResponse(ctx interface{}, name interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call {
+	return &MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call{Call: _e.mock.On("DeleteProxyconfigWithResponse",
+		append([]interface{}{ctx, name}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call) Run(run func(ctx context.Context, name string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call) Return(deleteProxyconfigResponse *DeleteProxyconfigResponse, err error) *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call {
+	_c.Call.Return(deleteProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DeleteProxyconfigResponse, error)) *MockClientWithResponsesInterface_DeleteProxyconfigWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -743,10 +1193,10 @@ type MockClientWithResponsesInterface_Edit8021xConfigWithBodyWithResponse_Call s
 }
 
 // Edit8021xConfigWithBodyWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - contentType
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) Edit8021xConfigWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_Edit8021xConfigWithBodyWithResponse_Call {
 	return &MockClientWithResponsesInterface_Edit8021xConfigWithBodyWithResponse_Call{Call: _e.mock.On("Edit8021xConfigWithBodyWithResponse",
 		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
@@ -754,8 +1204,30 @@ func (_e *MockClientWithResponsesInterface_Expecter) Edit8021xConfigWithBodyWith
 
 func (_c *MockClientWithResponsesInterface_Edit8021xConfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_Edit8021xConfigWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }
@@ -810,9 +1282,9 @@ type MockClientWithResponsesInterface_Edit8021xConfigWithResponse_Call struct {
 }
 
 // Edit8021xConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - body Edit8021xConfigJSONRequestBody
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) Edit8021xConfigWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_Edit8021xConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_Edit8021xConfigWithResponse_Call{Call: _e.mock.On("Edit8021xConfigWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
@@ -820,8 +1292,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) Edit8021xConfigWithResponse
 
 func (_c *MockClientWithResponsesInterface_Edit8021xConfigWithResponse_Call) Run(run func(ctx context.Context, body Edit8021xConfigJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_Edit8021xConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(Edit8021xConfigJSONRequestBody), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 Edit8021xConfigJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(Edit8021xConfigJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -876,10 +1365,10 @@ type MockClientWithResponsesInterface_EditCIRAConfigWithBodyWithResponse_Call st
 }
 
 // EditCIRAConfigWithBodyWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - contentType
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) EditCIRAConfigWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_EditCIRAConfigWithBodyWithResponse_Call {
 	return &MockClientWithResponsesInterface_EditCIRAConfigWithBodyWithResponse_Call{Call: _e.mock.On("EditCIRAConfigWithBodyWithResponse",
 		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
@@ -887,8 +1376,30 @@ func (_e *MockClientWithResponsesInterface_Expecter) EditCIRAConfigWithBodyWithR
 
 func (_c *MockClientWithResponsesInterface_EditCIRAConfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_EditCIRAConfigWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }
@@ -943,9 +1454,9 @@ type MockClientWithResponsesInterface_EditCIRAConfigWithResponse_Call struct {
 }
 
 // EditCIRAConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - body EditCIRAConfigJSONRequestBody
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) EditCIRAConfigWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_EditCIRAConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_EditCIRAConfigWithResponse_Call{Call: _e.mock.On("EditCIRAConfigWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
@@ -953,8 +1464,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) EditCIRAConfigWithResponse(
 
 func (_c *MockClientWithResponsesInterface_EditCIRAConfigWithResponse_Call) Run(run func(ctx context.Context, body EditCIRAConfigJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_EditCIRAConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(EditCIRAConfigJSONRequestBody), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 EditCIRAConfigJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(EditCIRAConfigJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1009,10 +1537,10 @@ type MockClientWithResponsesInterface_EditWirelessConfigWithBodyWithResponse_Cal
 }
 
 // EditWirelessConfigWithBodyWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - contentType
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) EditWirelessConfigWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_EditWirelessConfigWithBodyWithResponse_Call {
 	return &MockClientWithResponsesInterface_EditWirelessConfigWithBodyWithResponse_Call{Call: _e.mock.On("EditWirelessConfigWithBodyWithResponse",
 		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
@@ -1020,8 +1548,30 @@ func (_e *MockClientWithResponsesInterface_Expecter) EditWirelessConfigWithBodyW
 
 func (_c *MockClientWithResponsesInterface_EditWirelessConfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_EditWirelessConfigWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }
@@ -1076,9 +1626,9 @@ type MockClientWithResponsesInterface_EditWirelessConfigWithResponse_Call struct
 }
 
 // EditWirelessConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - body EditWirelessConfigJSONRequestBody
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) EditWirelessConfigWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_EditWirelessConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_EditWirelessConfigWithResponse_Call{Call: _e.mock.On("EditWirelessConfigWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
@@ -1086,8 +1636,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) EditWirelessConfigWithRespo
 
 func (_c *MockClientWithResponsesInterface_EditWirelessConfigWithResponse_Call) Run(run func(ctx context.Context, body EditWirelessConfigJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_EditWirelessConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(EditWirelessConfigJSONRequestBody), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 EditWirelessConfigJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(EditWirelessConfigJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1142,9 +1709,9 @@ type MockClientWithResponsesInterface_Get8021xConfigWithResponse_Call struct {
 }
 
 // Get8021xConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - profileName
-//   - reqEditors
+//   - ctx context.Context
+//   - profileName string
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) Get8021xConfigWithResponse(ctx interface{}, profileName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_Get8021xConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_Get8021xConfigWithResponse_Call{Call: _e.mock.On("Get8021xConfigWithResponse",
 		append([]interface{}{ctx, profileName}, reqEditors...)...)}
@@ -1152,8 +1719,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) Get8021xConfigWithResponse(
 
 func (_c *MockClientWithResponsesInterface_Get8021xConfigWithResponse_Call) Run(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_Get8021xConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1208,9 +1792,9 @@ type MockClientWithResponsesInterface_GetAll8021xConfigsWithResponse_Call struct
 }
 
 // GetAll8021xConfigsWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - params
-//   - reqEditors
+//   - ctx context.Context
+//   - params *GetAll8021xConfigsParams
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetAll8021xConfigsWithResponse(ctx interface{}, params interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetAll8021xConfigsWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetAll8021xConfigsWithResponse_Call{Call: _e.mock.On("GetAll8021xConfigsWithResponse",
 		append([]interface{}{ctx, params}, reqEditors...)...)}
@@ -1218,8 +1802,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetAll8021xConfigsWithRespo
 
 func (_c *MockClientWithResponsesInterface_GetAll8021xConfigsWithResponse_Call) Run(run func(ctx context.Context, params *GetAll8021xConfigsParams, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetAll8021xConfigsWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(*GetAll8021xConfigsParams), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *GetAll8021xConfigsParams
+		if args[1] != nil {
+			arg1 = args[1].(*GetAll8021xConfigsParams)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1274,9 +1875,9 @@ type MockClientWithResponsesInterface_GetAllCIRAConfigsWithResponse_Call struct 
 }
 
 // GetAllCIRAConfigsWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - params
-//   - reqEditors
+//   - ctx context.Context
+//   - params *GetAllCIRAConfigsParams
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetAllCIRAConfigsWithResponse(ctx interface{}, params interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetAllCIRAConfigsWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetAllCIRAConfigsWithResponse_Call{Call: _e.mock.On("GetAllCIRAConfigsWithResponse",
 		append([]interface{}{ctx, params}, reqEditors...)...)}
@@ -1284,8 +1885,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetAllCIRAConfigsWithRespon
 
 func (_c *MockClientWithResponsesInterface_GetAllCIRAConfigsWithResponse_Call) Run(run func(ctx context.Context, params *GetAllCIRAConfigsParams, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetAllCIRAConfigsWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(*GetAllCIRAConfigsParams), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *GetAllCIRAConfigsParams
+		if args[1] != nil {
+			arg1 = args[1].(*GetAllCIRAConfigsParams)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1340,9 +1958,9 @@ type MockClientWithResponsesInterface_GetAllDomainsWithResponse_Call struct {
 }
 
 // GetAllDomainsWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - params
-//   - reqEditors
+//   - ctx context.Context
+//   - params *GetAllDomainsParams
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetAllDomainsWithResponse(ctx interface{}, params interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetAllDomainsWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetAllDomainsWithResponse_Call{Call: _e.mock.On("GetAllDomainsWithResponse",
 		append([]interface{}{ctx, params}, reqEditors...)...)}
@@ -1350,8 +1968,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetAllDomainsWithResponse(c
 
 func (_c *MockClientWithResponsesInterface_GetAllDomainsWithResponse_Call) Run(run func(ctx context.Context, params *GetAllDomainsParams, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetAllDomainsWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(*GetAllDomainsParams), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *GetAllDomainsParams
+		if args[1] != nil {
+			arg1 = args[1].(*GetAllDomainsParams)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1406,9 +2041,9 @@ type MockClientWithResponsesInterface_GetAllProfilesWithResponse_Call struct {
 }
 
 // GetAllProfilesWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - params
-//   - reqEditors
+//   - ctx context.Context
+//   - params *GetAllProfilesParams
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetAllProfilesWithResponse(ctx interface{}, params interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetAllProfilesWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetAllProfilesWithResponse_Call{Call: _e.mock.On("GetAllProfilesWithResponse",
 		append([]interface{}{ctx, params}, reqEditors...)...)}
@@ -1416,8 +2051,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetAllProfilesWithResponse(
 
 func (_c *MockClientWithResponsesInterface_GetAllProfilesWithResponse_Call) Run(run func(ctx context.Context, params *GetAllProfilesParams, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetAllProfilesWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(*GetAllProfilesParams), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *GetAllProfilesParams
+		if args[1] != nil {
+			arg1 = args[1].(*GetAllProfilesParams)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1428,6 +2080,89 @@ func (_c *MockClientWithResponsesInterface_GetAllProfilesWithResponse_Call) Retu
 }
 
 func (_c *MockClientWithResponsesInterface_GetAllProfilesWithResponse_Call) RunAndReturn(run func(ctx context.Context, params *GetAllProfilesParams, reqEditors ...RequestEditorFn) (*GetAllProfilesResponse, error)) *MockClientWithResponsesInterface_GetAllProfilesWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAllProxyconfigsWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetAllProxyconfigsWithResponse(ctx context.Context, params *GetAllProxyconfigsParams, reqEditors ...RequestEditorFn) (*GetAllProxyconfigsResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, params, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, params)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllProxyconfigsWithResponse")
+	}
+
+	var r0 *GetAllProxyconfigsResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *GetAllProxyconfigsParams, ...RequestEditorFn) (*GetAllProxyconfigsResponse, error)); ok {
+		return returnFunc(ctx, params, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *GetAllProxyconfigsParams, ...RequestEditorFn) *GetAllProxyconfigsResponse); ok {
+		r0 = returnFunc(ctx, params, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetAllProxyconfigsResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *GetAllProxyconfigsParams, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, params, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllProxyconfigsWithResponse'
+type MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetAllProxyconfigsWithResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - params *GetAllProxyconfigsParams
+//   - reqEditors ...RequestEditorFn
+func (_e *MockClientWithResponsesInterface_Expecter) GetAllProxyconfigsWithResponse(ctx interface{}, params interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call{Call: _e.mock.On("GetAllProxyconfigsWithResponse",
+		append([]interface{}{ctx, params}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call) Run(run func(ctx context.Context, params *GetAllProxyconfigsParams, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *GetAllProxyconfigsParams
+		if args[1] != nil {
+			arg1 = args[1].(*GetAllProxyconfigsParams)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call) Return(getAllProxyconfigsResponse *GetAllProxyconfigsResponse, err error) *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call {
+	_c.Call.Return(getAllProxyconfigsResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call) RunAndReturn(run func(ctx context.Context, params *GetAllProxyconfigsParams, reqEditors ...RequestEditorFn) (*GetAllProxyconfigsResponse, error)) *MockClientWithResponsesInterface_GetAllProxyconfigsWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1472,9 +2207,9 @@ type MockClientWithResponsesInterface_GetAllWirelessConfigsWithResponse_Call str
 }
 
 // GetAllWirelessConfigsWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - params
-//   - reqEditors
+//   - ctx context.Context
+//   - params *GetAllWirelessConfigsParams
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetAllWirelessConfigsWithResponse(ctx interface{}, params interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetAllWirelessConfigsWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetAllWirelessConfigsWithResponse_Call{Call: _e.mock.On("GetAllWirelessConfigsWithResponse",
 		append([]interface{}{ctx, params}, reqEditors...)...)}
@@ -1482,8 +2217,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetAllWirelessConfigsWithRe
 
 func (_c *MockClientWithResponsesInterface_GetAllWirelessConfigsWithResponse_Call) Run(run func(ctx context.Context, params *GetAllWirelessConfigsParams, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetAllWirelessConfigsWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(*GetAllWirelessConfigsParams), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *GetAllWirelessConfigsParams
+		if args[1] != nil {
+			arg1 = args[1].(*GetAllWirelessConfigsParams)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1538,8 +2290,8 @@ type MockClientWithResponsesInterface_GetApiV1AdminHealthWithResponse_Call struc
 }
 
 // GetApiV1AdminHealthWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - reqEditors
+//   - ctx context.Context
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetApiV1AdminHealthWithResponse(ctx interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetApiV1AdminHealthWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetApiV1AdminHealthWithResponse_Call{Call: _e.mock.On("GetApiV1AdminHealthWithResponse",
 		append([]interface{}{ctx}, reqEditors...)...)}
@@ -1547,8 +2299,20 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetApiV1AdminHealthWithResp
 
 func (_c *MockClientWithResponsesInterface_GetApiV1AdminHealthWithResponse_Call) Run(run func(ctx context.Context, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetApiV1AdminHealthWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[1].([]RequestEditorFn)
-		run(args[0].(context.Context), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 1 {
+			variadicArgs = args[1].([]RequestEditorFn)
+		}
+		arg1 = variadicArgs
+		run(
+			arg0,
+			arg1...,
+		)
 	})
 	return _c
 }
@@ -1603,9 +2367,9 @@ type MockClientWithResponsesInterface_GetCIRAConfigWithResponse_Call struct {
 }
 
 // GetCIRAConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - configName
-//   - reqEditors
+//   - ctx context.Context
+//   - configName string
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetCIRAConfigWithResponse(ctx interface{}, configName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetCIRAConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetCIRAConfigWithResponse_Call{Call: _e.mock.On("GetCIRAConfigWithResponse",
 		append([]interface{}{ctx, configName}, reqEditors...)...)}
@@ -1613,8 +2377,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetCIRAConfigWithResponse(c
 
 func (_c *MockClientWithResponsesInterface_GetCIRAConfigWithResponse_Call) Run(run func(ctx context.Context, configName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetCIRAConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1669,9 +2450,9 @@ type MockClientWithResponsesInterface_GetDomainWithResponse_Call struct {
 }
 
 // GetDomainWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - profileName
-//   - reqEditors
+//   - ctx context.Context
+//   - profileName string
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetDomainWithResponse(ctx interface{}, profileName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetDomainWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetDomainWithResponse_Call{Call: _e.mock.On("GetDomainWithResponse",
 		append([]interface{}{ctx, profileName}, reqEditors...)...)}
@@ -1679,8 +2460,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetDomainWithResponse(ctx i
 
 func (_c *MockClientWithResponsesInterface_GetDomainWithResponse_Call) Run(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetDomainWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1735,9 +2533,9 @@ type MockClientWithResponsesInterface_GetProfileWithResponse_Call struct {
 }
 
 // GetProfileWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - profileName
-//   - reqEditors
+//   - ctx context.Context
+//   - profileName string
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetProfileWithResponse(ctx interface{}, profileName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetProfileWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetProfileWithResponse_Call{Call: _e.mock.On("GetProfileWithResponse",
 		append([]interface{}{ctx, profileName}, reqEditors...)...)}
@@ -1745,8 +2543,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetProfileWithResponse(ctx 
 
 func (_c *MockClientWithResponsesInterface_GetProfileWithResponse_Call) Run(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetProfileWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1757,6 +2572,89 @@ func (_c *MockClientWithResponsesInterface_GetProfileWithResponse_Call) Return(g
 }
 
 func (_c *MockClientWithResponsesInterface_GetProfileWithResponse_Call) RunAndReturn(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn) (*GetProfileResponse, error)) *MockClientWithResponsesInterface_GetProfileWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetProxyconfigWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetProxyconfigWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*GetProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, name, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, name)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProxyconfigWithResponse")
+	}
+
+	var r0 *GetProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) (*GetProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, name, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, ...RequestEditorFn) *GetProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, name, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, name, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetProxyconfigWithResponse'
+type MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetProxyconfigWithResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+//   - reqEditors ...RequestEditorFn
+func (_e *MockClientWithResponsesInterface_Expecter) GetProxyconfigWithResponse(ctx interface{}, name interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call{Call: _e.mock.On("GetProxyconfigWithResponse",
+		append([]interface{}{ctx, name}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call) Run(run func(ctx context.Context, name string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call) Return(getProxyconfigResponse *GetProxyconfigResponse, err error) *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call {
+	_c.Call.Return(getProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*GetProxyconfigResponse, error)) *MockClientWithResponsesInterface_GetProxyconfigWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1801,8 +2699,8 @@ type MockClientWithResponsesInterface_GetVersionWithResponse_Call struct {
 }
 
 // GetVersionWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - reqEditors
+//   - ctx context.Context
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetVersionWithResponse(ctx interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetVersionWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetVersionWithResponse_Call{Call: _e.mock.On("GetVersionWithResponse",
 		append([]interface{}{ctx}, reqEditors...)...)}
@@ -1810,8 +2708,20 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetVersionWithResponse(ctx 
 
 func (_c *MockClientWithResponsesInterface_GetVersionWithResponse_Call) Run(run func(ctx context.Context, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetVersionWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[1].([]RequestEditorFn)
-		run(args[0].(context.Context), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 1 {
+			variadicArgs = args[1].([]RequestEditorFn)
+		}
+		arg1 = variadicArgs
+		run(
+			arg0,
+			arg1...,
+		)
 	})
 	return _c
 }
@@ -1866,9 +2776,9 @@ type MockClientWithResponsesInterface_GetWirelessConfigWithResponse_Call struct 
 }
 
 // GetWirelessConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - profileName
-//   - reqEditors
+//   - ctx context.Context
+//   - profileName string
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) GetWirelessConfigWithResponse(ctx interface{}, profileName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetWirelessConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_GetWirelessConfigWithResponse_Call{Call: _e.mock.On("GetWirelessConfigWithResponse",
 		append([]interface{}{ctx, profileName}, reqEditors...)...)}
@@ -1876,8 +2786,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) GetWirelessConfigWithRespon
 
 func (_c *MockClientWithResponsesInterface_GetWirelessConfigWithResponse_Call) Run(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetWirelessConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1932,9 +2859,9 @@ type MockClientWithResponsesInterface_Remove8021xConfigWithResponse_Call struct 
 }
 
 // Remove8021xConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - profileName
-//   - reqEditors
+//   - ctx context.Context
+//   - profileName string
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) Remove8021xConfigWithResponse(ctx interface{}, profileName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_Remove8021xConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_Remove8021xConfigWithResponse_Call{Call: _e.mock.On("Remove8021xConfigWithResponse",
 		append([]interface{}{ctx, profileName}, reqEditors...)...)}
@@ -1942,8 +2869,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) Remove8021xConfigWithRespon
 
 func (_c *MockClientWithResponsesInterface_Remove8021xConfigWithResponse_Call) Run(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_Remove8021xConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -1998,9 +2942,9 @@ type MockClientWithResponsesInterface_RemoveCIRAConfigWithResponse_Call struct {
 }
 
 // RemoveCIRAConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - configName
-//   - reqEditors
+//   - ctx context.Context
+//   - configName string
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) RemoveCIRAConfigWithResponse(ctx interface{}, configName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_RemoveCIRAConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_RemoveCIRAConfigWithResponse_Call{Call: _e.mock.On("RemoveCIRAConfigWithResponse",
 		append([]interface{}{ctx, configName}, reqEditors...)...)}
@@ -2008,8 +2952,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) RemoveCIRAConfigWithRespons
 
 func (_c *MockClientWithResponsesInterface_RemoveCIRAConfigWithResponse_Call) Run(run func(ctx context.Context, configName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_RemoveCIRAConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -2064,9 +3025,9 @@ type MockClientWithResponsesInterface_RemoveDomainWithResponse_Call struct {
 }
 
 // RemoveDomainWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - profileName
-//   - reqEditors
+//   - ctx context.Context
+//   - profileName string
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) RemoveDomainWithResponse(ctx interface{}, profileName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_RemoveDomainWithResponse_Call {
 	return &MockClientWithResponsesInterface_RemoveDomainWithResponse_Call{Call: _e.mock.On("RemoveDomainWithResponse",
 		append([]interface{}{ctx, profileName}, reqEditors...)...)}
@@ -2074,8 +3035,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) RemoveDomainWithResponse(ct
 
 func (_c *MockClientWithResponsesInterface_RemoveDomainWithResponse_Call) Run(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_RemoveDomainWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -2130,9 +3108,9 @@ type MockClientWithResponsesInterface_RemoveProfileWithResponse_Call struct {
 }
 
 // RemoveProfileWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - profileName
-//   - reqEditors
+//   - ctx context.Context
+//   - profileName string
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) RemoveProfileWithResponse(ctx interface{}, profileName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_RemoveProfileWithResponse_Call {
 	return &MockClientWithResponsesInterface_RemoveProfileWithResponse_Call{Call: _e.mock.On("RemoveProfileWithResponse",
 		append([]interface{}{ctx, profileName}, reqEditors...)...)}
@@ -2140,8 +3118,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) RemoveProfileWithResponse(c
 
 func (_c *MockClientWithResponsesInterface_RemoveProfileWithResponse_Call) Run(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_RemoveProfileWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -2196,9 +3191,9 @@ type MockClientWithResponsesInterface_RemoveWirelessConfigWithResponse_Call stru
 }
 
 // RemoveWirelessConfigWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - profileName
-//   - reqEditors
+//   - ctx context.Context
+//   - profileName string
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) RemoveWirelessConfigWithResponse(ctx interface{}, profileName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_RemoveWirelessConfigWithResponse_Call {
 	return &MockClientWithResponsesInterface_RemoveWirelessConfigWithResponse_Call{Call: _e.mock.On("RemoveWirelessConfigWithResponse",
 		append([]interface{}{ctx, profileName}, reqEditors...)...)}
@@ -2206,8 +3201,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) RemoveWirelessConfigWithRes
 
 func (_c *MockClientWithResponsesInterface_RemoveWirelessConfigWithResponse_Call) Run(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_RemoveWirelessConfigWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -2262,10 +3274,10 @@ type MockClientWithResponsesInterface_UpdateDomainSuffixWithBodyWithResponse_Cal
 }
 
 // UpdateDomainSuffixWithBodyWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - contentType
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) UpdateDomainSuffixWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateDomainSuffixWithBodyWithResponse_Call {
 	return &MockClientWithResponsesInterface_UpdateDomainSuffixWithBodyWithResponse_Call{Call: _e.mock.On("UpdateDomainSuffixWithBodyWithResponse",
 		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
@@ -2273,8 +3285,30 @@ func (_e *MockClientWithResponsesInterface_Expecter) UpdateDomainSuffixWithBodyW
 
 func (_c *MockClientWithResponsesInterface_UpdateDomainSuffixWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateDomainSuffixWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }
@@ -2329,9 +3363,9 @@ type MockClientWithResponsesInterface_UpdateDomainSuffixWithResponse_Call struct
 }
 
 // UpdateDomainSuffixWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - body UpdateDomainSuffixJSONRequestBody
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) UpdateDomainSuffixWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateDomainSuffixWithResponse_Call {
 	return &MockClientWithResponsesInterface_UpdateDomainSuffixWithResponse_Call{Call: _e.mock.On("UpdateDomainSuffixWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
@@ -2339,8 +3373,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) UpdateDomainSuffixWithRespo
 
 func (_c *MockClientWithResponsesInterface_UpdateDomainSuffixWithResponse_Call) Run(run func(ctx context.Context, body UpdateDomainSuffixJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateDomainSuffixWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(UpdateDomainSuffixJSONRequestBody), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 UpdateDomainSuffixJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(UpdateDomainSuffixJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -2395,10 +3446,10 @@ type MockClientWithResponsesInterface_UpdateProfileWithBodyWithResponse_Call str
 }
 
 // UpdateProfileWithBodyWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - contentType
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) UpdateProfileWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateProfileWithBodyWithResponse_Call {
 	return &MockClientWithResponsesInterface_UpdateProfileWithBodyWithResponse_Call{Call: _e.mock.On("UpdateProfileWithBodyWithResponse",
 		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
@@ -2406,8 +3457,30 @@ func (_e *MockClientWithResponsesInterface_Expecter) UpdateProfileWithBodyWithRe
 
 func (_c *MockClientWithResponsesInterface_UpdateProfileWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateProfileWithBodyWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[3].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(string), args[2].(io.Reader), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
 	})
 	return _c
 }
@@ -2462,9 +3535,9 @@ type MockClientWithResponsesInterface_UpdateProfileWithResponse_Call struct {
 }
 
 // UpdateProfileWithResponse is a helper method to define mock.On call
-//   - ctx
-//   - body
-//   - reqEditors
+//   - ctx context.Context
+//   - body UpdateProfileJSONRequestBody
+//   - reqEditors ...RequestEditorFn
 func (_e *MockClientWithResponsesInterface_Expecter) UpdateProfileWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateProfileWithResponse_Call {
 	return &MockClientWithResponsesInterface_UpdateProfileWithResponse_Call{Call: _e.mock.On("UpdateProfileWithResponse",
 		append([]interface{}{ctx, body}, reqEditors...)...)}
@@ -2472,8 +3545,25 @@ func (_e *MockClientWithResponsesInterface_Expecter) UpdateProfileWithResponse(c
 
 func (_c *MockClientWithResponsesInterface_UpdateProfileWithResponse_Call) Run(run func(ctx context.Context, body UpdateProfileJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateProfileWithResponse_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := args[2].([]RequestEditorFn)
-		run(args[0].(context.Context), args[1].(UpdateProfileJSONRequestBody), variadicArgs...)
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 UpdateProfileJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(UpdateProfileJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
 	})
 	return _c
 }
@@ -2484,6 +3574,178 @@ func (_c *MockClientWithResponsesInterface_UpdateProfileWithResponse_Call) Retur
 }
 
 func (_c *MockClientWithResponsesInterface_UpdateProfileWithResponse_Call) RunAndReturn(run func(ctx context.Context, body UpdateProfileJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProfileResponse, error)) *MockClientWithResponsesInterface_UpdateProfileWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateProxyconfigWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) UpdateProxyconfigWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, contentType, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, contentType, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateProxyconfigWithBodyWithResponse")
+	}
+
+	var r0 *UpdateProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, io.Reader, ...RequestEditorFn) (*UpdateProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, contentType, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, io.Reader, ...RequestEditorFn) *UpdateProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*UpdateProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateProxyconfigWithBodyWithResponse'
+type MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// UpdateProxyconfigWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - contentType string
+//   - body io.Reader
+//   - reqEditors ...RequestEditorFn
+func (_e *MockClientWithResponsesInterface_Expecter) UpdateProxyconfigWithBodyWithResponse(ctx interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call{Call: _e.mock.On("UpdateProxyconfigWithBodyWithResponse",
+		append([]interface{}{ctx, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call) Run(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 io.Reader
+		if args[2] != nil {
+			arg2 = args[2].(io.Reader)
+		}
+		var arg3 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 3 {
+			variadicArgs = args[3].([]RequestEditorFn)
+		}
+		arg3 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call) Return(updateProxyconfigResponse *UpdateProxyconfigResponse, err error) *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Return(updateProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateProxyconfigResponse, error)) *MockClientWithResponsesInterface_UpdateProxyconfigWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateProxyconfigWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) UpdateProxyconfigWithResponse(ctx context.Context, body UpdateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProxyconfigResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateProxyconfigWithResponse")
+	}
+
+	var r0 *UpdateProxyconfigResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, UpdateProxyconfigJSONRequestBody, ...RequestEditorFn) (*UpdateProxyconfigResponse, error)); ok {
+		return returnFunc(ctx, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, UpdateProxyconfigJSONRequestBody, ...RequestEditorFn) *UpdateProxyconfigResponse); ok {
+		r0 = returnFunc(ctx, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*UpdateProxyconfigResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, UpdateProxyconfigJSONRequestBody, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateProxyconfigWithResponse'
+type MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call struct {
+	*mock.Call
+}
+
+// UpdateProxyconfigWithResponse is a helper method to define mock.On call
+//   - ctx context.Context
+//   - body UpdateProxyconfigJSONRequestBody
+//   - reqEditors ...RequestEditorFn
+func (_e *MockClientWithResponsesInterface_Expecter) UpdateProxyconfigWithResponse(ctx interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call {
+	return &MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call{Call: _e.mock.On("UpdateProxyconfigWithResponse",
+		append([]interface{}{ctx, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call) Run(run func(ctx context.Context, body UpdateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 UpdateProxyconfigJSONRequestBody
+		if args[1] != nil {
+			arg1 = args[1].(UpdateProxyconfigJSONRequestBody)
+		}
+		var arg2 []RequestEditorFn
+		var variadicArgs []RequestEditorFn
+		if len(args) > 2 {
+			variadicArgs = args[2].([]RequestEditorFn)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call) Return(updateProxyconfigResponse *UpdateProxyconfigResponse, err error) *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call {
+	_c.Call.Return(updateProxyconfigResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, body UpdateProxyconfigJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateProxyconfigResponse, error)) *MockClientWithResponsesInterface_UpdateProxyconfigWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
