@@ -299,7 +299,7 @@ func TestRetrieveActivationDetails(t *testing.T) {
 			expectedResult: &pb.ActivationDetailsResponse{
 				HostId:      "host-12345678",
 				Operation:   pb.OperationType_ACTIVATE,
-				ProfileName: "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d",
+				ProfileName: "bdd62a25-d5fe-4d65-8c5d-60508b2b7b7d_ccm",
 			},
 		},
 		{

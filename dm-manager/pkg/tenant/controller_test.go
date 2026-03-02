@@ -341,7 +341,7 @@ func TestReconciler_whenFailedToRemoveShouldLogAndContinue(t *testing.T) {
 		Return(&rps.RemoveProfileResponse{}, errors.Errorf("mock error"))
 	rpsMock.On("RemoveCIRAConfigWithResponse", mock.Anything, mock.Anything, mock.Anything).
 		Return(&rps.RemoveCIRAConfigResponse{}, errors.Errorf("mock error"))
-	profileHook := util.NewTestAssertHook("cannot remove profile")
+	profileHook := util.NewTestAssertHook("cannot remove CCM profile")
 	log = logging.InfraLogger{Logger: zerolog.New(os.Stdout).Hook(profileHook)}
 
 	err := dmr.handleTenantRemoval(context.Background(), "mock-tenant")
