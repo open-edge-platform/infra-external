@@ -37,6 +37,10 @@ const (
 
 	StaticPasswordPolicy  = "static"
 	DynamicPasswordPolicy = "dynamic"
+
+	// Profile name suffixes for CCM and ACM activation modes.
+	ccmProfileSuffix = "_ccm"
+	acmProfileSuffix = "_acm"
 )
 
 var log = logging.GetLogger("DmReconciler")
@@ -114,12 +118,21 @@ func (tc *Controller) handleTenantRemoval(ctx context.Context,
 	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), tenantID)
 	callbackFunc := clientCallback()
 
-	profileResp, err := tc.RpsClient.RemoveProfileWithResponse(updatedCtx, tenantID, callbackFunc)
+	// Remove CCM profile
+	ccmProfileResp, err := tc.RpsClient.RemoveProfileWithResponse(updatedCtx, tenantID+ccmProfileSuffix, callbackFunc)
 	if err != nil {
-		log.Err(err).Msgf("cannot remove profile for %v tenant", tenantID)
+		log.Err(err).Msgf("cannot remove CCM profile for %v tenant", tenantID)
 		return err
 	}
-	log.Debug().Msgf("profile removal response: %v", string(profileResp.Body))
+	log.Debug().Msgf("CCM profile removal response: %v", string(ccmProfileResp.Body))
+
+	// Remove ACM profile
+	acmProfileResp, err := tc.RpsClient.RemoveProfileWithResponse(updatedCtx, tenantID+acmProfileSuffix, callbackFunc)
+	if err != nil {
+		log.Err(err).Msgf("cannot remove ACM profile for %v tenant", tenantID)
+		return err
+	}
+	log.Debug().Msgf("ACM profile removal response: %v", string(acmProfileResp.Body))
 
 	ciraResp, err := tc.RpsClient.RemoveCIRAConfigWithResponse(updatedCtx, tenantID, callbackFunc)
 	if err != nil {
@@ -161,21 +174,37 @@ func (tc *Controller) handleTenantCreation(ctx context.Context,
 func (tc *Controller) handleProfile(ctx context.Context, tenantID string,
 	callbackFunc func(ctx context.Context, req *http.Request) error,
 ) error {
-	profile, err := tc.RpsClient.GetProfileWithResponse(ctx, tenantID, callbackFunc)
+	// Create CCM profile
+	if err := tc.createProfile(ctx, tenantID, tenantID+ccmProfileSuffix, "ccmactivate", callbackFunc); err != nil {
+		return err
+	}
+
+	// Create ACM profile
+	if err := tc.createProfile(ctx, tenantID, tenantID+acmProfileSuffix, "acmactivate", callbackFunc); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tc *Controller) createProfile(ctx context.Context, tenantID, profileName, activation string,
+	callbackFunc func(ctx context.Context, req *http.Request) error,
+) error {
+	profile, err := tc.RpsClient.GetProfileWithResponse(ctx, profileName, callbackFunc)
 	if err != nil {
-		log.Err(err).Msgf("cannot get profile for %v tenant", tenantID)
+		log.Err(err).Msgf("cannot get profile %v for %v tenant", profileName, tenantID)
 		return err
 	}
 	if profile.JSON404 != nil {
-		log.Info().Msgf("profile not found for %v tenant, creating it", tenantID)
+		log.Info().Msgf("profile %v not found for %v tenant, creating it", profileName, tenantID)
 
 		postProfileBody := rps.CreateProfileJSONRequestBody{
-			Activation:          "ccmactivate",
+			Activation:          activation,
 			CiraConfigName:      Ptr(tenantID),
 			DhcpEnabled:         true,
 			IpSyncEnabled:       Ptr(false),
 			KvmEnabled:          Ptr(true),
-			ProfileName:         tenantID,
+			ProfileName:         profileName,
 			SolEnabled:          Ptr(true),
 			TlsMode:             nil,
 			TlsSigningAuthority: "SelfSigned",
@@ -201,14 +230,14 @@ func (tc *Controller) handleProfile(ctx context.Context, tenantID string,
 
 		profilePostResponse, err := tc.RpsClient.CreateProfileWithResponse(ctx, postProfileBody, callbackFunc)
 		if err != nil {
-			log.Err(err).Msgf("cannot create profile for %v tenant", tenantID)
+			log.Err(err).Msgf("cannot create profile %v for %v tenant", profileName, tenantID)
 			return err
 		}
 		if profilePostResponse.JSON201 != nil {
-			log.Info().Msgf("created profile for %v", tenantID)
+			log.Info().Msgf("created profile %v for %v tenant", profileName, tenantID)
 		} else {
 			err = errors.Errorf("%v", string(profilePostResponse.Body))
-			log.Err(err).Msgf("cannot create profile for %v", tenantID)
+			log.Err(err).Msgf("cannot create profile %v for %v tenant", profileName, tenantID)
 			return err
 		}
 	}
@@ -329,14 +358,23 @@ func (tc *Controller) removeProfiles(ctx context.Context, tenants []string) {
 		log.Err(err).Msgf("cannot list profiles, continuing")
 	}
 	if profilesResp.JSON200 != nil {
+		// Build expected profile names from tenants (each tenant has _ccm and _acm profiles)
+		const profilesPerTenant = 2
+		expectedProfiles := make([]string, 0, profilesPerTenant*len(tenants))
+		for _, tenant := range tenants {
+			expectedProfiles = append(expectedProfiles, tenant+ccmProfileSuffix, tenant+acmProfileSuffix)
+		}
+
 		presentProfiles := make([]string, 0, len(*profilesResp.JSON200))
 		for _, profile := range *profilesResp.JSON200 {
 			presentProfiles = append(presentProfiles, profile.ProfileName)
 		}
-		for _, profileName := range findExtraElements(presentProfiles, tenants) {
+		for _, profileName := range findExtraElements(presentProfiles, expectedProfiles) {
+			// Extract tenant ID from profile name by removing _ccm or _acm suffix
+			tenantID := strings.TrimSuffix(strings.TrimSuffix(profileName, ccmProfileSuffix), acmProfileSuffix)
 			log.Info().Msgf("%v profile doesn't have matching tenant - removing it", profileName)
-			if err = tc.TenantController.Reconcile(NewReconcilerID(false, profileName)); err != nil {
-				log.Err(err).Msgf("failed to create reconcile request for %v tenant", profileName)
+			if err = tc.TenantController.Reconcile(NewReconcilerID(false, tenantID)); err != nil {
+				log.Err(err).Msgf("failed to create reconcile request for %v tenant", tenantID)
 			}
 		}
 	}

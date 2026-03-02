@@ -240,7 +240,7 @@ func createDMHandler() (*grpc.DMHandler, error) {
 
 //nolint:gocritic // named results mean additional assignment/typecast.
 func getMpsAddress(filepath string) (string, int32) {
-	data, err := os.ReadFile(filepath)
+	data, err := os.ReadFile(filepath) //nolint:gosec // G703: filepath is from trusted config, not user input
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Failed to read configuration file: %v", filepath)
 		return "", 0
