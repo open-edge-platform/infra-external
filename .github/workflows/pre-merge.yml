@@ -92,6 +92,7 @@ jobs:
     uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@24a3a495be45af021486e265cf09a17ac3798405  # 2026.0.13
     with:
       bootstrap_tools: "all,golangci-lint2"
+      orch_ci_repo_ref: c8827ebce6ba12e8455e4f0ac7c6b308fadeaf52
       run_version_check: false
       run_dep_version_check: true
       run_build: true
@@ -117,6 +118,7 @@ jobs:
     uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@24a3a495be45af021486e265cf09a17ac3798405  # 2026.0.13
     with:
       bootstrap_tools: "all,golangci-lint2"
+      orch_ci_repo_ref: c8827ebce6ba12e8455e4f0ac7c6b308fadeaf52
       run_version_check: true
       run_dep_version_check: false
       run_build: false
