@@ -359,12 +359,13 @@ func (tc *Controller) removeProfiles(ctx context.Context, tenants []string) {
 	}
 	if profilesResp.JSON200 != nil {
 		// Build expected profile names from tenants (each tenant has _ccm and _acm profiles)
-		expectedProfiles := []string{}
+		const profilesPerTenant = 2
+		expectedProfiles := make([]string, 0, profilesPerTenant*len(tenants))
 		for _, tenant := range tenants {
 			expectedProfiles = append(expectedProfiles, tenant+ccmProfileSuffix, tenant+acmProfileSuffix)
 		}
 
-		presentProfiles := []string{}
+		presentProfiles := make([]string, 0, len(*profilesResp.JSON200))
 		for _, profile := range *profilesResp.JSON200 {
 			presentProfiles = append(presentProfiles, profile.ProfileName)
 		}
