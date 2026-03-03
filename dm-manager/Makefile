@@ -22,6 +22,9 @@ OASDIFF            := true
 # Always use the bundle release versions to ensure compatibility with the swagger specs and generated clients
 # Note: These versions should be kept in sync with the versions used in the DMT repo for the swagger specs to avoid breaking changes in the generated clients
 # Refer to bundle releases: https://device-management-toolkit.github.io/docs/2.32/release-notes/
+# Make sure to update the rpc-go client version here as well when updating the RPS version, as the client may have breaking changes if the RPS version is updated
+# https://github.com/open-edge-platform/infra-onboarding/blob/main/onboarding-manager/pkg/platformbundle/ubuntu-22.04/Installer
+# https://github.com/open-edge-platform/infra-onboarding/blob/main/dkam/pkg/script/vpro/Installer.tmpl
 
 OPEN_DMT_MPS_SERVICE_VERSION     := v2.26.0
 OPEN_DMT_RPS_SERVICE_VERSION     := v2.31.3
