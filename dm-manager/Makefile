@@ -19,6 +19,10 @@ OAPI_CODEGEN       := true
 OASDIFF            := true
 
 # Open DMT service versions
+# Always use the bundle release versions to ensure compatibility with the swagger specs and generated clients
+# Note: These versions should be kept in sync with the versions used in the DMT repo for the swagger specs to avoid breaking changes in the generated clients
+# Refer to bundle releases: https://device-management-toolkit.github.io/docs/2.32/release-notes/
+
 OPEN_DMT_MPS_SERVICE_VERSION     := v2.26.0
 OPEN_DMT_RPS_SERVICE_VERSION     := v2.31.3
 
