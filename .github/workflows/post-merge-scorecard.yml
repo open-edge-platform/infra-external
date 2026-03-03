@@ -10,8 +10,7 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   call-scorecard:

@@ -13,8 +13,7 @@ on:
       - "dm-manager/**"
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   post-merge-pipeline:
