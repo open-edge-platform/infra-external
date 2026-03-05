@@ -10,6 +10,7 @@ packages:
       filename: "mocks.go"
       pkgname: "mps"
       structname: "Mock{{.InterfaceName}}"
+      include-auto-generated: true
     interfaces:
       ClientWithResponsesInterface:
   github.com/open-edge-platform/infra-external/dm-manager/pkg/api/rps:
@@ -18,6 +19,7 @@ packages:
       filename: "mocks.go"
       pkgname: "rps"
       structname: "Mock{{.InterfaceName}}"
+      include-auto-generated: true
     interfaces:
       ClientWithResponsesInterface:
   github.com/open-edge-platform/infra-core/inventory/v2/pkg/secretprovider:
