@@ -33,10 +33,10 @@ jobs:
         with:
           persist-credentials: false
       - name: "Verify Branch Name"
-        uses: open-edge-platform/orch-ci/verify-branch-name@582cb262491c89e19904164eb24887b01f6925b2  # 2026.0.15
+        uses: open-edge-platform/orch-ci/verify-branch-name@b5930c48c1fcdb6b34ffbcd465cff96dabfbde70  # 2026.0.17
       - name: "Discover Changed Subfolders"
         id: discover-changes
-        uses: open-edge-platform/orch-ci/discover-changed-subfolders@582cb262491c89e19904164eb24887b01f6925b2  # 2026.0.15
+        uses: open-edge-platform/orch-ci/discover-changed-subfolders@b5930c48c1fcdb6b34ffbcd465cff96dabfbde70  # 2026.0.17
       - name: "Filter Out Unwanted Changed Subfolders"
         id: filter-changes
         env:
@@ -88,7 +88,7 @@ jobs:
       fail-fast: false
       matrix:
         project_folder: ${{ fromJson(needs.pre-checks.outputs.filtered_projects) }}
-    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@582cb262491c89e19904164eb24887b01f6925b2  # 2026.0.15
+    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@b5930c48c1fcdb6b34ffbcd465cff96dabfbde70  # 2026.0.17
     with:
       bootstrap_tools: "all,golangci-lint2"
       run_version_check: false
@@ -113,7 +113,7 @@ jobs:
       contents: read
     needs: pre-checks
     if: ${{ contains(needs.pre-checks.outputs.other_changed_projects, 'loca-plugin') }}
-    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@582cb262491c89e19904164eb24887b01f6925b2  # 2026.0.15
+    uses: open-edge-platform/orch-ci/.github/workflows/pre-merge.yml@b5930c48c1fcdb6b34ffbcd465cff96dabfbde70  # 2026.0.17
     with:
       bootstrap_tools: "all,golangci-lint2"
       run_version_check: true
