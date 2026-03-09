@@ -13,8 +13,7 @@ on:
       - "loca-metadata/**"
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   post-merge-pipeline:
@@ -22,7 +21,8 @@ jobs:
       contents: read
       security-events: write
       id-token: write
-    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@1efca138116d7e8f4abfb7d294bd932ddfb33dcc  # 2026.0.12
+      actions: read
+    uses: open-edge-platform/orch-ci/.github/workflows/post-merge.yml@b5930c48c1fcdb6b34ffbcd465cff96dabfbde70  # 2026.0.17
     with:
       bootstrap_tools: "all,golangci-lint2"
       run_version_check: true
