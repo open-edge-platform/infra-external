@@ -448,17 +448,20 @@ func (dc *Controller) syncPowerStatus(
 			computev1.HostResourceFieldPowerStatusIndicator,
 		}
 
-		// Set power on timestamp when MPS confirms device is powered ON
-		if invHost.GetDesiredPowerState() == computev1.PowerState_POWER_STATE_ON &&
-			mpsPowerStateToInventoryPowerState[powerStateCode] == computev1.PowerState_POWER_STATE_ON {
+		// Set power on timestamp when MPS confirms device is powered ON or completing reset
+		// This captures power-on time after successful transitions: reset completion,
+		// reset-to-reset, power-off to power-on, etc.
+		// Check if MPS reports device is in power-on state (state code 2) or reset state (state code 14)
+		if mpsPowerStateToInventoryPowerState[powerStateCode] == computev1.PowerState_POWER_STATE_ON ||
+			mpsPowerStateToInventoryPowerState[powerStateCode] == computev1.PowerState_POWER_STATE_RESET {
 			powerOnTime, convErr := inv_util.Int64ToUint64(time.Now().Unix())
 			if convErr != nil {
 				log.Warn().Err(convErr).Msgf("Failed to set power on time for host %v", invHost.GetUuid())
 			} else {
 				hostUpdate.PowerOnTime = powerOnTime
 				fieldPaths = append(fieldPaths, computev1.HostResourceFieldPowerOnTime)
-				log.Info().Msgf("set power on time %v for host %v MPS power state: %v)",
-					powerOnTime, invHost.GetUuid(), powerStateCode)
+				log.Info().Msgf("Updated power on time %v for host %v after transition to idle (desired: %v, MPS state: %v)",
+					powerOnTime, invHost.GetUuid(), invHost.GetDesiredPowerState(), powerStateCode)
 			}
 		}
 
