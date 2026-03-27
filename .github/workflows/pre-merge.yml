@@ -133,6 +133,12 @@ jobs:
       run_artifact: false
       prefix_tag_separator: "/"
       project_folder: "loca-plugin"
+      trivy_image_skip: |
+        ghcr.io/github/github-mcp-server:latest,
+        ghcr.io/github/gh-aw-mcpg:latest,
+        ghcr.io/github/gh-aw-firewall/agent:latest,
+        ghcr.io/github/gh-aw-firewall/api-proxy:latest,
+        ghcr.io/github/gh-aw-firewall/squid:latest
     secrets:
       NO_AUTH_ECR_PUSH_USERNAME: ${{ secrets.NO_AUTH_ECR_PUSH_USERNAME }}
       NO_AUTH_ECR_PUSH_PASSWD: ${{ secrets.NO_AUTH_ECR_PUSH_PASSWD }}
