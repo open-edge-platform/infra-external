@@ -176,6 +176,9 @@ linters:
           - testpackage
         path: pkg/client/loca/loca_task_tracker_test.go
       - linters:
+          - revive
+        path: pkg/util/util.go
+      - linters:
           - testpackage
         path: pkg/flags/flags_test.go
       - linters:
