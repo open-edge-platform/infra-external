@@ -5,6 +5,7 @@ package tenant
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 	"sync"
@@ -268,7 +269,7 @@ func (tc *Controller) handleCiraConfig(ctx context.Context, tenantID string, cer
 			MpsServerAddress:    tc.Config.MpsAddress,
 			MpsPort:             tc.Config.MpsPort,
 			ConfigName:          tenantID,
-			MpsRootCertificate:  convertCertToCertBlob(cert),
+			MpsRootCertificate:  []byte(convertCertToCertBlob(cert)),
 			ProxyDetails:        "", // TODO: pass proxy from config
 			Username:            "admin",
 			Password:            &amtPassword,
@@ -338,8 +339,13 @@ func (tc *Controller) removeCIRAConfigs(ctx context.Context, tenants []string) {
 	}
 
 	if CIRAConfigsResp.JSON200 != nil {
+		var ciraConfigs rps.GetAllCIRAConfigs2000
+		if err = json.Unmarshal(CIRAConfigsResp.Body, &ciraConfigs); err != nil {
+			log.Err(err).Msgf("cannot unmarshal CIRA configs response")
+			return
+		}
 		presentCiraConfigs := []string{}
-		for _, ciraConfig := range *CIRAConfigsResp.JSON200 {
+		for _, ciraConfig := range ciraConfigs {
 			presentCiraConfigs = append(presentCiraConfigs, ciraConfig.ConfigName)
 		}
 
@@ -356,6 +362,7 @@ func (tc *Controller) removeProfiles(ctx context.Context, tenants []string) {
 	profilesResp, err := tc.RpsClient.GetAllProfilesWithResponse(ctx, &rps.GetAllProfilesParams{})
 	if err != nil {
 		log.Err(err).Msgf("cannot list profiles, continuing")
+		return
 	}
 	if profilesResp.JSON200 != nil {
 		// Build expected profile names from tenants (each tenant has _ccm and _acm profiles)
@@ -365,8 +372,13 @@ func (tc *Controller) removeProfiles(ctx context.Context, tenants []string) {
 			expectedProfiles = append(expectedProfiles, tenant+ccmProfileSuffix, tenant+acmProfileSuffix)
 		}
 
-		presentProfiles := make([]string, 0, len(*profilesResp.JSON200))
-		for _, profile := range *profilesResp.JSON200 {
+		var profiles rps.GetAllProfiles2000
+		if err = json.Unmarshal(profilesResp.Body, &profiles); err != nil {
+			log.Err(err).Msgf("cannot unmarshal profiles response")
+			return
+		}
+		presentProfiles := make([]string, 0, len(profiles))
+		for _, profile := range profiles {
 			presentProfiles = append(presentProfiles, profile.ProfileName)
 		}
 		for _, profileName := range findExtraElements(presentProfiles, expectedProfiles) {

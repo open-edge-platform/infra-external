@@ -60,15 +60,26 @@ type MockSecretProvider_GetSecret_Call struct {
 }
 
 // GetSecret is a helper method to define mock.On call
-//   - secretName
-//   - secretKey
+//   - secretName string
+//   - secretKey string
 func (_e *MockSecretProvider_Expecter) GetSecret(secretName interface{}, secretKey interface{}) *MockSecretProvider_GetSecret_Call {
 	return &MockSecretProvider_GetSecret_Call{Call: _e.mock.On("GetSecret", secretName, secretKey)}
 }
 
 func (_c *MockSecretProvider_GetSecret_Call) Run(run func(secretName string, secretKey string)) *MockSecretProvider_GetSecret_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string))
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -106,15 +117,26 @@ type MockSecretProvider_Init_Call struct {
 }
 
 // Init is a helper method to define mock.On call
-//   - ctx
-//   - secretName
+//   - ctx context.Context
+//   - secretName []string
 func (_e *MockSecretProvider_Expecter) Init(ctx interface{}, secretName interface{}) *MockSecretProvider_Init_Call {
 	return &MockSecretProvider_Init_Call{Call: _e.mock.On("Init", ctx, secretName)}
 }
 
 func (_c *MockSecretProvider_Init_Call) Run(run func(ctx context.Context, secretName []string)) *MockSecretProvider_Init_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []string
+		if args[1] != nil {
+			arg1 = args[1].([]string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }

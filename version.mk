@@ -14,9 +14,9 @@ MOCKGENVERSION_REQ             := 1.6.0
 SWAGGERVERSION_HAVE            := $(shell swagger version | sed 's/.*version: v//' | sed 's/ .*//'| sed 's/commit.*//')
 SWAGGERVERSION_REQ             := 0.33.1
 MOCKERYVERSION_HAVE            := $(shell mockery version)
-MOCKERYVERSION_REQ             := v3.2.4
+MOCKERYVERSION_REQ             := v3.6.4
 OAPI_CODEGEN_HAVE              := $(shell oapi-codegen -version |sed '1d')
-OAPI_CODEGENVERSION_REQ        := v2.4.1
+OAPI_CODEGENVERSION_REQ        := v2.5.1
 OASDIFF_HAVE                   := $(shell oasdiff --version | sed -n 's/^oasdiff version //p')
 OASDIFF_REQ                    := 1.11.4
 # No version reported
