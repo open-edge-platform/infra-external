@@ -166,10 +166,16 @@ func (kc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 		return request.Fail(err)
 	}
 
-	log.Debug().Msgf("host %v: desiredKvmState=%v currentKvmState=%v",
+	log.Debug().Msgf("host %v: desiredKvmState=%v currentKvmState=%v desiredPowerState=%v",
 		request.ID,
 		invHost.GetDesiredKvmState(),
-		invHost.GetCurrentKvmState())
+		invHost.GetCurrentKvmState(),
+		invHost.GetDesiredPowerState())
+
+	// reject power ops while a KVM session is active.
+	if blocked, dir := kc.blockDisruptivePowerOp(ctx, request, invHost); blocked {
+		return dir
+	}
 
 	switch {
 	case kc.shouldStartKVMSession(invHost):
@@ -181,6 +187,73 @@ func (kc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 			request.ID, invHost.GetDesiredKvmState(), invHost.GetCurrentKvmState())
 	}
 	return request.Ack()
+}
+
+// isDisruptivePowerOp returns true for power states that would terminate an active
+// KVM session
+func isDisruptivePowerOp(ps computev1.PowerState) bool {
+	switch ps {
+	case computev1.PowerState_POWER_STATE_OFF,
+		computev1.PowerState_POWER_STATE_RESET,
+		computev1.PowerState_POWER_STATE_RESET_REPEAT:
+		return true
+	default:
+		return false
+	}
+}
+
+// kvmStartInProgress returns true whenever a KVM start has been requested
+func kvmStartInProgress(invHost *computev1.HostResource) bool {
+	if invHost.GetDesiredKvmState() == computev1.KvmState_KVM_STATE_START {
+		return true
+	}
+	switch invHost.GetCurrentKvmState() {
+	case computev1.KvmState_KVM_STATE_AWAITING_CONSENT,
+		computev1.KvmState_KVM_STATE_START:
+		return true
+	}
+	return false
+}
+
+// blockDisruptivePowerOp checks whether a disruptive power operation has been
+// requested at any point during the KVM start phase
+// then it resets desired_power_state to UNSPECIFIED,
+// writes warning to kvm_session_status and returns true so that operator can
+// Ack without further action.
+func (kc *Controller) blockDisruptivePowerOp(
+	ctx context.Context,
+	request rec_v2.Request[ID],
+	invHost *computev1.HostResource,
+) (blocked bool, dir rec_v2.Directive[ID]) {
+	if !kvmStartInProgress(invHost) {
+		return false, request.Ack()
+	}
+	desiredPower := invHost.GetDesiredPowerState()
+	if !isDisruptivePowerOp(desiredPower) {
+		return false, request.Ack()
+	}
+	tenantID := request.ID.GetTenantID()
+	resourceID := invHost.GetResourceId()
+	hostUUID := request.ID.GetHostUUID()
+	msg := fmt.Sprintf(
+		"power operation %v rejected: KVM session is active on host %v — stop KVM session before changing power state",
+		desiredPower, hostUUID)
+	log.Warn().Msg(msg)
+	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
+		&fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldDesiredPowerState,
+			computev1.HostResourceFieldKvmSessionStatus,
+			computev1.HostResourceFieldKvmSessionStatusIndicator,
+		}},
+		&computev1.HostResource{
+			DesiredPowerState:         computev1.PowerState_POWER_STATE_UNSPECIFIED,
+			KvmSessionStatus:          msg,
+			KvmSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
+		},
+	); updateErr != nil {
+		log.Err(updateErr).Msgf("failed to reset desired_power_state for host %v", hostUUID)
+	}
+	return true, request.Ack()
 }
 
 // shouldStartKVMSession returns true when the operator requested KVM_STATE_START
