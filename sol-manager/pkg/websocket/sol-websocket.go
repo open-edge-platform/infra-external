@@ -275,17 +275,24 @@ func GetMPSRedirectToken(mpsHost, deviceGUID, keycloakToken string, insecure boo
 // It performs the full AMT redirection handshake (auth + SOL setup) in a background goroutine.
 // Callers should wait on session.SolReady to know when the terminal is active.
 func NewSOLSession(cfg SessionConfig) (*SOLSession, error) {
+	// Get redirect token from MPS
+	redirectToken, err := GetMPSRedirectToken(cfg.MPSHost, cfg.DeviceGUID, cfg.KeycloakToken, cfg.Insecure)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get MPS redirect token: %w", err)
+	}
+	return NewSOLSessionWithToken(cfg, redirectToken)
+}
+
+// NewSOLSessionWithToken creates a new SOL WebSocket session using a pre-acquired
+// MPS redirect token. Use this when the token has already been obtained (e.g. by the
+// reconciler via MPS REST API). The handshake runs in a background goroutine;
+// callers should wait on session.SolReady to know when the terminal is active.
+func NewSOLSessionWithToken(cfg SessionConfig, redirectToken string) (*SOLSession, error) {
 	if cfg.Port == 0 {
 		cfg.Port = 16994
 	}
 	if cfg.Mode == "" {
 		cfg.Mode = "sol"
-	}
-
-	// Get redirect token from MPS
-	redirectToken, err := GetMPSRedirectToken(cfg.MPSHost, cfg.DeviceGUID, cfg.KeycloakToken, cfg.Insecure)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get MPS redirect token: %w", err)
 	}
 
 	// Build WebSocket URL

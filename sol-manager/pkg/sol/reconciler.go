@@ -26,6 +26,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_util "github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
 	"github.com/open-edge-platform/infra-external/sol-manager/pkg/api/mps"
+	solws "github.com/open-edge-platform/infra-external/sol-manager/pkg/websocket"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -33,17 +34,16 @@ const (
 	minDelay = 1 * time.Second
 	maxDelay = 5 * time.Second
 
-	// mpsWssRelayPathTemplate is the WebSocket relay URL written into inventory after a
-	// redirect token is acquired. orch-cli reads this URL and opens the relay directly.
-	mpsWssRelayPathTemplate = "wss://%s/relay/webrelay.ashx?p=2&host=%s&port=16994&tls=0&token=%s"
+	// solSessionHandshakeTimeout is how long we wait for the AMT SOL protocol handshake
+	// (0x10→0x11→0x13→0x14→0x20→0x21→0x27) before declaring a timeout.
+	solSessionHandshakeTimeout = 30 * time.Second
+
+	// solProxyURLTemplate is the WebSocket proxy URL written into inventory.
+	// UI/CLI connects here to get clean terminal data; sol-manager proxies to/from AMT.
+	solProxyURLTemplate = "wss://%s/ws/sol/%s"
 
 	// userConsentNone is sent to MPS POST /features in ACM mode to disable consent prompts.
 	userConsentNone = "none"
-
-	// userConsentKVM / userConsentAll are returned by GET /features for CCM devices that
-	// require operator consent before a SOL session can begin.
-	userConsentKVM = "kvm"
-	userConsentAll = "all"
 )
 
 var log = logging.GetLogger("SolReconciler")
@@ -72,9 +72,17 @@ func NewID(tenantID, hostUUID string) ID {
 	return ID(tenantID + "_" + hostUUID)
 }
 
+// activeSession tracks a running AMT SOL WebSocket session.
+type activeSession struct {
+	session    *solws.SOLSession
+	resourceID string
+	tenantID   string
+	deviceGUID string
+}
+
 // Controller is the SOL resource manager. It watches Inventory for
 // desired_sol_state changes on HostResource and drives the SOL session
-// lifecycle by calling MPS REST APIs.
+// lifecycle by calling MPS REST APIs + AMT SOL WebSocket protocol.
 type Controller struct {
 	MpsClient         mps.ClientWithResponsesInterface
 	InventoryRmClient client.TenantAwareInventoryClient
@@ -84,16 +92,42 @@ type Controller struct {
 	WaitGroup         *sync.WaitGroup
 	SOLController     *rec_v2.Controller[ID]
 
-	// MpsDomain is the public MPS WebSocket relay hostname written into sol_session_url,
-	// e.g. "mps-wss.example.com". Set via --mpsDomain flag.
+	// MpsDomain is the MPS WebSocket relay hostname used both for connecting
+	// to AMT (via relay) and for the sol_session_url written to inventory.
 	MpsDomain string
+
+	// SOLProxyDomain is the public hostname of the sol-manager WebSocket proxy.
+	// Written into sol_session_url so UI/CLI knows where to connect.
+	// e.g. "sol-manager.orch-infra.svc" or a public ingress hostname.
+	SOLProxyDomain string
 
 	ReconcilePeriod time.Duration
 	RequestTimeout  time.Duration
+	Insecure        bool
+
+	// activeSessions tracks running SOL WebSocket sessions keyed by resourceID.
+	activeSessions   map[string]*activeSession
+	activeSessionsMu sync.Mutex
+}
+
+// GetSession returns the active SOL session for the given resourceID, or nil.
+func (sc *Controller) GetSession(resourceID string) *solws.SOLSession {
+	sc.activeSessionsMu.Lock()
+	defer sc.activeSessionsMu.Unlock()
+	if sess, ok := sc.activeSessions[resourceID]; ok {
+		return sess.session
+	}
+	return nil
 }
 
 // Start begins event-driven and periodic reconciliation.
 func (sc *Controller) Start() {
+	sc.activeSessionsMu.Lock()
+	if sc.activeSessions == nil {
+		sc.activeSessions = make(map[string]*activeSession)
+	}
+	sc.activeSessionsMu.Unlock()
+
 	ticker := time.NewTicker(sc.ReconcilePeriod)
 	sc.ReadyChan <- true
 	log.Info().Msg("SOL manager started")
@@ -105,6 +139,7 @@ func (sc *Controller) Start() {
 		case <-sc.TermChan:
 			log.Info().Msg("SOL manager stopping")
 			ticker.Stop()
+			sc.stopAllSessions()
 			sc.Stop()
 			return
 		case event, ok := <-sc.EventsWatcher:
@@ -199,12 +234,11 @@ func (sc *Controller) shouldStopSOLSession(invHost *computev1.HostResource) bool
 
 // handleStartSOLSession drives the full SOL start lifecycle:
 //  1. Pre-condition: host must be AMT_STATE_PROVISIONED.
-//  2. GET /api/v1/amt/features/{guid} — verify SOL enabled, read userConsent.
-//  3. If SOL disabled: POST /api/v1/amt/features/{guid} to enable it.
-//  4. Consent flow (CCM only): trigger on-screen code, write AWAITING_CONSENT,
-//     wait for desired_consent_code, submit to MPS.
-//  5. GET /api/v1/authorize/redirection/{guid} — obtain short-lived relay token.
-//  6. Write current_sol_state=SOL_STATE_START + sol_session_url to inventory.
+//  2. GET /api/v1/amt/features/{guid} — verify SOL is already enabled (from profile creation).
+//  3. CCM consent flow (if amt_control_mode == CCM): trigger on-screen code,
+//     write AWAITING_CONSENT, wait for desired_consent_code, submit to MPS.
+//  4. GET /api/v1/authorize/redirection/{guid} — obtain short-lived relay token.
+//  5. Write current_sol_state=SOL_STATE_START + sol_session_url to inventory.
 func (sc *Controller) handleStartSOLSession(
 	ctx context.Context,
 	request rec_v2.Request[ID],
@@ -241,60 +275,22 @@ func (sc *Controller) handleStartSOLSession(
 
 	features := featResp.JSON200
 
-	// Record sol_status in inventory.
+	// Step 2 — SOL must already be enabled via AMT profile during provisioning.
 	solActivated := features.SOL != nil && *features.SOL
-	solStatus := computev1.SolStatus_SOL_STATUS_DEACTIVATED
-	if solActivated {
-		solStatus = computev1.SolStatus_SOL_STATUS_ACTIVATED
-	}
-	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
-		&fieldmaskpb.FieldMask{Paths: []string{computev1.HostResourceFieldSolStatus}},
-		&computev1.HostResource{SolStatus: solStatus},
-	); updateErr != nil {
-		log.Err(updateErr).Msgf("failed to update sol_status for host %v", hostUUID)
-	}
-
-	// Step 2 — Enable SOL if not already active.
 	if !solActivated {
-		log.Info().Msgf("host %v: SOL not enabled, enabling via POST /amt/features", hostUUID)
-		setResp, setErr := sc.MpsClient.PostApiV1AmtFeaturesGuidWithResponse(
-			updatedCtx, hostUUID,
-			mps.SetAMTFeaturesRequest{
-				EnableKVM:   false,
-				EnableSOL:   true,
-				EnableIDER:  false,
-				UserConsent: userConsentNone,
-			},
-			clientCallback())
-		if setErr != nil {
-			log.Err(setErr).Msgf("POST /amt/features failed for host %v", hostUUID)
-			return request.Fail(setErr)
-		}
-		if setResp.StatusCode() != http.StatusOK {
-			errMsg := fmt.Sprintf("POST /amt/features returned %d: %s",
-				setResp.StatusCode(), string(setResp.Body))
-			log.Error().Msg(errMsg)
-			return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
-		}
-		if updateErr := sc.updateHost(ctx, tenantID, resourceID,
-			&fieldmaskpb.FieldMask{Paths: []string{computev1.HostResourceFieldSolStatus}},
-			&computev1.HostResource{SolStatus: computev1.SolStatus_SOL_STATUS_ACTIVATED},
-		); updateErr != nil {
-			log.Err(updateErr).Msgf("failed to update sol_status after enabling for host %v", hostUUID)
-		}
+		errMsg := fmt.Sprintf(
+			"SOL is not enabled on host %v; it must be activated during profile creation", hostUUID)
+		log.Error().Msg(errMsg)
+		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
 	}
 
-	// Step 3 — Consent flow for CCM devices (userConsent != "none").
-	userConsent := ""
-	if features.UserConsent != nil {
-		userConsent = *features.UserConsent
-	}
-	if userConsent == userConsentKVM || userConsent == userConsentAll {
+	// Step 3 — Consent flow for CCM devices (check amt_control_mode from inventory).
+	if invHost.GetAmtControlMode() == computev1.AmtControlMode_AMT_CONTROL_MODE_CCM {
 		return sc.handleConsentFlow(
 			ctx, updatedCtx, request, invHost, tenantID, resourceID, hostUUID)
 	}
 
-	// Step 4 — ACM or no-consent: go straight to token acquisition.
+	// Step 4 — ACM mode: go straight to token acquisition (no consent needed).
 	return sc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
 }
 
@@ -408,13 +404,14 @@ func (sc *Controller) submitConsentCode(
 }
 
 // acquireTokenAndActivate calls GET /api/v1/authorize/redirection/{guid} to get
-// a short-lived relay token, then writes sol_session_url and
-// current_sol_state=SOL_STATE_START to inventory.
+// a short-lived relay token, then establishes the AMT SOL WebSocket session via
+// sol-websocket.go, and finally writes sol_session_url + SOL_STATE_START to inventory.
 func (sc *Controller) acquireTokenAndActivate(
 	ctx, updatedCtx context.Context,
 	request rec_v2.Request[ID],
 	tenantID, resourceID, hostUUID string,
 ) rec_v2.Directive[ID] {
+	// Step 1 — Get redirect token from MPS.
 	tokenResp, err := sc.MpsClient.GetApiV1AuthorizeRedirectionGuidWithResponse(
 		updatedCtx, hostUUID, clientCallback())
 	if err != nil {
@@ -432,21 +429,78 @@ func (sc *Controller) acquireTokenAndActivate(
 		log.Error().Msg(errMsg)
 		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
 	}
+	redirectToken := *tokenResp.JSON200.Token
+	log.Info().Msgf("host %v: relay token acquired, establishing SOL WebSocket session", hostUUID)
 
-	token := *tokenResp.JSON200.Token
-	sessionURL := fmt.Sprintf(mpsWssRelayPathTemplate, sc.MpsDomain, hostUUID, token)
-	log.Info().Msgf("host %v: relay token acquired, writing SOL session URL", hostUUID)
+	// Step 2 — Mark state as AWAITING_CONSENT while we do the AMT handshake.
+	_ = sc.updateHost(ctx, tenantID, resourceID,
+		&fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldCurrentSolState,
+			computev1.HostResourceFieldSolSessionStatus,
+			computev1.HostResourceFieldSolSessionStatusIndicator,
+		}},
+		&computev1.HostResource{
+			CurrentSolState:           computev1.SolState_SOL_STATE_AWAITING_CONSENT,
+			SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_ACTIVATED,
+			SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
+		})
 
+	// Step 3 — Open WebSocket to MPS relay + run AMT SOL protocol handshake.
+	cfg := solws.SessionConfig{
+		MPSHost:    sc.MpsDomain,
+		DeviceGUID: hostUUID,
+		Port:       16994,
+		Mode:       "sol",
+		Insecure:   sc.Insecure,
+		AMTUser:    "admin", // TODO: retrieve from vault/secrets
+		AMTPass:    "",      // TODO: retrieve from vault/secrets
+	}
+	session, sessErr := solws.NewSOLSessionWithToken(cfg, redirectToken)
+	if sessErr != nil {
+		errMsg := fmt.Sprintf("failed to create SOL WebSocket session for host %v: %v", hostUUID, sessErr)
+		log.Error().Msg(errMsg)
+		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
+	}
+
+	// Step 4 — Wait for AMT SOL handshake to complete (SolReady channel).
+	select {
+	case <-session.SolReady:
+		log.Info().Msgf("host %v: AMT SOL handshake complete, session is ACTIVE", hostUUID)
+	case <-time.After(solSessionHandshakeTimeout):
+		session.Close()
+		errMsg := fmt.Sprintf("SOL handshake timed out for host %v", hostUUID)
+		log.Error().Msg(errMsg)
+		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
+	case <-session.Done:
+		errMsg := fmt.Sprintf("SOL session closed during handshake for host %v", hostUUID)
+		log.Error().Msg(errMsg)
+		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
+	}
+
+	// Step 5 — Track the active session.
+	sc.activeSessionsMu.Lock()
+	sc.activeSessions[resourceID] = &activeSession{
+		session:    session,
+		resourceID: resourceID,
+		tenantID:   tenantID,
+		deviceGUID: hostUUID,
+	}
+	sc.activeSessionsMu.Unlock()
+
+	// Step 6 — Write SOL_STATE_START + proxy URL to inventory.
+	sessionURL := fmt.Sprintf(solProxyURLTemplate, sc.SOLProxyDomain, resourceID)
 	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentSolState,
 			computev1.HostResourceFieldSolSessionUrl,
+			computev1.HostResourceFieldSolStatus,
 			computev1.HostResourceFieldSolSessionStatus,
 			computev1.HostResourceFieldSolSessionStatusIndicator,
 		}},
 		&computev1.HostResource{
 			CurrentSolState:           computev1.SolState_SOL_STATE_START,
 			SolSessionUrl:             sessionURL,
+			SolStatus:                 computev1.SolStatus_SOL_STATUS_ACTIVATED,
 			SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_ACTIVATED,
 			SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 		},
@@ -455,13 +509,15 @@ func (sc *Controller) acquireTokenAndActivate(
 		return request.Retry(updateErr).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 	}
 
-	log.Info().Msgf("host %v: SOL_STATE_START written, session URL in inventory", hostUUID)
+	// Step 7 — Monitor session lifetime in background.
+	go sc.monitorSession(resourceID)
+
+	log.Info().Msgf("host %v: SOL_STATE_START written, session URL=%s", hostUUID, sessionURL)
 	return request.Ack()
 }
 
-// handleStopSOLSession tears down the SOL session. The relay token expires
-// naturally once the terminal disconnects; sol-manager simply clears the URL
-// and marks the state as SOL_STATE_STOP.
+// handleStopSOLSession tears down the active SOL WebSocket session,
+// clears the URL, and marks the state as SOL_STATE_STOP.
 func (sc *Controller) handleStopSOLSession(
 	ctx context.Context,
 	request rec_v2.Request[ID],
@@ -473,16 +529,21 @@ func (sc *Controller) handleStopSOLSession(
 
 	log.Info().Msgf("host %v: stopping SOL session", hostUUID)
 
+	// Close the active WebSocket session if one exists.
+	sc.closeSession(resourceID)
+
 	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentSolState,
 			computev1.HostResourceFieldSolSessionUrl,
+			computev1.HostResourceFieldSolStatus,
 			computev1.HostResourceFieldSolSessionStatus,
 			computev1.HostResourceFieldSolSessionStatusIndicator,
 		}},
 		&computev1.HostResource{
 			CurrentSolState:           computev1.SolState_SOL_STATE_STOP,
 			SolSessionUrl:             "",
+			SolStatus:                 computev1.SolStatus_SOL_STATUS_DEACTIVATED,
 			SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_DEACTIVATED,
 			SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 		},
@@ -493,6 +554,79 @@ func (sc *Controller) handleStopSOLSession(
 
 	log.Info().Msgf("host %v: SOL session stopped", hostUUID)
 	return request.Ack()
+}
+
+// closeSession closes and removes an active SOL session by resourceID.
+func (sc *Controller) closeSession(resourceID string) {
+	sc.activeSessionsMu.Lock()
+	sess, exists := sc.activeSessions[resourceID]
+	if exists {
+		delete(sc.activeSessions, resourceID)
+	}
+	sc.activeSessionsMu.Unlock()
+	if exists && sess.session != nil {
+		sess.session.Close()
+	}
+}
+
+// stopAllSessions tears down all active SOL WebSocket sessions.
+func (sc *Controller) stopAllSessions() {
+	sc.activeSessionsMu.Lock()
+	sessions := make(map[string]*activeSession, len(sc.activeSessions))
+	for k, v := range sc.activeSessions {
+		sessions[k] = v
+	}
+	sc.activeSessionsMu.Unlock()
+
+	for _, sess := range sessions {
+		log.Info().Msgf("stopping SOL session for host %s on shutdown", sess.resourceID)
+		sc.closeSession(sess.resourceID)
+	}
+}
+
+// monitorSession watches an active SOL session and marks it as ERROR
+// in inventory if the WebSocket connection drops unexpectedly.
+func (sc *Controller) monitorSession(resourceID string) {
+	sc.activeSessionsMu.Lock()
+	sess, exists := sc.activeSessions[resourceID]
+	sc.activeSessionsMu.Unlock()
+	if !exists {
+		return
+	}
+
+	select {
+	case <-sess.session.Done:
+		// Session terminated — check if it was a deliberate stop or unexpected.
+		sc.activeSessionsMu.Lock()
+		_, stillActive := sc.activeSessions[resourceID]
+		if stillActive {
+			delete(sc.activeSessions, resourceID)
+		}
+		sc.activeSessionsMu.Unlock()
+
+		if stillActive {
+			log.Warn().Msgf("SOL session for %s terminated unexpectedly", resourceID)
+			ctx, cancel := context.WithTimeout(context.Background(), sc.RequestTimeout)
+			defer cancel()
+			_ = sc.updateHost(ctx, sess.tenantID, resourceID,
+				&fieldmaskpb.FieldMask{Paths: []string{
+					computev1.HostResourceFieldCurrentSolState,
+					computev1.HostResourceFieldSolSessionUrl,
+					computev1.HostResourceFieldSolStatus,
+					computev1.HostResourceFieldSolSessionStatus,
+					computev1.HostResourceFieldSolSessionStatusIndicator,
+				}},
+				&computev1.HostResource{
+					CurrentSolState:           computev1.SolState_SOL_STATE_ERROR,
+					SolSessionUrl:             "",
+					SolStatus:                 computev1.SolStatus_SOL_STATUS_DEACTIVATED,
+					SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_DEACTIVATED,
+					SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
+				})
+		}
+	case <-sc.TermChan:
+		return
+	}
 }
 
 // writeSolError writes SOL_STATE_ERROR + status message to inventory and
@@ -506,12 +640,14 @@ func (sc *Controller) writeSolError(
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentSolState,
 			computev1.HostResourceFieldSolSessionUrl,
+			computev1.HostResourceFieldSolStatus,
 			computev1.HostResourceFieldSolSessionStatus,
 			computev1.HostResourceFieldSolSessionStatusIndicator,
 		}},
 		&computev1.HostResource{
 			CurrentSolState:           computev1.SolState_SOL_STATE_ERROR,
 			SolSessionUrl:             "",
+			SolStatus:                 computev1.SolStatus_SOL_STATUS_DEACTIVATED,
 			SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_DEACTIVATED,
 			SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
 		})

@@ -71,6 +71,9 @@ var (
 	tlsKeyPath   = flag.String(invClient.TLSKeyPath, "", invClient.TLSKeyPathDescription)
 	enableAuth   = flag.Bool(rbac.EnableAuth, true, rbac.EnableAuthDescription)
 	rbacRules    = flag.String(rbac.RbacRules, "/rego/authz.rego", rbac.RbacRulesDescription)
+	solProxyAddr   = flag.String(flags.SOLServerAddressFlag, ":8080", flags.SOLServerAddressDescription)
+	solProxyDomain = flag.String("solProxyDomain", "sol-manager.orch-infra.svc",
+		"Public hostname for the SOL WebSocket proxy written into sol_session_url")
 )
 
 func main() {
@@ -110,6 +113,17 @@ func main() {
 	// Create SOL session reconciler
 	solReconciler := getSOLController(orchMpsHost, mpsClient)
 
+	// Start SOL WebSocket proxy server
+	proxyServer := sol.NewProxyServer(solReconciler)
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/ws/sol/", proxyServer)
+		log.Info().Msgf("SOL WebSocket proxy listening on %s", *solProxyAddr)
+		if listenErr := http.ListenAndServe(*solProxyAddr, mux); listenErr != nil { //nolint:gosec // address from trusted flag
+			log.Fatal().Err(listenErr).Msg("SOL proxy server failed")
+		}
+	}()
+
 	wg.Add(1)
 	go solReconciler.Start()
 
@@ -134,11 +148,13 @@ func getSOLController(orchMpsHost string, mpsClient mps.ClientWithResponsesInter
 		EventsWatcher:     eventsWatcher,
 		WaitGroup:         wg,
 		MpsDomain:         orchMpsHost,
+		SOLProxyDomain:    *solProxyDomain,
 		ReconcilePeriod:   *reconcilePeriod,
 		RequestTimeout:    *requestTimeout,
+		Insecure:          *insecure,
 	}
 
-	solController := rec_v2.NewController[sol.ID](
+	solController := rec_v2.NewController(
 		solReconciler.Reconcile,
 		rec_v2.WithParallelism(defaultParallelGoroutines),
 		rec_v2.WithTimeout(*requestTimeout))
