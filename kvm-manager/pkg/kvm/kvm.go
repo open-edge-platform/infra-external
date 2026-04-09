@@ -225,7 +225,8 @@ func (kc *Controller) handleStartKVMSession(
 
 	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), tenantID)
 
-	// Step 1 — GET AMT features.
+	// Step 1 — GET AMT features from MPS.
+	log.Debug().Msgf("host %v: GET /api/v1/amt/features", hostUUID)
 	featResp, err := kc.MpsClient.GetApiV1AmtFeaturesGuidWithResponse(
 		updatedCtx, hostUUID, clientCallback())
 	if err != nil {
@@ -238,10 +239,15 @@ func (kc *Controller) handleStartKVMSession(
 		log.Error().Msg(errMsg)
 		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 	}
-
+	log.Debug().Msgf("host %v: GET /amt/features response: %s", hostUUID, string(featResp.Body))
 	features := featResp.JSON200
-
-	// Record kvm_status in inventory.
+	if features == nil {
+		errMsg := fmt.Sprintf("GET /amt/features returned empty body for host %v", hostUUID)
+		log.Error().Msg(errMsg)
+		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
+	}
+	log.Debug().Msgf("host %v: AMT features — KVM=%v userConsent=%v redirection=%v",
+		hostUUID, features.KVM, features.UserConsent, features.Redirection)
 	kvmActivated := features.KVM != nil && *features.KVM
 	kvmStatus := computev1.KvmStatus_KVM_STATUS_DEACTIVATED
 	if kvmActivated {
@@ -257,6 +263,7 @@ func (kc *Controller) handleStartKVMSession(
 	// Step 2 — Enable KVM if not already active.
 	if !kvmActivated {
 		log.Info().Msgf("host %v: KVM not enabled, enabling via POST /amt/features", hostUUID)
+		log.Debug().Msgf("host %v: POST /api/v1/amt/features body: enableKVM=true userConsent=none", hostUUID)
 		setResp, setErr := kc.MpsClient.PostApiV1AmtFeaturesGuidWithResponse(
 			updatedCtx, hostUUID,
 			mps.SetAMTFeaturesRequest{
@@ -276,6 +283,7 @@ func (kc *Controller) handleStartKVMSession(
 			log.Error().Msg(errMsg)
 			return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 		}
+		log.Debug().Msgf("host %v: POST /amt/features response: %s", hostUUID, string(setResp.Body))
 		if updateErr := kc.updateHost(ctx, tenantID, resourceID,
 			&fieldmaskpb.FieldMask{Paths: []string{computev1.HostResourceFieldKvmStatus}},
 			&computev1.HostResource{KvmStatus: computev1.KvmStatus_KVM_STATUS_ACTIVATED},
@@ -284,17 +292,19 @@ func (kc *Controller) handleStartKVMSession(
 		}
 	}
 
-	// Step 3 — Consent flow for CCM devices (userConsent != "none").
-	userConsent := ""
-	if features.UserConsent != nil {
-		userConsent = *features.UserConsent
-	}
-	if userConsent == userConsentKVM || userConsent == userConsentAll {
+	// Step 3 — Consent flow for CCM devices.
+	// CCM requires user consent, ACM does not.
+	isCCM := invHost.GetAmtControlMode() == computev1.AmtControlMode_AMT_CONTROL_MODE_CCM
+	log.Debug().Msgf("host %v: amtControlMode=%v isCCM=%v",
+		hostUUID, invHost.GetAmtControlMode(), isCCM)
+	if isCCM {
+		log.Info().Msgf("host %v: CCM device — consent flow required", hostUUID)
 		return kc.handleConsentFlow(
 			ctx, updatedCtx, request, invHost, tenantID, resourceID, hostUUID)
 	}
 
-	// Step 4 — ACM or no-consent: go straight to token acquisition.
+	// Step 4 — ACM: only token acquisition.
+	log.Info().Msgf("host %v: ACM device — skipping consent, acquiring token", hostUUID)
 	return kc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
 }
 
@@ -322,6 +332,7 @@ func (kc *Controller) handleConsentFlow(
 
 	// First pass: trigger on-screen 6-digit code display.
 	log.Info().Msgf("host %v: triggering user consent code display via MPS", hostUUID)
+	log.Debug().Msgf("host %v: GET /api/v1/amt/userConsentCode/%s", hostUUID, hostUUID)
 	consentResp, err := kc.MpsClient.GetApiV1AmtUserConsentCodeGuidWithResponse(
 		updatedCtx, hostUUID, clientCallback())
 	if err != nil {
@@ -334,7 +345,7 @@ func (kc *Controller) handleConsentFlow(
 		log.Error().Msg(errMsg)
 		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 	}
-
+	log.Debug().Msgf("host %v: GET /amt/userConsentCode response: %s", hostUUID, string(consentResp.Body))
 	// Write KVM_STATE_AWAITING_CONSENT so orch-cli prompts the operator.
 	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
@@ -364,7 +375,7 @@ func (kc *Controller) submitConsentCode(
 	tenantID, resourceID, hostUUID, consentCode string,
 ) rec_v2.Directive[ID] {
 	log.Info().Msgf("host %v: submitting consent code to MPS", hostUUID)
-
+	log.Debug().Msgf("host %v: POST /api/v1/amt/userConsentCode/%s consentCode=NNNNNN (redacted)", hostUUID, hostUUID)
 	var codeInt int
 	if _, scanErr := fmt.Sscanf(consentCode, "%d", &codeInt); scanErr != nil {
 		errMsg := fmt.Sprintf("invalid consent code format for host %v: %q", hostUUID, consentCode)
@@ -386,8 +397,8 @@ func (kc *Controller) submitConsentCode(
 		log.Error().Msg(errMsg)
 		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 	}
+	log.Debug().Msgf("host %v: POST /amt/userConsentCode response: %s", hostUUID, string(submitResp.Body))
 	if submitResp.JSON200 != nil && submitResp.JSON200.Body != nil &&
-		submitResp.JSON200.Body.ReturnValueStr != nil &&
 		!strings.EqualFold(*submitResp.JSON200.Body.ReturnValueStr, "SUCCESS") {
 		errMsg := fmt.Sprintf("consent code rejected by MPS for host %v: %s",
 			hostUUID, *submitResp.JSON200.Body.ReturnValueStr)
@@ -415,6 +426,7 @@ func (kc *Controller) acquireTokenAndActivate(
 	request rec_v2.Request[ID],
 	tenantID, resourceID, hostUUID string,
 ) rec_v2.Directive[ID] {
+	log.Debug().Msgf("host %v: GET /api/v1/authorize/redirection/%s", hostUUID, hostUUID)
 	tokenResp, err := kc.MpsClient.GetApiV1AuthorizeRedirectionGuidWithResponse(
 		updatedCtx, hostUUID, clientCallback())
 	if err != nil {
@@ -427,8 +439,10 @@ func (kc *Controller) acquireTokenAndActivate(
 		log.Error().Msg(errMsg)
 		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 	}
+	log.Debug().Msgf("host %v: GET /authorize/redirection response HTTP %d (token present=%v)",
+		hostUUID, tokenResp.StatusCode(), tokenResp.JSON200 != nil && tokenResp.JSON200.Token != nil)
 	if tokenResp.JSON200 == nil || tokenResp.JSON200.Token == nil {
-		errMsg := fmt.Sprintf("empty redirect token from MPS for host %v", hostUUID)
+		errMsg := fmt.Sprintf("GET /authorize/redirection returned empty token for host %v", hostUUID)
 		log.Error().Msg(errMsg)
 		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 	}
@@ -436,6 +450,7 @@ func (kc *Controller) acquireTokenAndActivate(
 	token := *tokenResp.JSON200.Token
 	sessionURL := fmt.Sprintf(mpsWssRelayPathTemplate, kc.MpsDomain, token, hostUUID)
 	log.Info().Msgf("host %v: relay token acquired, writing KVM session URL", hostUUID)
+	log.Debug().Msgf("host %v: session URL = %s", hostUUID, sessionURL)
 
 	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
