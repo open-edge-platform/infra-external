@@ -8,7 +8,6 @@ package kvm
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -350,7 +349,7 @@ func (kc *Controller) handleConsentFlow(
 	invHost *computev1.HostResource,
 	tenantID, resourceID, hostUUID string,
 ) rec_v2.Directive[ID] {
-	// If already AWAITING_CONSENT, check whether the operator has responded.
+	// If consent code already entered by operator, submit it immediately.
 	if invHost.GetCurrentKvmState() == computev1.KvmState_KVM_STATE_AWAITING_CONSENT {
 		consentCode := invHost.GetDesiredConsentCode()
 		if consentCode == "" {
@@ -361,34 +360,31 @@ func (kc *Controller) handleConsentFlow(
 			ctx, updatedCtx, request, tenantID, resourceID, hostUUID, consentCode)
 	}
 
-	// First pass: trigger on-screen 6-digit code display.
+	// Trigger on-screen 6-digit code display.
 	log.Info().Msgf("host %v: triggering user consent code display via MPS", hostUUID)
 	log.Debug().Msgf("host %v: GET /api/v1/amt/userConsentCode/%s", hostUUID, hostUUID)
 	consentResp, err := kc.MpsClient.GetApiV1AmtUserConsentCodeGuidWithResponse(
 		updatedCtx, hostUUID, clientCallback())
-	if err != nil {
+	if err != nil && (consentResp == nil || !strings.Contains(err.Error(), "json")) {
 		log.Err(err).Msgf("GET /amt/userConsentCode failed for host %v", hostUUID)
 		return request.Fail(err)
 	}
-	if consentResp.StatusCode() != http.StatusOK {
+	if consentResp != nil && consentResp.StatusCode() != http.StatusOK {
 		body := string(consentResp.Body)
-		if strings.Contains(body, "NOT_READY") {
-			// ReturnValue=2: consent code is already being displayed on the device
-			// screen from a previous trigger. Proceed to AWAITING_CONSENT.
-			log.Info().Msgf("host %v: consent already active on device (NOT_READY), proceeding to AWAITING_CONSENT", hostUUID)
-		} else if strings.Contains(body, "INVALID_PT_MODE") {
-			// ReturnValue=3: device is in ACM mode
-			log.Info().Msgf("host %v: StartOptIn returned INVALID_PT_MODE — device in ACM, skipping consent and acquiring token", hostUUID)
+		if strings.Contains(body, "INVALID_PT_MODE") {
+			// Device is in ACM mode — no consent required.
+			log.Info().Msgf("host %v: INVALID_PT_MODE — ACM device, skipping consent", hostUUID)
 			return kc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
-		} else {
-			errMsg := fmt.Sprintf("GET /amt/userConsentCode returned %d: %s",
-				consentResp.StatusCode(), body)
+		}
+		if !strings.Contains(body, "NOT_READY") {
+			// NOT_READY means code already displayed — treat as success.
+			// Any other error is fatal.
+			errMsg := fmt.Sprintf("GET /amt/userConsentCode returned %d: %s", consentResp.StatusCode(), body)
 			log.Error().Msg(errMsg)
 			return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 		}
 	}
-	log.Debug().Msgf("host %v: GET /amt/userConsentCode response: %s", hostUUID, string(consentResp.Body))
-	// Write KVM_STATE_AWAITING_CONSENT so orch-cli prompts the operator.
+	log.Debug().Msgf("host %v: consent code display triggered, setting AWAITING_CONSENT", hostUUID)
 	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentKvmState,
@@ -409,7 +405,7 @@ func (kc *Controller) handleConsentFlow(
 }
 
 // submitConsentCode sends the operator-entered 6-digit code to MPS.
-// On success it proceeds to token acquisition.
+// HTTP 200 = proceed to token acquisition. Any other status = error.
 func (kc *Controller) submitConsentCode(
 	ctx context.Context,
 	updatedCtx context.Context,
@@ -429,12 +425,12 @@ func (kc *Controller) submitConsentCode(
 		updatedCtx, hostUUID,
 		mps.UserConsentRequest{ConsentCode: codeInt},
 		clientCallback())
-	if err != nil {
+	// Ignore JSON parse error
+	if err != nil && (submitResp == nil || !strings.Contains(err.Error(), "json")) {
 		log.Err(err).Msgf("POST /amt/userConsentCode failed for host %v", hostUUID)
 		return request.Fail(err)
 	}
-	log.Debug().Msgf("host %v: POST /amt/userConsentCode HTTP status=%d body=%s",
-		hostUUID, submitResp.StatusCode(), string(submitResp.Body))
+	log.Debug().Msgf("host %v: POST /amt/userConsentCode HTTP status=%d", hostUUID, submitResp.StatusCode())
 	if submitResp.StatusCode() != http.StatusOK {
 		errMsg := fmt.Sprintf("POST /amt/userConsentCode returned %d: %s",
 			submitResp.StatusCode(), string(submitResp.Body))
@@ -442,30 +438,7 @@ func (kc *Controller) submitConsentCode(
 		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 	}
 
-	// Parse only ReturnValue from response body
-	var consentResult struct {
-		Body struct {
-			ReturnValue int `json:"ReturnValue"`
-		} `json:"Body"`
-	}
-	if jsonErr := json.Unmarshal(submitResp.Body, &consentResult); jsonErr != nil {
-		log.Warn().Msgf("host %v: could not parse consent response body (proceeding): %v", hostUUID, jsonErr)
-	} else if consentResult.Body.ReturnValue != 0 {
-		errMsg := fmt.Sprintf("consent code rejected by MPS for host %v: ReturnValue=%d",
-			hostUUID, consentResult.Body.ReturnValue)
-		log.Error().Msg(errMsg)
-		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
-	}
-
-	// Clear desired_consent_code
-	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
-		&fieldmaskpb.FieldMask{Paths: []string{computev1.HostResourceFieldDesiredConsentCode}},
-		&computev1.HostResource{DesiredConsentCode: ""},
-	); updateErr != nil {
-		log.Err(updateErr).Msgf("failed to clear desired_consent_code for host %v", hostUUID)
-	}
-
-	log.Info().Msgf("host %v: consent accepted, calling GET /api/v1/authorize/redirection/%s for relay token", hostUUID, hostUUID)
+	log.Info().Msgf("host %v: consent accepted, acquiring redirect token", hostUUID)
 	return kc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
 }
 
