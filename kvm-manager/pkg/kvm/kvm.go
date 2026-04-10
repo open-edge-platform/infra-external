@@ -321,49 +321,6 @@ func (kc *Controller) handleStartKVMSession(
 	}
 	log.Debug().Msgf("host %v: AMT features — KVM=%v userConsent=%v redirection=%v",
 		hostUUID, features.KVM, features.UserConsent, features.Redirection)
-	kvmActivated := features.KVM != nil && *features.KVM
-	kvmStatus := computev1.KvmStatus_KVM_STATUS_DEACTIVATED
-	if kvmActivated {
-		kvmStatus = computev1.KvmStatus_KVM_STATUS_ACTIVATED
-	}
-	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
-		&fieldmaskpb.FieldMask{Paths: []string{computev1.HostResourceFieldKvmStatus}},
-		&computev1.HostResource{KvmStatus: kvmStatus},
-	); updateErr != nil {
-		log.Err(updateErr).Msgf("failed to update kvm_status for host %v", hostUUID)
-	}
-
-	// Step 2 — Enable KVM if not already active.
-	if !kvmActivated {
-		log.Info().Msgf("host %v: KVM not enabled, enabling via POST /amt/features", hostUUID)
-		log.Debug().Msgf("host %v: POST /api/v1/amt/features body: enableKVM=true userConsent=none", hostUUID)
-		setResp, setErr := kc.MpsClient.PostApiV1AmtFeaturesGuidWithResponse(
-			updatedCtx, hostUUID,
-			mps.SetAMTFeaturesRequest{
-				EnableKVM:   true,
-				EnableSOL:   false,
-				EnableIDER:  false,
-				UserConsent: userConsentNone,
-			},
-			clientCallback())
-		if setErr != nil {
-			log.Err(setErr).Msgf("POST /amt/features failed for host %v", hostUUID)
-			return request.Fail(setErr)
-		}
-		if setResp.StatusCode() != http.StatusOK {
-			errMsg := fmt.Sprintf("POST /amt/features returned %d: %s",
-				setResp.StatusCode(), string(setResp.Body))
-			log.Error().Msg(errMsg)
-			return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
-		}
-		log.Debug().Msgf("host %v: POST /amt/features response: %s", hostUUID, string(setResp.Body))
-		if updateErr := kc.updateHost(ctx, tenantID, resourceID,
-			&fieldmaskpb.FieldMask{Paths: []string{computev1.HostResourceFieldKvmStatus}},
-			&computev1.HostResource{KvmStatus: computev1.KvmStatus_KVM_STATUS_ACTIVATED},
-		); updateErr != nil {
-			log.Err(updateErr).Msgf("failed to update kvm_status after enabling for host %v", hostUUID)
-		}
-	}
 
 	// Step 3 — Consent flow for CCM devices.
 	// CCM requires user consent, ACM does not.
@@ -455,7 +412,7 @@ func (kc *Controller) submitConsentCode(
 	tenantID, resourceID, hostUUID, consentCode string,
 ) rec_v2.Directive[ID] {
 	log.Info().Msgf("host %v: submitting consent code to MPS", hostUUID)
-	log.Debug().Msgf("host %v: POST /api/v1/amt/userConsentCode/%s consentCode=NNNNNN (redacted)", hostUUID, hostUUID)
+	log.Debug().Msgf("host %v: POST /api/v1/amt/userConsentCode/%s consentCode=%s", hostUUID, hostUUID, consentCode)
 	var codeInt int
 	if _, scanErr := fmt.Sscanf(consentCode, "%d", &codeInt); scanErr != nil {
 		errMsg := fmt.Sprintf("invalid consent code format for host %v: %q", hostUUID, consentCode)
@@ -471,10 +428,35 @@ func (kc *Controller) submitConsentCode(
 		log.Err(err).Msgf("POST /amt/userConsentCode failed for host %v", hostUUID)
 		return request.Fail(err)
 	}
+	log.Debug().Msgf("host %v: POST /amt/userConsentCode HTTP status=%d body=%s",
+		hostUUID, submitResp.StatusCode(), string(submitResp.Body))
 	if submitResp.StatusCode() != http.StatusOK {
 		errMsg := fmt.Sprintf("POST /amt/userConsentCode returned %d: %s",
 			submitResp.StatusCode(), string(submitResp.Body))
 		log.Error().Msg(errMsg)
+
+		if strings.Contains(string(submitResp.Body), "NOT_READY") {
+			// Consent session expired on the device before the code was submitted.
+			// Reset to KVM_STATE_STOP (not START — that is reserved for an active session
+			// with a URL) so the next reconcile cycle re-triggers the GET /userConsentCode
+			// to display a fresh code on screen.
+			log.Warn().Msgf("host %v: consent session expired (NOT_READY), resetting to KVM_STATE_STOP for consent retry", hostUUID)
+			_ = kc.updateHost(ctx, tenantID, resourceID,
+				&fieldmaskpb.FieldMask{Paths: []string{
+					computev1.HostResourceFieldCurrentKvmState,
+					computev1.HostResourceFieldDesiredConsentCode,
+					computev1.HostResourceFieldKvmSessionStatus,
+					computev1.HostResourceFieldKvmSessionStatusIndicator,
+				}},
+				&computev1.HostResource{
+					CurrentKvmState:           computev1.KvmState_KVM_STATE_STOP,
+					DesiredConsentCode:        "",
+					KvmSessionStatus:          "Consent session expired on device — retrying consent display",
+					KvmSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
+				},
+			)
+			return request.Ack()
+		}
 		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 	}
 	log.Debug().Msgf("host %v: POST /amt/userConsentCode response: %s", hostUUID, string(submitResp.Body))
@@ -494,7 +476,7 @@ func (kc *Controller) submitConsentCode(
 		log.Err(updateErr).Msgf("failed to clear desired_consent_code for host %v", hostUUID)
 	}
 
-	log.Info().Msgf("host %v: consent accepted, acquiring redirect token", hostUUID)
+	log.Info().Msgf("host %v: consent accepted, calling GET /api/v1/authorize/redirection/%s for relay token", hostUUID, hostUUID)
 	return kc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
 }
 
@@ -541,6 +523,7 @@ func (kc *Controller) acquireTokenAndActivate(
 		}},
 		&computev1.HostResource{
 			CurrentKvmState:           computev1.KvmState_KVM_STATE_START,
+			KvmStatus:                 computev1.KvmStatus_KVM_STATUS_ACTIVATED,
 			KvmSessionUrl:             sessionURL,
 			KvmSessionStatus:          "KVM session active",
 			KvmSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
@@ -571,12 +554,14 @@ func (kc *Controller) handleStopKVMSession(
 	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentKvmState,
+			computev1.HostResourceFieldKvmStatus,
 			computev1.HostResourceFieldKvmSessionUrl,
 			computev1.HostResourceFieldKvmSessionStatus,
 			computev1.HostResourceFieldKvmSessionStatusIndicator,
 		}},
 		&computev1.HostResource{
 			CurrentKvmState:           computev1.KvmState_KVM_STATE_STOP,
+			KvmStatus:                 computev1.KvmStatus_KVM_STATUS_DEACTIVATED,
 			KvmSessionUrl:             "",
 			KvmSessionStatus:          "KVM session stopped",
 			KvmSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
