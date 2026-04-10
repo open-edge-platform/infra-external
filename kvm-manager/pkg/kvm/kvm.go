@@ -425,8 +425,15 @@ func (kc *Controller) submitConsentCode(
 		updatedCtx, hostUUID,
 		mps.UserConsentRequest{ConsentCode: codeInt},
 		clientCallback())
-	// Ignore JSON parse error
-	if err != nil && (submitResp == nil || !strings.Contains(err.Error(), "json")) {
+	if err != nil {
+		// MPS returns Header.RelatesTo as an integer, but the generated client struct
+		// defines it as *string, causing a JSON unmarshal error. The generated parser
+		// only attempts JSON parsing after confirming HTTP 200, so a JSON error here
+		// guarantees the POST reached MPS and was accepted. Proceed to token acquisition.
+		if strings.Contains(err.Error(), "json") || strings.Contains(err.Error(), "unmarshal") {
+			log.Info().Msgf("host %v: POST /amt/userConsentCode HTTP 200 received (response body parse skipped due to MPS Header.RelatesTo type mismatch), acquiring token", hostUUID)
+			return kc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
+		}
 		log.Err(err).Msgf("POST /amt/userConsentCode failed for host %v", hostUUID)
 		return request.Fail(err)
 	}
