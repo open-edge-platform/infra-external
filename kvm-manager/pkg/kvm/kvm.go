@@ -8,6 +8,7 @@ package kvm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -370,14 +371,18 @@ func (kc *Controller) handleConsentFlow(
 		return request.Fail(err)
 	}
 	if consentResp.StatusCode() != http.StatusOK {
-		// NOT_READY (IPS_OptInService ReturnValue=2) means the consent code is already
-		// being displayed on the device screen from a previous trigger. Treat it as
-		// success and proceed to AWAITING_CONSENT rather than failing.
-		if strings.Contains(string(consentResp.Body), "NOT_READY") {
+		body := string(consentResp.Body)
+		if strings.Contains(body, "NOT_READY") {
+			// ReturnValue=2: consent code is already being displayed on the device
+			// screen from a previous trigger. Proceed to AWAITING_CONSENT.
 			log.Info().Msgf("host %v: consent already active on device (NOT_READY), proceeding to AWAITING_CONSENT", hostUUID)
+		} else if strings.Contains(body, "INVALID_PT_MODE") {
+			// ReturnValue=3: device is in ACM mode
+			log.Info().Msgf("host %v: StartOptIn returned INVALID_PT_MODE — device in ACM, skipping consent and acquiring token", hostUUID)
+			return kc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
 		} else {
 			errMsg := fmt.Sprintf("GET /amt/userConsentCode returned %d: %s",
-				consentResp.StatusCode(), string(consentResp.Body))
+				consentResp.StatusCode(), body)
 			log.Error().Msg(errMsg)
 			return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 		}
@@ -404,7 +409,7 @@ func (kc *Controller) handleConsentFlow(
 }
 
 // submitConsentCode sends the operator-entered 6-digit code to MPS.
-// On success it clears desired_consent_code and proceeds to token acquisition.
+// On success it proceeds to token acquisition.
 func (kc *Controller) submitConsentCode(
 	ctx context.Context,
 	updatedCtx context.Context,
@@ -434,41 +439,25 @@ func (kc *Controller) submitConsentCode(
 		errMsg := fmt.Sprintf("POST /amt/userConsentCode returned %d: %s",
 			submitResp.StatusCode(), string(submitResp.Body))
 		log.Error().Msg(errMsg)
-
-		if strings.Contains(string(submitResp.Body), "NOT_READY") {
-			// Consent session expired on the device before the code was submitted.
-			// Reset to KVM_STATE_STOP (not START — that is reserved for an active session
-			// with a URL) so the next reconcile cycle re-triggers the GET /userConsentCode
-			// to display a fresh code on screen.
-			log.Warn().Msgf("host %v: consent session expired (NOT_READY), resetting to KVM_STATE_STOP for consent retry", hostUUID)
-			_ = kc.updateHost(ctx, tenantID, resourceID,
-				&fieldmaskpb.FieldMask{Paths: []string{
-					computev1.HostResourceFieldCurrentKvmState,
-					computev1.HostResourceFieldDesiredConsentCode,
-					computev1.HostResourceFieldKvmSessionStatus,
-					computev1.HostResourceFieldKvmSessionStatusIndicator,
-				}},
-				&computev1.HostResource{
-					CurrentKvmState:           computev1.KvmState_KVM_STATE_STOP,
-					DesiredConsentCode:        "",
-					KvmSessionStatus:          "Consent session expired on device — retrying consent display",
-					KvmSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
-				},
-			)
-			return request.Ack()
-		}
 		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 	}
-	log.Debug().Msgf("host %v: POST /amt/userConsentCode response: %s", hostUUID, string(submitResp.Body))
-	if submitResp.JSON200 != nil && submitResp.JSON200.Body != nil &&
-		!strings.EqualFold(*submitResp.JSON200.Body.ReturnValueStr, "SUCCESS") {
-		errMsg := fmt.Sprintf("consent code rejected by MPS for host %v: %s",
-			hostUUID, *submitResp.JSON200.Body.ReturnValueStr)
+
+	// Parse only ReturnValue from response body
+	var consentResult struct {
+		Body struct {
+			ReturnValue int `json:"ReturnValue"`
+		} `json:"Body"`
+	}
+	if jsonErr := json.Unmarshal(submitResp.Body, &consentResult); jsonErr != nil {
+		log.Warn().Msgf("host %v: could not parse consent response body (proceeding): %v", hostUUID, jsonErr)
+	} else if consentResult.Body.ReturnValue != 0 {
+		errMsg := fmt.Sprintf("consent code rejected by MPS for host %v: ReturnValue=%d",
+			hostUUID, consentResult.Body.ReturnValue)
 		log.Error().Msg(errMsg)
 		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 	}
 
-	// Clear desired_consent_code — it has been consumed.
+	// Clear desired_consent_code
 	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{computev1.HostResourceFieldDesiredConsentCode}},
 		&computev1.HostResource{DesiredConsentCode: ""},
