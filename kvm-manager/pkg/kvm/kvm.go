@@ -413,10 +413,17 @@ func (kc *Controller) handleConsentFlow(
 		return request.Fail(err)
 	}
 	if consentResp.StatusCode() != http.StatusOK {
-		errMsg := fmt.Sprintf("GET /amt/userConsentCode returned %d: %s",
-			consentResp.StatusCode(), string(consentResp.Body))
-		log.Error().Msg(errMsg)
-		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
+		// NOT_READY (IPS_OptInService ReturnValue=2) means the consent code is already
+		// being displayed on the device screen from a previous trigger. Treat it as
+		// success and proceed to AWAITING_CONSENT rather than failing.
+		if strings.Contains(string(consentResp.Body), "NOT_READY") {
+			log.Info().Msgf("host %v: consent already active on device (NOT_READY), proceeding to AWAITING_CONSENT", hostUUID)
+		} else {
+			errMsg := fmt.Sprintf("GET /amt/userConsentCode returned %d: %s",
+				consentResp.StatusCode(), string(consentResp.Body))
+			log.Error().Msg(errMsg)
+			return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
+		}
 	}
 	log.Debug().Msgf("host %v: GET /amt/userConsentCode response: %s", hostUUID, string(consentResp.Body))
 	// Write KVM_STATE_AWAITING_CONSENT so orch-cli prompts the operator.
