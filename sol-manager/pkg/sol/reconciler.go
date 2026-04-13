@@ -432,20 +432,7 @@ func (sc *Controller) acquireTokenAndActivate(
 	redirectToken := *tokenResp.JSON200.Token
 	log.Info().Msgf("host %v: relay token acquired, establishing SOL WebSocket session", hostUUID)
 
-	// Step 2 — Mark state as AWAITING_CONSENT while we do the AMT handshake.
-	_ = sc.updateHost(ctx, tenantID, resourceID,
-		&fieldmaskpb.FieldMask{Paths: []string{
-			computev1.HostResourceFieldCurrentSolState,
-			computev1.HostResourceFieldSolSessionStatus,
-			computev1.HostResourceFieldSolSessionStatusIndicator,
-		}},
-		&computev1.HostResource{
-			CurrentSolState:           computev1.SolState_SOL_STATE_AWAITING_CONSENT,
-			SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_ACTIVATED,
-			SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
-		})
-
-	// Step 3 — Open WebSocket to MPS relay + run AMT SOL protocol handshake.
+	// Step 2 — Open WebSocket to MPS relay + run AMT SOL protocol handshake.
 	cfg := solws.SessionConfig{
 		MPSHost:    sc.MpsDomain,
 		DeviceGUID: hostUUID,
