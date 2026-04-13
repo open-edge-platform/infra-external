@@ -304,6 +304,141 @@ func (_c *MockClientWithResponsesInterface_CreateCIRAConfigWithResponse_Call) Ru
 	return _c
 }
 
+// CreateDomainForProjectWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) CreateDomainForProjectWithBodyWithResponse(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDomainForProjectResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, projectName, contentType, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, projectName, contentType, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDomainForProjectWithBodyWithResponse")
+	}
+
+	var r0 *CreateDomainForProjectResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) (*CreateDomainForProjectResponse, error)); ok {
+		return returnFunc(ctx, projectName, contentType, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) *CreateDomainForProjectResponse); ok {
+		r0 = returnFunc(ctx, projectName, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*CreateDomainForProjectResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, projectName, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_CreateDomainForProjectWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateDomainForProjectWithBodyWithResponse'
+type MockClientWithResponsesInterface_CreateDomainForProjectWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// CreateDomainForProjectWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - projectName
+//   - contentType
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) CreateDomainForProjectWithBodyWithResponse(ctx interface{}, projectName interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateDomainForProjectWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_CreateDomainForProjectWithBodyWithResponse_Call{Call: _e.mock.On("CreateDomainForProjectWithBodyWithResponse",
+		append([]interface{}{ctx, projectName, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_CreateDomainForProjectWithBodyWithResponse_Call) Run(run func(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateDomainForProjectWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[4].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(io.Reader), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateDomainForProjectWithBodyWithResponse_Call) Return(createDomainForProjectResponse *CreateDomainForProjectResponse, err error) *MockClientWithResponsesInterface_CreateDomainForProjectWithBodyWithResponse_Call {
+	_c.Call.Return(createDomainForProjectResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateDomainForProjectWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDomainForProjectResponse, error)) *MockClientWithResponsesInterface_CreateDomainForProjectWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateDomainForProjectWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) CreateDomainForProjectWithResponse(ctx context.Context, projectName string, body CreateDomainForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDomainForProjectResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, projectName, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, projectName, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateDomainForProjectWithResponse")
+	}
+
+	var r0 *CreateDomainForProjectResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, CreateDomainForProjectJSONRequestBody, ...RequestEditorFn) (*CreateDomainForProjectResponse, error)); ok {
+		return returnFunc(ctx, projectName, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, CreateDomainForProjectJSONRequestBody, ...RequestEditorFn) *CreateDomainForProjectResponse); ok {
+		r0 = returnFunc(ctx, projectName, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*CreateDomainForProjectResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, CreateDomainForProjectJSONRequestBody, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, projectName, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_CreateDomainForProjectWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateDomainForProjectWithResponse'
+type MockClientWithResponsesInterface_CreateDomainForProjectWithResponse_Call struct {
+	*mock.Call
+}
+
+// CreateDomainForProjectWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - projectName
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) CreateDomainForProjectWithResponse(ctx interface{}, projectName interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_CreateDomainForProjectWithResponse_Call {
+	return &MockClientWithResponsesInterface_CreateDomainForProjectWithResponse_Call{Call: _e.mock.On("CreateDomainForProjectWithResponse",
+		append([]interface{}{ctx, projectName, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_CreateDomainForProjectWithResponse_Call) Run(run func(ctx context.Context, projectName string, body CreateDomainForProjectJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_CreateDomainForProjectWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(CreateDomainForProjectJSONRequestBody), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateDomainForProjectWithResponse_Call) Return(createDomainForProjectResponse *CreateDomainForProjectResponse, err error) *MockClientWithResponsesInterface_CreateDomainForProjectWithResponse_Call {
+	_c.Call.Return(createDomainForProjectResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_CreateDomainForProjectWithResponse_Call) RunAndReturn(run func(ctx context.Context, projectName string, body CreateDomainForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDomainForProjectResponse, error)) *MockClientWithResponsesInterface_CreateDomainForProjectWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateDomainWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
 func (_mock *MockClientWithResponsesInterface) CreateDomainWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDomainResponse, error) {
 	var tmpRet mock.Arguments
@@ -1300,6 +1435,73 @@ func (_c *MockClientWithResponsesInterface_GetAllCIRAConfigsWithResponse_Call) R
 	return _c
 }
 
+// GetAllDomainsForProjectWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetAllDomainsForProjectWithResponse(ctx context.Context, projectName string, params *GetAllDomainsForProjectParams, reqEditors ...RequestEditorFn) (*GetAllDomainsForProjectResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, projectName, params, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, projectName, params)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllDomainsForProjectWithResponse")
+	}
+
+	var r0 *GetAllDomainsForProjectResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *GetAllDomainsForProjectParams, ...RequestEditorFn) (*GetAllDomainsForProjectResponse, error)); ok {
+		return returnFunc(ctx, projectName, params, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *GetAllDomainsForProjectParams, ...RequestEditorFn) *GetAllDomainsForProjectResponse); ok {
+		r0 = returnFunc(ctx, projectName, params, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetAllDomainsForProjectResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *GetAllDomainsForProjectParams, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, projectName, params, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetAllDomainsForProjectWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllDomainsForProjectWithResponse'
+type MockClientWithResponsesInterface_GetAllDomainsForProjectWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetAllDomainsForProjectWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - projectName
+//   - params
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) GetAllDomainsForProjectWithResponse(ctx interface{}, projectName interface{}, params interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetAllDomainsForProjectWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetAllDomainsForProjectWithResponse_Call{Call: _e.mock.On("GetAllDomainsForProjectWithResponse",
+		append([]interface{}{ctx, projectName, params}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetAllDomainsForProjectWithResponse_Call) Run(run func(ctx context.Context, projectName string, params *GetAllDomainsForProjectParams, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetAllDomainsForProjectWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(*GetAllDomainsForProjectParams), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetAllDomainsForProjectWithResponse_Call) Return(getAllDomainsForProjectResponse *GetAllDomainsForProjectResponse, err error) *MockClientWithResponsesInterface_GetAllDomainsForProjectWithResponse_Call {
+	_c.Call.Return(getAllDomainsForProjectResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetAllDomainsForProjectWithResponse_Call) RunAndReturn(run func(ctx context.Context, projectName string, params *GetAllDomainsForProjectParams, reqEditors ...RequestEditorFn) (*GetAllDomainsForProjectResponse, error)) *MockClientWithResponsesInterface_GetAllDomainsForProjectWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAllDomainsWithResponse provides a mock function for the type MockClientWithResponsesInterface
 func (_mock *MockClientWithResponsesInterface) GetAllDomainsWithResponse(ctx context.Context, params *GetAllDomainsParams, reqEditors ...RequestEditorFn) (*GetAllDomainsResponse, error) {
 	var tmpRet mock.Arguments
@@ -1625,6 +1827,73 @@ func (_c *MockClientWithResponsesInterface_GetCIRAConfigWithResponse_Call) Retur
 }
 
 func (_c *MockClientWithResponsesInterface_GetCIRAConfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, configName string, reqEditors ...RequestEditorFn) (*GetCIRAConfigResponse, error)) *MockClientWithResponsesInterface_GetCIRAConfigWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetDomainForProjectWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetDomainForProjectWithResponse(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*GetDomainForProjectResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, projectName, profileName, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, projectName, profileName)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDomainForProjectWithResponse")
+	}
+
+	var r0 *GetDomainForProjectResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...RequestEditorFn) (*GetDomainForProjectResponse, error)); ok {
+		return returnFunc(ctx, projectName, profileName, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...RequestEditorFn) *GetDomainForProjectResponse); ok {
+		r0 = returnFunc(ctx, projectName, profileName, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetDomainForProjectResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, projectName, profileName, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetDomainForProjectWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDomainForProjectWithResponse'
+type MockClientWithResponsesInterface_GetDomainForProjectWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetDomainForProjectWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - projectName
+//   - profileName
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) GetDomainForProjectWithResponse(ctx interface{}, projectName interface{}, profileName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetDomainForProjectWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetDomainForProjectWithResponse_Call{Call: _e.mock.On("GetDomainForProjectWithResponse",
+		append([]interface{}{ctx, projectName, profileName}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetDomainForProjectWithResponse_Call) Run(run func(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetDomainForProjectWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetDomainForProjectWithResponse_Call) Return(getDomainForProjectResponse *GetDomainForProjectResponse, err error) *MockClientWithResponsesInterface_GetDomainForProjectWithResponse_Call {
+	_c.Call.Return(getDomainForProjectResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetDomainForProjectWithResponse_Call) RunAndReturn(run func(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*GetDomainForProjectResponse, error)) *MockClientWithResponsesInterface_GetDomainForProjectWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2024,6 +2293,73 @@ func (_c *MockClientWithResponsesInterface_RemoveCIRAConfigWithResponse_Call) Ru
 	return _c
 }
 
+// RemoveDomainForProjectWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) RemoveDomainForProjectWithResponse(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*RemoveDomainForProjectResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, projectName, profileName, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, projectName, profileName)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveDomainForProjectWithResponse")
+	}
+
+	var r0 *RemoveDomainForProjectResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...RequestEditorFn) (*RemoveDomainForProjectResponse, error)); ok {
+		return returnFunc(ctx, projectName, profileName, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...RequestEditorFn) *RemoveDomainForProjectResponse); ok {
+		r0 = returnFunc(ctx, projectName, profileName, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*RemoveDomainForProjectResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, projectName, profileName, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_RemoveDomainForProjectWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveDomainForProjectWithResponse'
+type MockClientWithResponsesInterface_RemoveDomainForProjectWithResponse_Call struct {
+	*mock.Call
+}
+
+// RemoveDomainForProjectWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - projectName
+//   - profileName
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) RemoveDomainForProjectWithResponse(ctx interface{}, projectName interface{}, profileName interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_RemoveDomainForProjectWithResponse_Call {
+	return &MockClientWithResponsesInterface_RemoveDomainForProjectWithResponse_Call{Call: _e.mock.On("RemoveDomainForProjectWithResponse",
+		append([]interface{}{ctx, projectName, profileName}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_RemoveDomainForProjectWithResponse_Call) Run(run func(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_RemoveDomainForProjectWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_RemoveDomainForProjectWithResponse_Call) Return(removeDomainForProjectResponse *RemoveDomainForProjectResponse, err error) *MockClientWithResponsesInterface_RemoveDomainForProjectWithResponse_Call {
+	_c.Call.Return(removeDomainForProjectResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_RemoveDomainForProjectWithResponse_Call) RunAndReturn(run func(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*RemoveDomainForProjectResponse, error)) *MockClientWithResponsesInterface_RemoveDomainForProjectWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveDomainWithResponse provides a mock function for the type MockClientWithResponsesInterface
 func (_mock *MockClientWithResponsesInterface) RemoveDomainWithResponse(ctx context.Context, profileName string, reqEditors ...RequestEditorFn) (*RemoveDomainResponse, error) {
 	var tmpRet mock.Arguments
@@ -2218,6 +2554,141 @@ func (_c *MockClientWithResponsesInterface_RemoveWirelessConfigWithResponse_Call
 }
 
 func (_c *MockClientWithResponsesInterface_RemoveWirelessConfigWithResponse_Call) RunAndReturn(run func(ctx context.Context, profileName string, reqEditors ...RequestEditorFn) (*RemoveWirelessConfigResponse, error)) *MockClientWithResponsesInterface_RemoveWirelessConfigWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateDomainSuffixForProjectWithBodyWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) UpdateDomainSuffixForProjectWithBodyWithResponse(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDomainSuffixForProjectResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, projectName, contentType, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, projectName, contentType, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateDomainSuffixForProjectWithBodyWithResponse")
+	}
+
+	var r0 *UpdateDomainSuffixForProjectResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) (*UpdateDomainSuffixForProjectResponse, error)); ok {
+		return returnFunc(ctx, projectName, contentType, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) *UpdateDomainSuffixForProjectResponse); ok {
+		r0 = returnFunc(ctx, projectName, contentType, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*UpdateDomainSuffixForProjectResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, io.Reader, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, projectName, contentType, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithBodyWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDomainSuffixForProjectWithBodyWithResponse'
+type MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithBodyWithResponse_Call struct {
+	*mock.Call
+}
+
+// UpdateDomainSuffixForProjectWithBodyWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - projectName
+//   - contentType
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) UpdateDomainSuffixForProjectWithBodyWithResponse(ctx interface{}, projectName interface{}, contentType interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithBodyWithResponse_Call {
+	return &MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithBodyWithResponse_Call{Call: _e.mock.On("UpdateDomainSuffixForProjectWithBodyWithResponse",
+		append([]interface{}{ctx, projectName, contentType, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithBodyWithResponse_Call) Run(run func(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithBodyWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[4].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(io.Reader), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithBodyWithResponse_Call) Return(updateDomainSuffixForProjectResponse *UpdateDomainSuffixForProjectResponse, err error) *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithBodyWithResponse_Call {
+	_c.Call.Return(updateDomainSuffixForProjectResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithBodyWithResponse_Call) RunAndReturn(run func(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDomainSuffixForProjectResponse, error)) *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithBodyWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateDomainSuffixForProjectWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) UpdateDomainSuffixForProjectWithResponse(ctx context.Context, projectName string, body UpdateDomainSuffixForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDomainSuffixForProjectResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, projectName, body, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, projectName, body)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateDomainSuffixForProjectWithResponse")
+	}
+
+	var r0 *UpdateDomainSuffixForProjectResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, UpdateDomainSuffixForProjectJSONRequestBody, ...RequestEditorFn) (*UpdateDomainSuffixForProjectResponse, error)); ok {
+		return returnFunc(ctx, projectName, body, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, UpdateDomainSuffixForProjectJSONRequestBody, ...RequestEditorFn) *UpdateDomainSuffixForProjectResponse); ok {
+		r0 = returnFunc(ctx, projectName, body, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*UpdateDomainSuffixForProjectResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, UpdateDomainSuffixForProjectJSONRequestBody, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, projectName, body, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDomainSuffixForProjectWithResponse'
+type MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithResponse_Call struct {
+	*mock.Call
+}
+
+// UpdateDomainSuffixForProjectWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - projectName
+//   - body
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) UpdateDomainSuffixForProjectWithResponse(ctx interface{}, projectName interface{}, body interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithResponse_Call {
+	return &MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithResponse_Call{Call: _e.mock.On("UpdateDomainSuffixForProjectWithResponse",
+		append([]interface{}{ctx, projectName, body}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithResponse_Call) Run(run func(ctx context.Context, projectName string, body UpdateDomainSuffixForProjectJSONRequestBody, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(UpdateDomainSuffixForProjectJSONRequestBody), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithResponse_Call) Return(updateDomainSuffixForProjectResponse *UpdateDomainSuffixForProjectResponse, err error) *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithResponse_Call {
+	_c.Call.Return(updateDomainSuffixForProjectResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithResponse_Call) RunAndReturn(run func(ctx context.Context, projectName string, body UpdateDomainSuffixForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDomainSuffixForProjectResponse, error)) *MockClientWithResponsesInterface_UpdateDomainSuffixForProjectWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }

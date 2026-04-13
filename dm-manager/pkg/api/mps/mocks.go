@@ -369,6 +369,74 @@ func (_c *MockClientWithResponsesInterface_DeleteApiV1DevicesRefreshGuidWithResp
 	return _c
 }
 
+// DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse(ctx context.Context, projectName string, guid string, params *DeleteV1ProjectsProjectNameDmDevicesGuidParams, reqEditors ...RequestEditorFn) (*DeleteV1ProjectsProjectNameDmDevicesGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, projectName, guid, params, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, projectName, guid, params)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse")
+	}
+
+	var r0 *DeleteV1ProjectsProjectNameDmDevicesGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *DeleteV1ProjectsProjectNameDmDevicesGuidParams, ...RequestEditorFn) (*DeleteV1ProjectsProjectNameDmDevicesGuidResponse, error)); ok {
+		return returnFunc(ctx, projectName, guid, params, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *DeleteV1ProjectsProjectNameDmDevicesGuidParams, ...RequestEditorFn) *DeleteV1ProjectsProjectNameDmDevicesGuidResponse); ok {
+		r0 = returnFunc(ctx, projectName, guid, params, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*DeleteV1ProjectsProjectNameDmDevicesGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, *DeleteV1ProjectsProjectNameDmDevicesGuidParams, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, projectName, guid, params, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse'
+type MockClientWithResponsesInterface_DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse_Call struct {
+	*mock.Call
+}
+
+// DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - projectName
+//   - guid
+//   - params
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse(ctx interface{}, projectName interface{}, guid interface{}, params interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse_Call {
+	return &MockClientWithResponsesInterface_DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse_Call{Call: _e.mock.On("DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse",
+		append([]interface{}{ctx, projectName, guid, params}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse_Call) Run(run func(ctx context.Context, projectName string, guid string, params *DeleteV1ProjectsProjectNameDmDevicesGuidParams, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[4].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*DeleteV1ProjectsProjectNameDmDevicesGuidParams), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse_Call) Return(deleteV1ProjectsProjectNameDmDevicesGuidResponse *DeleteV1ProjectsProjectNameDmDevicesGuidResponse, err error) *MockClientWithResponsesInterface_DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse_Call {
+	_c.Call.Return(deleteV1ProjectsProjectNameDmDevicesGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, projectName string, guid string, params *DeleteV1ProjectsProjectNameDmDevicesGuidParams, reqEditors ...RequestEditorFn) (*DeleteV1ProjectsProjectNameDmDevicesGuidResponse, error)) *MockClientWithResponsesInterface_DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetApiV1AmtAlarmOccurrencesGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
 func (_mock *MockClientWithResponsesInterface) GetApiV1AmtAlarmOccurrencesGuidWithResponse(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*GetApiV1AmtAlarmOccurrencesGuidResponse, error) {
 	var tmpRet mock.Arguments
@@ -1551,6 +1619,140 @@ func (_c *MockClientWithResponsesInterface_GetApiV1HealthWithResponse_Call) Retu
 }
 
 func (_c *MockClientWithResponsesInterface_GetApiV1HealthWithResponse_Call) RunAndReturn(run func(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiV1HealthResponse, error)) *MockClientWithResponsesInterface_GetApiV1HealthWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, projectName, guid, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, projectName, guid)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse")
+	}
+
+	var r0 *GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...RequestEditorFn) (*GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse, error)); ok {
+		return returnFunc(ctx, projectName, guid, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...RequestEditorFn) *GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse); ok {
+		r0 = returnFunc(ctx, projectName, guid, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, projectName, guid, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse'
+type MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - projectName
+//   - guid
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse(ctx interface{}, projectName interface{}, guid interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse_Call{Call: _e.mock.On("GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse",
+		append([]interface{}{ctx, projectName, guid}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse_Call) Run(run func(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse_Call) Return(getV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse *GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse, err error) *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse_Call {
+	_c.Call.Return(getV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse, error)) *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetV1ProjectsProjectNameDmDevicesGuidWithResponse provides a mock function for the type MockClientWithResponsesInterface
+func (_mock *MockClientWithResponsesInterface) GetV1ProjectsProjectNameDmDevicesGuidWithResponse(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*GetV1ProjectsProjectNameDmDevicesGuidResponse, error) {
+	var tmpRet mock.Arguments
+	if len(reqEditors) > 0 {
+		tmpRet = _mock.Called(ctx, projectName, guid, reqEditors)
+	} else {
+		tmpRet = _mock.Called(ctx, projectName, guid)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetV1ProjectsProjectNameDmDevicesGuidWithResponse")
+	}
+
+	var r0 *GetV1ProjectsProjectNameDmDevicesGuidResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...RequestEditorFn) (*GetV1ProjectsProjectNameDmDevicesGuidResponse, error)); ok {
+		return returnFunc(ctx, projectName, guid, reqEditors...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, ...RequestEditorFn) *GetV1ProjectsProjectNameDmDevicesGuidResponse); ok {
+		r0 = returnFunc(ctx, projectName, guid, reqEditors...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*GetV1ProjectsProjectNameDmDevicesGuidResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, ...RequestEditorFn) error); ok {
+		r1 = returnFunc(ctx, projectName, guid, reqEditors...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmDevicesGuidWithResponse_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetV1ProjectsProjectNameDmDevicesGuidWithResponse'
+type MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmDevicesGuidWithResponse_Call struct {
+	*mock.Call
+}
+
+// GetV1ProjectsProjectNameDmDevicesGuidWithResponse is a helper method to define mock.On call
+//   - ctx
+//   - projectName
+//   - guid
+//   - reqEditors
+func (_e *MockClientWithResponsesInterface_Expecter) GetV1ProjectsProjectNameDmDevicesGuidWithResponse(ctx interface{}, projectName interface{}, guid interface{}, reqEditors ...interface{}) *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmDevicesGuidWithResponse_Call {
+	return &MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmDevicesGuidWithResponse_Call{Call: _e.mock.On("GetV1ProjectsProjectNameDmDevicesGuidWithResponse",
+		append([]interface{}{ctx, projectName, guid}, reqEditors...)...)}
+}
+
+func (_c *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmDevicesGuidWithResponse_Call) Run(run func(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn)) *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmDevicesGuidWithResponse_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		variadicArgs := args[3].([]RequestEditorFn)
+		run(args[0].(context.Context), args[1].(string), args[2].(string), variadicArgs...)
+	})
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmDevicesGuidWithResponse_Call) Return(getV1ProjectsProjectNameDmDevicesGuidResponse *GetV1ProjectsProjectNameDmDevicesGuidResponse, err error) *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmDevicesGuidWithResponse_Call {
+	_c.Call.Return(getV1ProjectsProjectNameDmDevicesGuidResponse, err)
+	return _c
+}
+
+func (_c *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmDevicesGuidWithResponse_Call) RunAndReturn(run func(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*GetV1ProjectsProjectNameDmDevicesGuidResponse, error)) *MockClientWithResponsesInterface_GetV1ProjectsProjectNameDmDevicesGuidWithResponse_Call {
 	_c.Call.Return(run)
 	return _c
 }

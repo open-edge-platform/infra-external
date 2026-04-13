@@ -83,6 +83,7 @@ var (
 	tlsKeyPath   = flag.String(invClient.TLSKeyPath, "", invClient.TLSKeyPathDescription)
 	enableAuth   = flag.Bool(rbac.EnableAuth, true, rbac.EnableAuthDescription)
 	rbacRules    = flag.String(rbac.RbacRules, "/rego/authz.rego", rbac.RbacRulesDescription)
+	nexusAPIURL  = flag.String(flags.NexusAPIURLFlag, "http://localhost:8082", flags.NexusAPIURLDescription)
 )
 
 func main() {
@@ -231,6 +232,7 @@ func createDMHandler() (*grpc.DMHandler, error) {
 			InventoryAddress: *inventoryAddress,
 			EnableAuth:       *enableAuth,
 			RBAC:             *rbacRules,
+			NexusAPIURL:      *nexusAPIURL,
 		})
 	if err != nil {
 		return nil, err

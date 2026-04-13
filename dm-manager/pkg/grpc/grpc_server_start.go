@@ -9,6 +9,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
@@ -17,6 +18,7 @@ import (
 	inv_tenant "github.com/open-edge-platform/infra-core/inventory/v2/pkg/tenant"
 	pb "github.com/open-edge-platform/infra-external/dm-manager/pkg/api/dm-manager"
 	grpcServer "github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc/grpc_server"
+	"github.com/open-edge-platform/orch-library/go/pkg/middleware/projectcontext"
 )
 
 // Misc variables.
@@ -33,6 +35,7 @@ type DMHandlerConfig struct {
 	MetricsAddress   string
 	EnableAuth       bool
 	RBAC             string
+	NexusAPIURL      string
 }
 
 type DMHandler struct {
@@ -74,7 +77,10 @@ func (dmh *DMHandler) Start() error {
 	}
 	srvOpts := make([]grpc.ServerOption, 0, 1)
 	var unaryInter []grpc.UnaryServerInterceptor
-	unaryInter = append(unaryInter, inv_tenant.GetExtractTenantIDInterceptor(inv_tenant.GetAgentsRole()))
+	unaryInter = append(unaryInter,
+		projectIDResolutionInterceptor(dmh.cfg.NexusAPIURL),
+		inv_tenant.GetExtractTenantIDInterceptor(inv_tenant.GetAgentsRole()),
+	)
 	srvMetrics := metrics.GetServerMetricsWithLatency()
 	cliMetrics := metrics.GetClientMetricsWithLatency()
 	if dmh.cfg.EnableMetrics {
@@ -109,5 +115,54 @@ func (dmh *DMHandler) Stop() {
 	if dmh.server != nil {
 		dmh.server.Stop()
 		zlog.InfraSec().Info().Msgf("SB handler stopped")
+	}
+}
+
+// projectIDResolutionInterceptor is a gRPC unary interceptor that resolves and injects
+// the active project ID into the incoming metadata context.
+// It reads the "authorization" and "activeprojectid" values from incoming gRPC metadata,
+// calls ResolveAndValidateProjectID (which falls back to JWT extraction for gRPC paths
+// since they do not carry a /v1/projects/... URL), and writes the resolved UUID back
+// into the incoming metadata so downstream interceptors (e.g. tenant extractor) can use it.
+func projectIDResolutionInterceptor(nexusAPIURL string) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return handler(ctx, req)
+		}
+
+		projectIDValues := md.Get("activeprojectid")
+		if len(projectIDValues) > 0 && projectIDValues[0] != "" {
+			// Already set – nothing to do
+			return handler(ctx, req)
+		}
+
+		authHeader := ""
+		if authValues := md.Get("authorization"); len(authValues) > 0 {
+			authHeader = authValues[0]
+		}
+
+		// gRPC method paths do not carry /v1/projects/{name}/…, so ExtractProjectNameFromPath
+		// returns "" and ResolveAndValidateProjectID falls back to JWT extraction.
+		projectUUID, err := projectcontext.ResolveAndValidateProjectID(
+			ctx,
+			"", // no URL path for gRPC calls
+			authHeader,
+			"",
+			projectcontext.ProjectResolverConfig{
+				ProjectServiceURL:     nexusAPIURL,
+				ErrorOnMissingProject: false,
+			},
+		)
+		if err != nil {
+			zlog.Warn().Err(err).Msg("Failed to resolve and validate project ID")
+		} else if projectUUID != "" {
+			md = md.Copy()
+			md.Set("activeprojectid", projectUUID)
+			ctx = metadata.NewIncomingContext(ctx, md)
+			zlog.Debug().Str("projectUUID", projectUUID).Msg("Injected resolved project ID into gRPC metadata")
+		}
+
+		return handler(ctx, req)
 	}
 }

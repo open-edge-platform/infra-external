@@ -830,6 +830,12 @@ type DeleteApiV1DevicesGuidParams struct {
 	IsSecretToBeDeleted *bool `form:"isSecretToBeDeleted,omitempty" json:"isSecretToBeDeleted,omitempty"`
 }
 
+// DeleteV1ProjectsProjectNameDmDevicesGuidParams defines parameters for DeleteV1ProjectsProjectNameDmDevicesGuid.
+type DeleteV1ProjectsProjectNameDmDevicesGuidParams struct {
+	// IsSecretToBeDeleted Delete device information from both the Database **AND Secret Storage**. Caution: This will delete the stored device passwords in Secret Storage.
+	IsSecretToBeDeleted *bool `form:"isSecretToBeDeleted,omitempty" json:"isSecretToBeDeleted,omitempty"`
+}
+
 // PostApiV1AmtAlarmOccurrencesGuidJSONRequestBody defines body for PostApiV1AmtAlarmOccurrencesGuid for application/json ContentType.
 type PostApiV1AmtAlarmOccurrencesGuidJSONRequestBody = SetAlarmClockRequest
 
@@ -1038,6 +1044,15 @@ type ClientInterface interface {
 
 	// GetVersion request
 	GetVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetV1ProjectsProjectNameDmAmtGeneralSettingsGuid request
+	GetV1ProjectsProjectNameDmAmtGeneralSettingsGuid(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteV1ProjectsProjectNameDmDevicesGuid request
+	DeleteV1ProjectsProjectNameDmDevicesGuid(ctx context.Context, projectName string, guid string, params *DeleteV1ProjectsProjectNameDmDevicesGuidParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetV1ProjectsProjectNameDmDevicesGuid request
+	GetV1ProjectsProjectNameDmDevicesGuid(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) DeleteApiV1AmtAlarmOccurrencesGuid(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -1510,6 +1525,42 @@ func (c *Client) GetApiV1Health(ctx context.Context, reqEditors ...RequestEditor
 
 func (c *Client) GetVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetVersionRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetV1ProjectsProjectNameDmAmtGeneralSettingsGuid(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetV1ProjectsProjectNameDmAmtGeneralSettingsGuidRequest(c.Server, projectName, guid)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteV1ProjectsProjectNameDmDevicesGuid(ctx context.Context, projectName string, guid string, params *DeleteV1ProjectsProjectNameDmDevicesGuidParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteV1ProjectsProjectNameDmDevicesGuidRequest(c.Server, projectName, guid, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetV1ProjectsProjectNameDmDevicesGuid(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetV1ProjectsProjectNameDmDevicesGuidRequest(c.Server, projectName, guid)
 	if err != nil {
 		return nil, err
 	}
@@ -2830,6 +2881,151 @@ func NewGetVersionRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetV1ProjectsProjectNameDmAmtGeneralSettingsGuidRequest generates requests for GetV1ProjectsProjectNameDmAmtGeneralSettingsGuid
+func NewGetV1ProjectsProjectNameDmAmtGeneralSettingsGuidRequest(server string, projectName string, guid string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "projectName", runtime.ParamLocationPath, projectName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "guid", runtime.ParamLocationPath, guid)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/projects/%s/dm/amt/generalSettings/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewDeleteV1ProjectsProjectNameDmDevicesGuidRequest generates requests for DeleteV1ProjectsProjectNameDmDevicesGuid
+func NewDeleteV1ProjectsProjectNameDmDevicesGuidRequest(server string, projectName string, guid string, params *DeleteV1ProjectsProjectNameDmDevicesGuidParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "projectName", runtime.ParamLocationPath, projectName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "guid", runtime.ParamLocationPath, guid)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/projects/%s/dm/devices/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.IsSecretToBeDeleted != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "isSecretToBeDeleted", runtime.ParamLocationQuery, *params.IsSecretToBeDeleted); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetV1ProjectsProjectNameDmDevicesGuidRequest generates requests for GetV1ProjectsProjectNameDmDevicesGuid
+func NewGetV1ProjectsProjectNameDmDevicesGuidRequest(server string, projectName string, guid string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "projectName", runtime.ParamLocationPath, projectName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "guid", runtime.ParamLocationPath, guid)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/projects/%s/dm/devices/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -2984,6 +3180,15 @@ type ClientWithResponsesInterface interface {
 
 	// GetVersionWithResponse request
 	GetVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetVersionResponse, error)
+
+	// GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse request
+	GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse, error)
+
+	// DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse request
+	DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse(ctx context.Context, projectName string, guid string, params *DeleteV1ProjectsProjectNameDmDevicesGuidParams, reqEditors ...RequestEditorFn) (*DeleteV1ProjectsProjectNameDmDevicesGuidResponse, error)
+
+	// GetV1ProjectsProjectNameDmDevicesGuidWithResponse request
+	GetV1ProjectsProjectNameDmDevicesGuidWithResponse(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*GetV1ProjectsProjectNameDmDevicesGuidResponse, error)
 }
 
 type DeleteApiV1AmtAlarmOccurrencesGuidResponse struct {
@@ -3698,6 +3903,73 @@ func (r GetVersionResponse) StatusCode() int {
 	return 0
 }
 
+type GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *GeneralSettingsResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteV1ProjectsProjectNameDmDevicesGuidResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON204      *DeleteResponse
+	JSON404      *DeleteErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteV1ProjectsProjectNameDmDevicesGuidResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteV1ProjectsProjectNameDmDevicesGuidResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetV1ProjectsProjectNameDmDevicesGuidResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Device
+}
+
+// Status returns HTTPResponse.Status
+func (r GetV1ProjectsProjectNameDmDevicesGuidResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetV1ProjectsProjectNameDmDevicesGuidResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // DeleteApiV1AmtAlarmOccurrencesGuidWithResponse request returning *DeleteApiV1AmtAlarmOccurrencesGuidResponse
 func (c *ClientWithResponses) DeleteApiV1AmtAlarmOccurrencesGuidWithResponse(ctx context.Context, guid string, reqEditors ...RequestEditorFn) (*DeleteApiV1AmtAlarmOccurrencesGuidResponse, error) {
 	rsp, err := c.DeleteApiV1AmtAlarmOccurrencesGuid(ctx, guid, reqEditors...)
@@ -4048,6 +4320,33 @@ func (c *ClientWithResponses) GetVersionWithResponse(ctx context.Context, reqEdi
 		return nil, err
 	}
 	return ParseGetVersionResponse(rsp)
+}
+
+// GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse request returning *GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse
+func (c *ClientWithResponses) GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse, error) {
+	rsp, err := c.GetV1ProjectsProjectNameDmAmtGeneralSettingsGuid(ctx, projectName, guid, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse(rsp)
+}
+
+// DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse request returning *DeleteV1ProjectsProjectNameDmDevicesGuidResponse
+func (c *ClientWithResponses) DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse(ctx context.Context, projectName string, guid string, params *DeleteV1ProjectsProjectNameDmDevicesGuidParams, reqEditors ...RequestEditorFn) (*DeleteV1ProjectsProjectNameDmDevicesGuidResponse, error) {
+	rsp, err := c.DeleteV1ProjectsProjectNameDmDevicesGuid(ctx, projectName, guid, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteV1ProjectsProjectNameDmDevicesGuidResponse(rsp)
+}
+
+// GetV1ProjectsProjectNameDmDevicesGuidWithResponse request returning *GetV1ProjectsProjectNameDmDevicesGuidResponse
+func (c *ClientWithResponses) GetV1ProjectsProjectNameDmDevicesGuidWithResponse(ctx context.Context, projectName string, guid string, reqEditors ...RequestEditorFn) (*GetV1ProjectsProjectNameDmDevicesGuidResponse, error) {
+	rsp, err := c.GetV1ProjectsProjectNameDmDevicesGuid(ctx, projectName, guid, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetV1ProjectsProjectNameDmDevicesGuidResponse(rsp)
 }
 
 // ParseDeleteApiV1AmtAlarmOccurrencesGuidResponse parses an HTTP response from a DeleteApiV1AmtAlarmOccurrencesGuidWithResponse call
@@ -4904,6 +5203,91 @@ func ParseGetVersionResponse(rsp *http.Response) (*GetVersionResponse, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest VersionResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse parses an HTTP response from a GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidWithResponse call
+func ParseGetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse(rsp *http.Response) (*GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetV1ProjectsProjectNameDmAmtGeneralSettingsGuidResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GeneralSettingsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteV1ProjectsProjectNameDmDevicesGuidResponse parses an HTTP response from a DeleteV1ProjectsProjectNameDmDevicesGuidWithResponse call
+func ParseDeleteV1ProjectsProjectNameDmDevicesGuidResponse(rsp *http.Response) (*DeleteV1ProjectsProjectNameDmDevicesGuidResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteV1ProjectsProjectNameDmDevicesGuidResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 204:
+		var dest DeleteResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON204 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest DeleteErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetV1ProjectsProjectNameDmDevicesGuidResponse parses an HTTP response from a GetV1ProjectsProjectNameDmDevicesGuidWithResponse call
+func ParseGetV1ProjectsProjectNameDmDevicesGuidResponse(rsp *http.Response) (*GetV1ProjectsProjectNameDmDevicesGuidResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetV1ProjectsProjectNameDmDevicesGuidResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Device
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

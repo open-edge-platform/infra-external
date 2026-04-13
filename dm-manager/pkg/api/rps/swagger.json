@@ -1487,6 +1487,342 @@
         },
         "deprecated": false
       }
+    },
+    "/v1/projects/{projectName}/dm/amt/admin/domains": {
+      "get": {
+        "tags": [
+          "Domains"
+        ],
+        "summary": "Get All Domains for Project",
+        "operationId": "GetAllDomainsForProject",
+        "description": "Retrieves all of the domain configuration profiles for the specified project from the database. Will not return the provisioning certificate or certificate password to protect the privacy of these assets.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The name of the project"
+          },
+          {
+            "in": "query",
+            "name": "$skip",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The number of items to skip before starting to collect the result set"
+          },
+          {
+            "in": "query",
+            "name": "$top",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The numbers of items to return"
+          },
+          {
+            "in": "query",
+            "name": "$count",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "The total number of domains"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DomainResponse"
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/CountDomainResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "post": {
+        "tags": [
+          "Domains"
+        ],
+        "summary": "Create Domain for Project",
+        "operationId": "CreateDomainForProject",
+        "description": "Creates a new domain configuration profile for the specified project in the database. The provisioning certificate and certificate password are stored in a secrets manager and are only used when required during activation.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The name of the project"
+          }
+        ],
+        "requestBody": {
+          "description": "**provisioningCert** must be a base64 string of the Personal Information Exchange (PFX) certificate that includes the entire certificate chain and private key.\n",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DomainPOST"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "successful operation",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomainResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "patch": {
+        "tags": [
+          "Domains"
+        ],
+        "summary": "Update Domain Suffix for Project",
+        "operationId": "UpdateDomainSuffixForProject",
+        "description": "Edits an existing domain configuration profile for the specified project.\n\nThe profileName field can not be changed.\n\nVersion must be provided to ensure the correct profile is edited.\n\nThe provisioning certificate and certificate password are stored in a secrets manager and are only used when required during activation. Provisioning certificate must be a base64 string of the Personal Information Exchange (PFX) certificate that includes the entire certificate chain and private key.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The name of the project"
+          }
+        ],
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DomainPATCH"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomainResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/v1/projects/{projectName}/dm/amt/admin/domains/{profileName}": {
+      "get": {
+        "tags": [
+          "Domains"
+        ],
+        "summary": "Get Domain for Project",
+        "operationId": "GetDomainForProject",
+        "description": "Retrieves the specific domain configuration profile for the specified project.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The name of the project"
+          },
+          {
+            "name": "profileName",
+            "in": "path",
+            "description": "Name of domain profile to return",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomainResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      },
+      "delete": {
+        "tags": [
+          "Domains"
+        ],
+        "summary": "Remove Domain for Project",
+        "operationId": "RemoveDomainForProject",
+        "description": "Removes the specific domain configuration profile for the specified project.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The name of the project"
+          },
+          {
+            "name": "profileName",
+            "in": "path",
+            "description": "Name of domain profile to remove",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successful operation",
+            "headers": {}
+          },
+          "404": {
+            "description": "not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
     }
   },
   "components": {

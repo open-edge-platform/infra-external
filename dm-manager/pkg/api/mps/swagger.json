@@ -1283,6 +1283,170 @@
         },
         "deprecated": false
       }
+    },
+    "/v1/projects/{projectName}/dm/devices/{guid}": {
+      "get": {
+        "summary": "Find Device by GUID within a Project",
+        "description": "Retrieves the device with a specific GUID within the given project.",
+        "tags": [
+          "Devices"
+        ],
+        "parameters": [
+          {
+            "name": "projectName",
+            "in": "path",
+            "description": "Name of the project",
+            "example": "my-project",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "guid",
+            "in": "path",
+            "description": "GUID of device to return",
+            "example": "123e4567-e89b-12d3-a456-426614174000",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Error in request.  A list of errors will be returned"
+          },
+          "404": {
+            "description": "Device does not exist"
+          },
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Device Information within a Project",
+        "description": "Removes the device with a specific GUID within the given project and all device information from the database.",
+        "tags": [
+          "Devices"
+        ],
+        "parameters": [
+          {
+            "name": "projectName",
+            "in": "path",
+            "description": "Name of the project",
+            "example": "my-project",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "guid",
+            "in": "path",
+            "description": "GUID of device to return",
+            "example": "123e4567-e89b-12d3-a456-426614174000",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isSecretToBeDeleted",
+            "in": "query",
+            "description": "Delete device information from both the Database **AND Secret Storage**. Caution: This will delete the stored device passwords in Secret Storage.",
+            "example": "isSecretToBeDeleted=true",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Device does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteErrorResponse"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/v1/projects/{projectName}/dm/amt/generalSettings/{guid}": {
+      "get": {
+        "summary": "Return Intel® AMT General Settings within a Project",
+        "description": "Retrieve the Intel® AMT general settings for a device within the given project.",
+        "tags": [
+          "AMT"
+        ],
+        "parameters": [
+          {
+            "name": "projectName",
+            "in": "path",
+            "description": "Name of the project",
+            "example": "my-project",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "guid",
+            "in": "path",
+            "description": "GUID of device",
+            "example": "123e4567-e89b-12d3-a456-426614174000",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralSettingsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Device does not exist"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
     }
   },
   "components": {
