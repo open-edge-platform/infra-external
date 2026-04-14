@@ -43,7 +43,7 @@ const (
 	solProxyURLTemplate = "wss://%s/ws/sol/%s"
 
 	// userConsentNone is sent to MPS POST /features in ACM mode to disable consent prompts.
-	userConsentNone = "none"
+	// userConsentNone = "none" // COMMENTED OUT: consent code disabled for now
 )
 
 var log = logging.GetLogger("SolReconciler")
@@ -233,12 +233,16 @@ func (sc *Controller) shouldStopSOLSession(invHost *computev1.HostResource) bool
 }
 
 // handleStartSOLSession drives the full SOL start lifecycle:
+//
 //  1. Pre-condition: host must be AMT_STATE_PROVISIONED.
+//
 //  2. GET /api/v1/amt/features/{guid} — verify SOL is already enabled (from profile creation).
-//  3. CCM consent flow (if amt_control_mode == CCM): trigger on-screen code,
-//     write AWAITING_CONSENT, wait for desired_consent_code, submit to MPS.
-//  4. GET /api/v1/authorize/redirection/{guid} — obtain short-lived relay token.
-//  5. Write current_sol_state=SOL_STATE_START + sol_session_url to inventory.
+//
+//  3. GET /api/v1/authorize/redirection/{guid} — obtain short-lived relay token.
+//
+//  4. Write current_sol_state=SOL_STATE_START + sol_session_url to inventory.
+//
+//     NOTE: CCM consent flow is commented out for now.
 func (sc *Controller) handleStartSOLSession(
 	ctx context.Context,
 	request rec_v2.Request[ID],
@@ -284,124 +288,129 @@ func (sc *Controller) handleStartSOLSession(
 		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
 	}
 
-	// Step 3 — Consent flow for CCM devices (check amt_control_mode from inventory).
-	if invHost.GetAmtControlMode() == computev1.AmtControlMode_AMT_CONTROL_MODE_CCM {
-		return sc.handleConsentFlow(
-			ctx, updatedCtx, request, invHost, tenantID, resourceID, hostUUID)
-	}
+	// COMMENTED OUT: consent flow disabled for now
+	// // Step 3 — Consent flow for CCM devices (check amt_control_mode from inventory).
+	// if invHost.GetAmtControlMode() == computev1.AmtControlMode_AMT_CONTROL_MODE_CCM {
+	// 	return sc.handleConsentFlow(
+	// 		ctx, updatedCtx, request, invHost, tenantID, resourceID, hostUUID)
+	// }
 
-	// Step 4 — ACM mode: go straight to token acquisition (no consent needed).
+	// Step 3 — Go straight to token acquisition (consent flow disabled for now).
 	return sc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
 }
 
-// handleConsentFlow manages the CCM user-consent sub-flow.
-// On first entry it triggers the on-screen code display and writes
-// SOL_STATE_AWAITING_CONSENT. On subsequent entries (when desired_consent_code
-// is populated by orch-cli) it submits the code to MPS.
-func (sc *Controller) handleConsentFlow(
-	ctx context.Context,
-	updatedCtx context.Context,
-	request rec_v2.Request[ID],
-	invHost *computev1.HostResource,
-	tenantID, resourceID, hostUUID string,
-) rec_v2.Directive[ID] {
-	// If already AWAITING_CONSENT, check whether the operator has responded.
-	if invHost.GetCurrentSolState() == computev1.SolState_SOL_STATE_AWAITING_CONSENT {
-		consentCode := invHost.GetDesiredConsentCode()
-		if consentCode == "" {
-			log.Info().Msgf("host %v: waiting for operator consent code", invHost.GetUuid())
-			return request.Ack()
-		}
-		return sc.submitConsentCode(
-			ctx, updatedCtx, request, tenantID, resourceID, hostUUID, consentCode)
-	}
+// COMMENTED OUT: consent flow disabled for now
+//
+// // handleConsentFlow manages the CCM user-consent sub-flow.
+// // On first entry it triggers the on-screen code display and writes
+// // SOL_STATE_AWAITING_CONSENT. On subsequent entries (when desired_consent_code
+// // is populated by orch-cli) it submits the code to MPS.
+// func (sc *Controller) handleConsentFlow(
+// 	ctx context.Context,
+// 	updatedCtx context.Context,
+// 	request rec_v2.Request[ID],
+// 	invHost *computev1.HostResource,
+// 	tenantID, resourceID, hostUUID string,
+// ) rec_v2.Directive[ID] {
+// 	// If already AWAITING_CONSENT, check whether the operator has responded.
+// 	if invHost.GetCurrentSolState() == computev1.SolState_SOL_STATE_AWAITING_CONSENT {
+// 		consentCode := invHost.GetDesiredConsentCode()
+// 		if consentCode == "" {
+// 			log.Info().Msgf("host %v: waiting for operator consent code", invHost.GetUuid())
+// 			return request.Ack()
+// 		}
+// 		return sc.submitConsentCode(
+// 			ctx, updatedCtx, request, tenantID, resourceID, hostUUID, consentCode)
+// 	}
+//
+// 	// First pass: trigger on-screen 6-digit code display.
+// 	log.Info().Msgf("host %v: triggering user consent code display via MPS", hostUUID)
+// 	consentResp, err := sc.MpsClient.GetApiV1AmtUserConsentCodeGuidWithResponse(
+// 		updatedCtx, hostUUID, clientCallback())
+// 	if err != nil {
+// 		log.Err(err).Msgf("GET /amt/userConsentCode failed for host %v", hostUUID)
+// 		return request.Fail(err)
+// 	}
+// 	if consentResp.StatusCode() != http.StatusOK {
+// 		errMsg := fmt.Sprintf("GET /amt/userConsentCode returned %d: %s",
+// 			consentResp.StatusCode(), string(consentResp.Body))
+// 		log.Error().Msg(errMsg)
+// 		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
+// 	}
+//
+// 	// Write SOL_STATE_AWAITING_CONSENT so orch-cli prompts the operator.
+// 	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
+// 		&fieldmaskpb.FieldMask{Paths: []string{
+// 			computev1.HostResourceFieldCurrentSolState,
+// 			computev1.HostResourceFieldSolSessionStatus,
+// 			computev1.HostResourceFieldSolSessionStatusIndicator,
+// 		}},
+// 		&computev1.HostResource{
+// 			CurrentSolState:           computev1.SolState_SOL_STATE_AWAITING_CONSENT,
+// 			SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_ACTIVATED,
+// 			SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
+// 		},
+// 	); updateErr != nil {
+// 		log.Err(updateErr).Msgf("failed to set AWAITING_CONSENT for host %v", hostUUID)
+// 		return request.Fail(updateErr)
+// 	}
+// 	log.Info().Msgf("host %v: set current_sol_state=SOL_STATE_AWAITING_CONSENT", hostUUID)
+// 	return request.Ack()
+// }
 
-	// First pass: trigger on-screen 6-digit code display.
-	log.Info().Msgf("host %v: triggering user consent code display via MPS", hostUUID)
-	consentResp, err := sc.MpsClient.GetApiV1AmtUserConsentCodeGuidWithResponse(
-		updatedCtx, hostUUID, clientCallback())
-	if err != nil {
-		log.Err(err).Msgf("GET /amt/userConsentCode failed for host %v", hostUUID)
-		return request.Fail(err)
-	}
-	if consentResp.StatusCode() != http.StatusOK {
-		errMsg := fmt.Sprintf("GET /amt/userConsentCode returned %d: %s",
-			consentResp.StatusCode(), string(consentResp.Body))
-		log.Error().Msg(errMsg)
-		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
-	}
-
-	// Write SOL_STATE_AWAITING_CONSENT so orch-cli prompts the operator.
-	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
-		&fieldmaskpb.FieldMask{Paths: []string{
-			computev1.HostResourceFieldCurrentSolState,
-			computev1.HostResourceFieldSolSessionStatus,
-			computev1.HostResourceFieldSolSessionStatusIndicator,
-		}},
-		&computev1.HostResource{
-			CurrentSolState:           computev1.SolState_SOL_STATE_AWAITING_CONSENT,
-			SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_ACTIVATED,
-			SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
-		},
-	); updateErr != nil {
-		log.Err(updateErr).Msgf("failed to set AWAITING_CONSENT for host %v", hostUUID)
-		return request.Fail(updateErr)
-	}
-	log.Info().Msgf("host %v: set current_sol_state=SOL_STATE_AWAITING_CONSENT", hostUUID)
-	return request.Ack()
-}
-
-// submitConsentCode sends the operator-entered 6-digit code to MPS.
-// On success it clears desired_consent_code and proceeds to token acquisition.
-func (sc *Controller) submitConsentCode(
-	ctx context.Context,
-	updatedCtx context.Context,
-	request rec_v2.Request[ID],
-	tenantID, resourceID, hostUUID, consentCode string,
-) rec_v2.Directive[ID] {
-	log.Info().Msgf("host %v: submitting consent code to MPS", hostUUID)
-
-	var codeInt int
-	if _, scanErr := fmt.Sscanf(consentCode, "%d", &codeInt); scanErr != nil {
-		errMsg := fmt.Sprintf("invalid consent code format for host %v: %q", hostUUID, consentCode)
-		log.Error().Msg(errMsg)
-		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
-	}
-
-	submitResp, err := sc.MpsClient.PostApiV1AmtUserConsentCodeGuidWithResponse(
-		updatedCtx, hostUUID,
-		mps.UserConsentRequest{ConsentCode: codeInt},
-		clientCallback())
-	if err != nil {
-		log.Err(err).Msgf("POST /amt/userConsentCode failed for host %v", hostUUID)
-		return request.Fail(err)
-	}
-	if submitResp.StatusCode() != http.StatusOK {
-		errMsg := fmt.Sprintf("POST /amt/userConsentCode returned %d: %s",
-			submitResp.StatusCode(), string(submitResp.Body))
-		log.Error().Msg(errMsg)
-		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
-	}
-	if submitResp.JSON200 != nil && submitResp.JSON200.Body != nil &&
-		submitResp.JSON200.Body.ReturnValueStr != nil &&
-		!strings.EqualFold(*submitResp.JSON200.Body.ReturnValueStr, "SUCCESS") {
-		errMsg := fmt.Sprintf("consent code rejected by MPS for host %v: %s",
-			hostUUID, *submitResp.JSON200.Body.ReturnValueStr)
-		log.Error().Msg(errMsg)
-		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
-	}
-
-	// Clear desired_consent_code — it has been consumed.
-	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
-		&fieldmaskpb.FieldMask{Paths: []string{computev1.HostResourceFieldDesiredConsentCode}},
-		&computev1.HostResource{DesiredConsentCode: ""},
-	); updateErr != nil {
-		log.Err(updateErr).Msgf("failed to clear desired_consent_code for host %v", hostUUID)
-	}
-
-	log.Info().Msgf("host %v: consent accepted, acquiring redirect token", hostUUID)
-	return sc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
-}
+// COMMENTED OUT: consent flow disabled for now
+//
+// // submitConsentCode sends the operator-entered 6-digit code to MPS.
+// // On success it clears desired_consent_code and proceeds to token acquisition.
+// func (sc *Controller) submitConsentCode(
+// 	ctx context.Context,
+// 	updatedCtx context.Context,
+// 	request rec_v2.Request[ID],
+// 	tenantID, resourceID, hostUUID, consentCode string,
+// ) rec_v2.Directive[ID] {
+// 	log.Info().Msgf("host %v: submitting consent code to MPS", hostUUID)
+//
+// 	var codeInt int
+// 	if _, scanErr := fmt.Sscanf(consentCode, "%d", &codeInt); scanErr != nil {
+// 		errMsg := fmt.Sprintf("invalid consent code format for host %v: %q", hostUUID, consentCode)
+// 		log.Error().Msg(errMsg)
+// 		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
+// 	}
+//
+// 	submitResp, err := sc.MpsClient.PostApiV1AmtUserConsentCodeGuidWithResponse(
+// 		updatedCtx, hostUUID,
+// 		mps.UserConsentRequest{ConsentCode: codeInt},
+// 		clientCallback())
+// 	if err != nil {
+// 		log.Err(err).Msgf("POST /amt/userConsentCode failed for host %v", hostUUID)
+// 		return request.Fail(err)
+// 	}
+// 	if submitResp.StatusCode() != http.StatusOK {
+// 		errMsg := fmt.Sprintf("POST /amt/userConsentCode returned %d: %s",
+// 			submitResp.StatusCode(), string(submitResp.Body))
+// 		log.Error().Msg(errMsg)
+// 		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
+// 	}
+// 	if submitResp.JSON200 != nil && submitResp.JSON200.Body != nil &&
+// 		submitResp.JSON200.Body.ReturnValueStr != nil &&
+// 		!strings.EqualFold(*submitResp.JSON200.Body.ReturnValueStr, "SUCCESS") {
+// 		errMsg := fmt.Sprintf("consent code rejected by MPS for host %v: %s",
+// 			hostUUID, *submitResp.JSON200.Body.ReturnValueStr)
+// 		log.Error().Msg(errMsg)
+// 		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
+// 	}
+//
+// 	// Clear desired_consent_code — it has been consumed.
+// 	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
+// 		&fieldmaskpb.FieldMask{Paths: []string{computev1.HostResourceFieldDesiredConsentCode}},
+// 		&computev1.HostResource{DesiredConsentCode: ""},
+// 	); updateErr != nil {
+// 		log.Err(updateErr).Msgf("failed to clear desired_consent_code for host %v", hostUUID)
+// 	}
+//
+// 	log.Info().Msgf("host %v: consent accepted, acquiring redirect token", hostUUID)
+// 	return sc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
+// }
 
 // acquireTokenAndActivate calls GET /api/v1/authorize/redirection/{guid} to get
 // a short-lived relay token, then establishes the AMT SOL WebSocket session via
