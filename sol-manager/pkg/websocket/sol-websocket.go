@@ -299,7 +299,7 @@ func NewSOLSessionWithToken(cfg SessionConfig, redirectToken string) (*SOLSessio
 	wsURL := fmt.Sprintf("wss://%s/relay/webrelay.ashx?p=2&host=%s&port=%d&tls=0&tls1only=0&mode=%s",
 		cfg.MPSHost, cfg.DeviceGUID, cfg.Port, cfg.Mode)
 
-	log.Info().Msgf("Connecting SOL WebSocket to %s (device=%s)", cfg.MPSHost, cfg.DeviceGUID)
+	log.Info().Msgf("Connecting SOL WebSocket xxx to %s (device=%s), url=%s", cfg.MPSHost, cfg.DeviceGUID, wsURL)
 
 	// Setup dialer
 	dialer := websocket.Dialer{}

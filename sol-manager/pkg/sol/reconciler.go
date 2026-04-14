@@ -26,7 +26,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_util "github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
 	"github.com/open-edge-platform/infra-external/sol-manager/pkg/api/mps"
-	solws "github.com/open-edge-platform/infra-external/sol-manager/pkg/websocket"
+	"github.com/open-edge-platform/infra-external/sol-manager/pkg/auth"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -34,16 +34,10 @@ const (
 	minDelay = 1 * time.Second
 	maxDelay = 5 * time.Second
 
-	// solSessionHandshakeTimeout is how long we wait for the AMT SOL protocol handshake
-	// (0x10→0x11→0x13→0x14→0x20→0x21→0x27) before declaring a timeout.
-	solSessionHandshakeTimeout = 30 * time.Second
-
-	// solProxyURLTemplate is the WebSocket proxy URL written into inventory.
-	// UI/CLI connects here to get clean terminal data; sol-manager proxies to/from AMT.
-	solProxyURLTemplate = "wss://%s/ws/sol/%s"
-
-	// userConsentNone is sent to MPS POST /features in ACM mode to disable consent prompts.
-	// userConsentNone = "none" // COMMENTED OUT: consent code disabled for now
+	// mpsWssRelayPathTemplate is the WebSocket relay URL written into inventory
+	// after a redirect token is acquired. orch-cli reads this URL and opens the
+	// relay directly.
+	mpsWssRelayPathTemplate = "wss://%s/relay/webrelay.ashx?token=%s&host=%s"
 )
 
 var log = logging.GetLogger("SolReconciler")
@@ -72,17 +66,11 @@ func NewID(tenantID, hostUUID string) ID {
 	return ID(tenantID + "_" + hostUUID)
 }
 
-// activeSession tracks a running AMT SOL WebSocket session.
-type activeSession struct {
-	session    *solws.SOLSession
-	resourceID string
-	tenantID   string
-	deviceGUID string
-}
-
 // Controller is the SOL resource manager. It watches Inventory for
 // desired_sol_state changes on HostResource and drives the SOL session
-// lifecycle by calling MPS REST APIs + AMT SOL WebSocket protocol.
+// lifecycle by calling MPS REST APIs. It writes session connection info
+// (MPS URL, tokens, AMT credentials) into sol_session_url for orch-cli
+// to consume directly.
 type Controller struct {
 	MpsClient         mps.ClientWithResponsesInterface
 	InventoryRmClient client.TenantAwareInventoryClient
@@ -92,42 +80,21 @@ type Controller struct {
 	WaitGroup         *sync.WaitGroup
 	SOLController     *rec_v2.Controller[ID]
 
-	// MpsDomain is the MPS WebSocket relay hostname used both for connecting
-	// to AMT (via relay) and for the sol_session_url written to inventory.
+	// MpsDomain is the MPS WebSocket relay hostname written into sol_session_url
+	// so orch-cli can connect directly to the MPS relay.
 	MpsDomain string
-
-	// SOLProxyDomain is the public hostname of the sol-manager WebSocket proxy.
-	// Written into sol_session_url so UI/CLI knows where to connect.
-	// e.g. "sol-manager.orch-infra.svc" or a public ingress hostname.
-	SOLProxyDomain string
 
 	ReconcilePeriod time.Duration
 	RequestTimeout  time.Duration
 	Insecure        bool
 
-	// activeSessions tracks running SOL WebSocket sessions keyed by resourceID.
-	activeSessions   map[string]*activeSession
-	activeSessionsMu sync.Mutex
-}
-
-// GetSession returns the active SOL session for the given resourceID, or nil.
-func (sc *Controller) GetSession(resourceID string) *solws.SOLSession {
-	sc.activeSessionsMu.Lock()
-	defer sc.activeSessionsMu.Unlock()
-	if sess, ok := sc.activeSessions[resourceID]; ok {
-		return sess.session
-	}
-	return nil
+	// TokenProvider obtains Keycloak JWT tokens for MPS auth using
+	// the inventory auth package (GetCredentialsByUUID + client_credentials grant).
+	TokenProvider *auth.TokenProvider
 }
 
 // Start begins event-driven and periodic reconciliation.
 func (sc *Controller) Start() {
-	sc.activeSessionsMu.Lock()
-	if sc.activeSessions == nil {
-		sc.activeSessions = make(map[string]*activeSession)
-	}
-	sc.activeSessionsMu.Unlock()
-
 	ticker := time.NewTicker(sc.ReconcilePeriod)
 	sc.ReadyChan <- true
 	log.Info().Msg("SOL manager started")
@@ -139,7 +106,6 @@ func (sc *Controller) Start() {
 		case <-sc.TermChan:
 			log.Info().Msg("SOL manager stopping")
 			ticker.Stop()
-			sc.stopAllSessions()
 			sc.Stop()
 			return
 		case event, ok := <-sc.EventsWatcher:
@@ -265,7 +231,7 @@ func (sc *Controller) handleStartSOLSession(
 
 	// Step 1 — GET AMT features.
 	featResp, err := sc.MpsClient.GetApiV1AmtFeaturesGuidWithResponse(
-		updatedCtx, hostUUID, clientCallback())
+		updatedCtx, hostUUID, sc.clientCallback(updatedCtx, tenantID, hostUUID))
 	if err != nil {
 		log.Err(err).Msgf("GET /amt/features failed for host %v", hostUUID)
 		return request.Fail(err)
@@ -413,16 +379,16 @@ func (sc *Controller) handleStartSOLSession(
 // }
 
 // acquireTokenAndActivate calls GET /api/v1/authorize/redirection/{guid} to get
-// a short-lived relay token, then establishes the AMT SOL WebSocket session via
-// sol-websocket.go, and finally writes sol_session_url + SOL_STATE_START to inventory.
+// a short-lived relay token, then writes kvm_session_url and
+// current_sol_state=SOL_STATE_START to inventory.
 func (sc *Controller) acquireTokenAndActivate(
 	ctx, updatedCtx context.Context,
 	request rec_v2.Request[ID],
 	tenantID, resourceID, hostUUID string,
 ) rec_v2.Directive[ID] {
-	// Step 1 — Get redirect token from MPS.
+	log.Debug().Msgf("host %v: GET /api/v1/authorize/redirection/%s", hostUUID, hostUUID)
 	tokenResp, err := sc.MpsClient.GetApiV1AuthorizeRedirectionGuidWithResponse(
-		updatedCtx, hostUUID, clientCallback())
+		updatedCtx, hostUUID, sc.clientCallback(updatedCtx, tenantID, hostUUID))
 	if err != nil {
 		log.Err(err).Msgf("GET /authorize/redirection failed for host %v", hostUUID)
 		return request.Fail(err)
@@ -433,58 +399,18 @@ func (sc *Controller) acquireTokenAndActivate(
 		log.Error().Msg(errMsg)
 		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
 	}
+	log.Debug().Msgf("host %v: GET /authorize/redirection response HTTP %d (token present=%v)",
+		hostUUID, tokenResp.StatusCode(), tokenResp.JSON200 != nil && tokenResp.JSON200.Token != nil)
 	if tokenResp.JSON200 == nil || tokenResp.JSON200.Token == nil {
 		errMsg := fmt.Sprintf("empty redirect token from MPS for host %v", hostUUID)
 		log.Error().Msg(errMsg)
 		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
 	}
-	redirectToken := *tokenResp.JSON200.Token
-	log.Info().Msgf("host %v: relay token acquired, establishing SOL WebSocket session", hostUUID)
+	token := *tokenResp.JSON200.Token
+	sessionURL := fmt.Sprintf(mpsWssRelayPathTemplate, sc.MpsDomain, token, hostUUID)
+	log.Info().Msgf("host %v: relay token acquired, writing SOL session URL", hostUUID)
+	log.Debug().Msgf("host %v: session URL = %s", hostUUID, sessionURL)
 
-	// Step 2 — Open WebSocket to MPS relay + run AMT SOL protocol handshake.
-	cfg := solws.SessionConfig{
-		MPSHost:    sc.MpsDomain,
-		DeviceGUID: hostUUID,
-		Port:       16994,
-		Mode:       "sol",
-		Insecure:   sc.Insecure,
-		AMTUser:    "admin", // TODO: retrieve from vault/secrets
-		AMTPass:    "",      // TODO: retrieve from vault/secrets
-	}
-	session, sessErr := solws.NewSOLSessionWithToken(cfg, redirectToken)
-	if sessErr != nil {
-		errMsg := fmt.Sprintf("failed to create SOL WebSocket session for host %v: %v", hostUUID, sessErr)
-		log.Error().Msg(errMsg)
-		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
-	}
-
-	// Step 4 — Wait for AMT SOL handshake to complete (SolReady channel).
-	select {
-	case <-session.SolReady:
-		log.Info().Msgf("host %v: AMT SOL handshake complete, session is ACTIVE", hostUUID)
-	case <-time.After(solSessionHandshakeTimeout):
-		session.Close()
-		errMsg := fmt.Sprintf("SOL handshake timed out for host %v", hostUUID)
-		log.Error().Msg(errMsg)
-		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
-	case <-session.Done:
-		errMsg := fmt.Sprintf("SOL session closed during handshake for host %v", hostUUID)
-		log.Error().Msg(errMsg)
-		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
-	}
-
-	// Step 5 — Track the active session.
-	sc.activeSessionsMu.Lock()
-	sc.activeSessions[resourceID] = &activeSession{
-		session:    session,
-		resourceID: resourceID,
-		tenantID:   tenantID,
-		deviceGUID: hostUUID,
-	}
-	sc.activeSessionsMu.Unlock()
-
-	// Step 6 — Write SOL_STATE_START + proxy URL to inventory.
-	sessionURL := fmt.Sprintf(solProxyURLTemplate, sc.SOLProxyDomain, resourceID)
 	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentSolState,
@@ -505,10 +431,7 @@ func (sc *Controller) acquireTokenAndActivate(
 		return request.Retry(updateErr).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 	}
 
-	// Step 7 — Monitor session lifetime in background.
-	go sc.monitorSession(resourceID)
-
-	log.Info().Msgf("host %v: SOL_STATE_START written, session URL=%s", hostUUID, sessionURL)
+	log.Info().Msgf("host %v: SOL_STATE_START written, session URL in inventory", hostUUID)
 	return request.Ack()
 }
 
@@ -524,9 +447,6 @@ func (sc *Controller) handleStopSOLSession(
 	hostUUID := request.ID.GetHostUUID()
 
 	log.Info().Msgf("host %v: stopping SOL session", hostUUID)
-
-	// Close the active WebSocket session if one exists.
-	sc.closeSession(resourceID)
 
 	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
@@ -550,79 +470,6 @@ func (sc *Controller) handleStopSOLSession(
 
 	log.Info().Msgf("host %v: SOL session stopped", hostUUID)
 	return request.Ack()
-}
-
-// closeSession closes and removes an active SOL session by resourceID.
-func (sc *Controller) closeSession(resourceID string) {
-	sc.activeSessionsMu.Lock()
-	sess, exists := sc.activeSessions[resourceID]
-	if exists {
-		delete(sc.activeSessions, resourceID)
-	}
-	sc.activeSessionsMu.Unlock()
-	if exists && sess.session != nil {
-		sess.session.Close()
-	}
-}
-
-// stopAllSessions tears down all active SOL WebSocket sessions.
-func (sc *Controller) stopAllSessions() {
-	sc.activeSessionsMu.Lock()
-	sessions := make(map[string]*activeSession, len(sc.activeSessions))
-	for k, v := range sc.activeSessions {
-		sessions[k] = v
-	}
-	sc.activeSessionsMu.Unlock()
-
-	for _, sess := range sessions {
-		log.Info().Msgf("stopping SOL session for host %s on shutdown", sess.resourceID)
-		sc.closeSession(sess.resourceID)
-	}
-}
-
-// monitorSession watches an active SOL session and marks it as ERROR
-// in inventory if the WebSocket connection drops unexpectedly.
-func (sc *Controller) monitorSession(resourceID string) {
-	sc.activeSessionsMu.Lock()
-	sess, exists := sc.activeSessions[resourceID]
-	sc.activeSessionsMu.Unlock()
-	if !exists {
-		return
-	}
-
-	select {
-	case <-sess.session.Done:
-		// Session terminated — check if it was a deliberate stop or unexpected.
-		sc.activeSessionsMu.Lock()
-		_, stillActive := sc.activeSessions[resourceID]
-		if stillActive {
-			delete(sc.activeSessions, resourceID)
-		}
-		sc.activeSessionsMu.Unlock()
-
-		if stillActive {
-			log.Warn().Msgf("SOL session for %s terminated unexpectedly", resourceID)
-			ctx, cancel := context.WithTimeout(context.Background(), sc.RequestTimeout)
-			defer cancel()
-			_ = sc.updateHost(ctx, sess.tenantID, resourceID,
-				&fieldmaskpb.FieldMask{Paths: []string{
-					computev1.HostResourceFieldCurrentSolState,
-					computev1.HostResourceFieldSolSessionUrl,
-					computev1.HostResourceFieldSolStatus,
-					computev1.HostResourceFieldSolSessionStatus,
-					computev1.HostResourceFieldSolSessionStatusIndicator,
-				}},
-				&computev1.HostResource{
-					CurrentSolState:           computev1.SolState_SOL_STATE_ERROR,
-					SolSessionUrl:             "",
-					SolStatus:                 computev1.SolStatus_SOL_STATUS_DEACTIVATED,
-					SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_DEACTIVATED,
-					SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
-				})
-		}
-	case <-sc.TermChan:
-		return
-	}
 }
 
 // writeSolError writes SOL_STATE_ERROR + status message to inventory and
@@ -694,14 +541,23 @@ func (sc *Controller) updateHost(
 	return nil
 }
 
-// clientCallback injects the tenantId ActiveProjectId header into MPS requests.
-func clientCallback() mps.RequestEditorFn {
-	return func(ctx context.Context, req *http.Request) error {
-		tenantID, ok := ctx.Value(contextValue("tenantId")).(string)
-		if ok {
+// clientCallback injects the tenantId ActiveProjectId header and Keycloak JWT into MPS requests.
+// It uses the TokenProvider (backed by GetCredentialsByUUID) to obtain a JWT.
+func (sc *Controller) clientCallback(ctx context.Context, tenantID, hostUUID string) mps.RequestEditorFn {
+	return func(_ context.Context, req *http.Request) error {
+		if tenantID != "" {
 			req.Header.Add("ActiveProjectId", tenantID)
 		}
 		req.Header.Add("User-Agent", "sol-manager")
+
+		// Inject Keycloak JWT for MPS authentication.
+		if sc.TokenProvider != nil {
+			if token, err := sc.TokenProvider.GetTokenForHost(ctx, tenantID, hostUUID); err == nil {
+				req.AddCookie(&http.Cookie{Name: "jwt", Value: token})
+			} else {
+				log.Warn().Err(err).Msg("failed to get Keycloak token for MPS request")
+			}
+		}
 		return nil
 	}
 }
