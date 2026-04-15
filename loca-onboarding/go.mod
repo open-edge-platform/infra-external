@@ -3,7 +3,7 @@
 
 module github.com/open-edge-platform/infra-external/loca-onboarding/v2
 
-go 1.26.1
+go 1.25.7
 
 require (
 	github.com/go-openapi/errors v0.22.7

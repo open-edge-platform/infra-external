@@ -3,7 +3,7 @@
 
 module github.com/open-edge-platform/infra-external/loca-templates
 
-go 1.26.1
+go 1.25.7
 
 require (
 	github.com/google/uuid v1.6.0
