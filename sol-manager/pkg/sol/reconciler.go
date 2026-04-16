@@ -185,10 +185,18 @@ func (sc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 }
 
 // shouldStartSOLSession returns true when the operator requested SOL_STATE_START
-// and the session is not yet active.
+// and the session is not yet active, or when the state is START but the URL is
+// missing (e.g. after an inventory schema migration cleared the field).
 func (sc *Controller) shouldStartSOLSession(invHost *computev1.HostResource) bool {
-	return invHost.GetDesiredSolState() == computev1.SolState_SOL_STATE_START &&
-		invHost.GetCurrentSolState() != computev1.SolState_SOL_STATE_START
+	if invHost.GetDesiredSolState() != computev1.SolState_SOL_STATE_START {
+		return false
+	}
+	// Not yet started — normal start flow.
+	if invHost.GetCurrentSolState() != computev1.SolState_SOL_STATE_START {
+		return true
+	}
+	// Already started but URL was lost — re-acquire token.
+	return invHost.GetSolSessionUrl() == ""
 }
 
 // shouldStopSOLSession returns true when the operator requested SOL_STATE_STOP
@@ -423,7 +431,7 @@ func (sc *Controller) acquireTokenAndActivate(
 			CurrentSolState:           computev1.SolState_SOL_STATE_START,
 			SolSessionUrl:             sessionURL,
 			SolStatus:                 computev1.SolStatus_SOL_STATUS_ACTIVATED,
-			SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_ACTIVATED,
+			SolSessionStatus:          "SOL_SESSION_STATUS_ACTIVATED",
 			SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 		},
 	); updateErr != nil {
@@ -460,7 +468,7 @@ func (sc *Controller) handleStopSOLSession(
 			CurrentSolState:           computev1.SolState_SOL_STATE_STOP,
 			SolSessionUrl:             "",
 			SolStatus:                 computev1.SolStatus_SOL_STATUS_DEACTIVATED,
-			SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_DEACTIVATED,
+			SolSessionStatus:          "SOL_SESSION_STATUS_DEACTIVATED",
 			SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
 		},
 	); updateErr != nil {
@@ -491,7 +499,7 @@ func (sc *Controller) writeSolError(
 			CurrentSolState:           computev1.SolState_SOL_STATE_ERROR,
 			SolSessionUrl:             "",
 			SolStatus:                 computev1.SolStatus_SOL_STATUS_DEACTIVATED,
-			SolSessionStatus:          computev1.SolSessionStatus_SOL_SESSION_STATUS_DEACTIVATED,
+			SolSessionStatus:          "SOL_SESSION_STATUS_DEACTIVATED",
 			SolSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
 		})
 	if updateErr != nil {
