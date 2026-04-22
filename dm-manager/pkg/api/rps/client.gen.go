@@ -453,6 +453,18 @@ type GetAllWirelessConfigsParams struct {
 	Count *bool `form:"$count,omitempty" json:"$count,omitempty"`
 }
 
+// GetAllDomainsForProjectParams defines parameters for GetAllDomainsForProject.
+type GetAllDomainsForProjectParams struct {
+	// Skip The number of items to skip before starting to collect the result set
+	Skip *int `form:"$skip,omitempty" json:"$skip,omitempty"`
+
+	// Top The numbers of items to return
+	Top *int `form:"$top,omitempty" json:"$top,omitempty"`
+
+	// Count The total number of domains
+	Count *bool `form:"$count,omitempty" json:"$count,omitempty"`
+}
+
 // EditCIRAConfigJSONRequestBody defines body for EditCIRAConfig for application/json ContentType.
 type EditCIRAConfigJSONRequestBody = CIRAConfigPATCH
 
@@ -482,6 +494,12 @@ type EditWirelessConfigJSONRequestBody = WirelessConfigPATCH
 
 // CreateWirelessConfigJSONRequestBody defines body for CreateWirelessConfig for application/json ContentType.
 type CreateWirelessConfigJSONRequestBody = WirelessConfigPOST
+
+// UpdateDomainSuffixForProjectJSONRequestBody defines body for UpdateDomainSuffixForProject for application/json ContentType.
+type UpdateDomainSuffixForProjectJSONRequestBody = DomainPATCH
+
+// CreateDomainForProjectJSONRequestBody defines body for CreateDomainForProject for application/json ContentType.
+type CreateDomainForProjectJSONRequestBody = DomainPOST
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -656,6 +674,25 @@ type ClientInterface interface {
 
 	// GetWirelessConfig request
 	GetWirelessConfig(ctx context.Context, profileName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetAllDomainsForProject request
+	GetAllDomainsForProject(ctx context.Context, projectName string, params *GetAllDomainsForProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateDomainSuffixForProjectWithBody request with any body
+	UpdateDomainSuffixForProjectWithBody(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateDomainSuffixForProject(ctx context.Context, projectName string, body UpdateDomainSuffixForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateDomainForProjectWithBody request with any body
+	CreateDomainForProjectWithBody(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateDomainForProject(ctx context.Context, projectName string, body CreateDomainForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RemoveDomainForProject request
+	RemoveDomainForProject(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetDomainForProject request
+	GetDomainForProject(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetAllCIRAConfigs(ctx context.Context, params *GetAllCIRAConfigsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -1092,6 +1129,90 @@ func (c *Client) RemoveWirelessConfig(ctx context.Context, profileName string, r
 
 func (c *Client) GetWirelessConfig(ctx context.Context, profileName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetWirelessConfigRequest(c.Server, profileName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetAllDomainsForProject(ctx context.Context, projectName string, params *GetAllDomainsForProjectParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAllDomainsForProjectRequest(c.Server, projectName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateDomainSuffixForProjectWithBody(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateDomainSuffixForProjectRequestWithBody(c.Server, projectName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateDomainSuffixForProject(ctx context.Context, projectName string, body UpdateDomainSuffixForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateDomainSuffixForProjectRequest(c.Server, projectName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDomainForProjectWithBody(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDomainForProjectRequestWithBody(c.Server, projectName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateDomainForProject(ctx context.Context, projectName string, body CreateDomainForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDomainForProjectRequest(c.Server, projectName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) RemoveDomainForProject(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRemoveDomainForProjectRequest(c.Server, projectName, profileName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetDomainForProject(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDomainForProjectRequest(c.Server, projectName, profileName)
 	if err != nil {
 		return nil, err
 	}
@@ -2301,6 +2422,270 @@ func NewGetWirelessConfigRequest(server string, profileName string) (*http.Reque
 	return req, nil
 }
 
+// NewGetAllDomainsForProjectRequest generates requests for GetAllDomainsForProject
+func NewGetAllDomainsForProjectRequest(server string, projectName string, params *GetAllDomainsForProjectParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "projectName", runtime.ParamLocationPath, projectName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/projects/%s/dm/amt/admin/domains", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Skip != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "$skip", runtime.ParamLocationQuery, *params.Skip); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Top != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "$top", runtime.ParamLocationQuery, *params.Top); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Count != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "$count", runtime.ParamLocationQuery, *params.Count); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateDomainSuffixForProjectRequest calls the generic UpdateDomainSuffixForProject builder with application/json body
+func NewUpdateDomainSuffixForProjectRequest(server string, projectName string, body UpdateDomainSuffixForProjectJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateDomainSuffixForProjectRequestWithBody(server, projectName, "application/json", bodyReader)
+}
+
+// NewUpdateDomainSuffixForProjectRequestWithBody generates requests for UpdateDomainSuffixForProject with any type of body
+func NewUpdateDomainSuffixForProjectRequestWithBody(server string, projectName string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "projectName", runtime.ParamLocationPath, projectName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/projects/%s/dm/amt/admin/domains", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewCreateDomainForProjectRequest calls the generic CreateDomainForProject builder with application/json body
+func NewCreateDomainForProjectRequest(server string, projectName string, body CreateDomainForProjectJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateDomainForProjectRequestWithBody(server, projectName, "application/json", bodyReader)
+}
+
+// NewCreateDomainForProjectRequestWithBody generates requests for CreateDomainForProject with any type of body
+func NewCreateDomainForProjectRequestWithBody(server string, projectName string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "projectName", runtime.ParamLocationPath, projectName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/projects/%s/dm/amt/admin/domains", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewRemoveDomainForProjectRequest generates requests for RemoveDomainForProject
+func NewRemoveDomainForProjectRequest(server string, projectName string, profileName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "projectName", runtime.ParamLocationPath, projectName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "profileName", runtime.ParamLocationPath, profileName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/projects/%s/dm/amt/admin/domains/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetDomainForProjectRequest generates requests for GetDomainForProject
+func NewGetDomainForProjectRequest(server string, projectName string, profileName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "projectName", runtime.ParamLocationPath, projectName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "profileName", runtime.ParamLocationPath, profileName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v1/projects/%s/dm/amt/admin/domains/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -2444,6 +2829,25 @@ type ClientWithResponsesInterface interface {
 
 	// GetWirelessConfigWithResponse request
 	GetWirelessConfigWithResponse(ctx context.Context, profileName string, reqEditors ...RequestEditorFn) (*GetWirelessConfigResponse, error)
+
+	// GetAllDomainsForProjectWithResponse request
+	GetAllDomainsForProjectWithResponse(ctx context.Context, projectName string, params *GetAllDomainsForProjectParams, reqEditors ...RequestEditorFn) (*GetAllDomainsForProjectResponse, error)
+
+	// UpdateDomainSuffixForProjectWithBodyWithResponse request with any body
+	UpdateDomainSuffixForProjectWithBodyWithResponse(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDomainSuffixForProjectResponse, error)
+
+	UpdateDomainSuffixForProjectWithResponse(ctx context.Context, projectName string, body UpdateDomainSuffixForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDomainSuffixForProjectResponse, error)
+
+	// CreateDomainForProjectWithBodyWithResponse request with any body
+	CreateDomainForProjectWithBodyWithResponse(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDomainForProjectResponse, error)
+
+	CreateDomainForProjectWithResponse(ctx context.Context, projectName string, body CreateDomainForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDomainForProjectResponse, error)
+
+	// RemoveDomainForProjectWithResponse request
+	RemoveDomainForProjectWithResponse(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*RemoveDomainForProjectResponse, error)
+
+	// GetDomainForProjectWithResponse request
+	GetDomainForProjectWithResponse(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*GetDomainForProjectResponse, error)
 }
 
 type GetAllCIRAConfigsResponse struct {
@@ -3091,6 +3495,127 @@ func (r GetWirelessConfigResponse) StatusCode() int {
 	return 0
 }
 
+type GetAllDomainsForProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *struct {
+		union json.RawMessage
+	}
+	JSON404 *APIResponse
+	JSON500 *APIResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetAllDomainsForProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetAllDomainsForProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateDomainSuffixForProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DomainResponse
+	JSON400      *APIResponse
+	JSON500      *APIResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateDomainSuffixForProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateDomainSuffixForProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateDomainForProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *DomainResponse
+	JSON400      *APIResponse
+	JSON500      *APIResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateDomainForProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateDomainForProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type RemoveDomainForProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON404      *APIResponse
+	JSON500      *APIResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r RemoveDomainForProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RemoveDomainForProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetDomainForProjectResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DomainResponse
+	JSON404      *APIResponse
+	JSON500      *APIResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetDomainForProjectResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetDomainForProjectResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetAllCIRAConfigsWithResponse request returning *GetAllCIRAConfigsResponse
 func (c *ClientWithResponses) GetAllCIRAConfigsWithResponse(ctx context.Context, params *GetAllCIRAConfigsParams, reqEditors ...RequestEditorFn) (*GetAllCIRAConfigsResponse, error) {
 	rsp, err := c.GetAllCIRAConfigs(ctx, params, reqEditors...)
@@ -3412,6 +3937,67 @@ func (c *ClientWithResponses) GetWirelessConfigWithResponse(ctx context.Context,
 		return nil, err
 	}
 	return ParseGetWirelessConfigResponse(rsp)
+}
+
+// GetAllDomainsForProjectWithResponse request returning *GetAllDomainsForProjectResponse
+func (c *ClientWithResponses) GetAllDomainsForProjectWithResponse(ctx context.Context, projectName string, params *GetAllDomainsForProjectParams, reqEditors ...RequestEditorFn) (*GetAllDomainsForProjectResponse, error) {
+	rsp, err := c.GetAllDomainsForProject(ctx, projectName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAllDomainsForProjectResponse(rsp)
+}
+
+// UpdateDomainSuffixForProjectWithBodyWithResponse request with arbitrary body returning *UpdateDomainSuffixForProjectResponse
+func (c *ClientWithResponses) UpdateDomainSuffixForProjectWithBodyWithResponse(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDomainSuffixForProjectResponse, error) {
+	rsp, err := c.UpdateDomainSuffixForProjectWithBody(ctx, projectName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateDomainSuffixForProjectResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateDomainSuffixForProjectWithResponse(ctx context.Context, projectName string, body UpdateDomainSuffixForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDomainSuffixForProjectResponse, error) {
+	rsp, err := c.UpdateDomainSuffixForProject(ctx, projectName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateDomainSuffixForProjectResponse(rsp)
+}
+
+// CreateDomainForProjectWithBodyWithResponse request with arbitrary body returning *CreateDomainForProjectResponse
+func (c *ClientWithResponses) CreateDomainForProjectWithBodyWithResponse(ctx context.Context, projectName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDomainForProjectResponse, error) {
+	rsp, err := c.CreateDomainForProjectWithBody(ctx, projectName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDomainForProjectResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateDomainForProjectWithResponse(ctx context.Context, projectName string, body CreateDomainForProjectJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDomainForProjectResponse, error) {
+	rsp, err := c.CreateDomainForProject(ctx, projectName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateDomainForProjectResponse(rsp)
+}
+
+// RemoveDomainForProjectWithResponse request returning *RemoveDomainForProjectResponse
+func (c *ClientWithResponses) RemoveDomainForProjectWithResponse(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*RemoveDomainForProjectResponse, error) {
+	rsp, err := c.RemoveDomainForProject(ctx, projectName, profileName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRemoveDomainForProjectResponse(rsp)
+}
+
+// GetDomainForProjectWithResponse request returning *GetDomainForProjectResponse
+func (c *ClientWithResponses) GetDomainForProjectWithResponse(ctx context.Context, projectName string, profileName string, reqEditors ...RequestEditorFn) (*GetDomainForProjectResponse, error) {
+	rsp, err := c.GetDomainForProject(ctx, projectName, profileName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetDomainForProjectResponse(rsp)
 }
 
 // ParseGetAllCIRAConfigsResponse parses an HTTP response from a GetAllCIRAConfigsWithResponse call
@@ -4413,6 +4999,201 @@ func ParseGetWirelessConfigResponse(rsp *http.Response) (*GetWirelessConfigRespo
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest WirelessConfigResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest APIResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest APIResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetAllDomainsForProjectResponse parses an HTTP response from a GetAllDomainsForProjectWithResponse call
+func ParseGetAllDomainsForProjectResponse(rsp *http.Response) (*GetAllDomainsForProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetAllDomainsForProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			union json.RawMessage
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest APIResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest APIResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateDomainSuffixForProjectResponse parses an HTTP response from a UpdateDomainSuffixForProjectWithResponse call
+func ParseUpdateDomainSuffixForProjectResponse(rsp *http.Response) (*UpdateDomainSuffixForProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateDomainSuffixForProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DomainResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest APIResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest APIResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateDomainForProjectResponse parses an HTTP response from a CreateDomainForProjectWithResponse call
+func ParseCreateDomainForProjectResponse(rsp *http.Response) (*CreateDomainForProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateDomainForProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest DomainResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest APIResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest APIResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseRemoveDomainForProjectResponse parses an HTTP response from a RemoveDomainForProjectWithResponse call
+func ParseRemoveDomainForProjectResponse(rsp *http.Response) (*RemoveDomainForProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RemoveDomainForProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest APIResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest APIResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetDomainForProjectResponse parses an HTTP response from a GetDomainForProjectWithResponse call
+func ParseGetDomainForProjectResponse(rsp *http.Response) (*GetDomainForProjectResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetDomainForProjectResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DomainResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

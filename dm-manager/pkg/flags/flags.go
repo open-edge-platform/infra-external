@@ -13,6 +13,7 @@ const (
 	ReconcilePeriodFlag         = "reconcilePeriod"
 	RequestTimeoutFlag          = "requestTimeout"
 	StatusChangeGracePeriodFlag = "statusChangeGracePeriod"
+	NexusAPIURLFlag             = "nexusAPIURL"
 
 	ReconcilePeriodDescription = "How often perform full reconciliation for every tenant"
 	RequestTimeoutDescription  = "Timeout for requests that are performed by DM manager"
@@ -26,4 +27,5 @@ const (
 		"Does not recommended for production and should be used only for development."
 	StatusChangeGracePeriodDescription = "Defines for how long Device manager waits for reported power status to change " +
 		"until it will mark power state as 'Error'"
+	NexusAPIURLDescription = "The Nexus API base URL for project resolution"
 )
