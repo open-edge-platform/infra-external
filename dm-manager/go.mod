@@ -3,7 +3,7 @@
 
 module github.com/open-edge-platform/infra-external/dm-manager
 
-go 1.25.7
+go 1.26.1
 
 require (
 	github.com/google/uuid v1.6.0
