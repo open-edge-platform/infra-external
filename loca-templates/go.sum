@@ -277,8 +277,8 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/oklog/ulid/v2 v2.1.1 h1:suPZ4ARWLOJLegGFiZZ1dFAkqzhMjL3J1TzI+5wHz8s=
 github.com/oklog/ulid/v2 v2.1.1/go.mod h1:rcEKHmBBKfef9DhnvX7y1HZBYxjXb0cP5ExxNsTT1QQ=
-github.com/open-edge-platform/infra-core/inventory/v2 v2.34.5 h1:hyWF/elJDRW6oBmJuXna6BkD4fu23iKdXamII4jiUVg=
-github.com/open-edge-platform/infra-core/inventory/v2 v2.34.5/go.mod h1:U5EHGK/kUtXOVSmriHArXFKumwpTLfJRAR64XmsmaFs=
+github.com/open-edge-platform/infra-core/inventory/v2 v2.35.0 h1:NlKK7Kh3x9JUB+dLwtSYfbyvG2nE+zy1FhNP/2Frh1c=
+github.com/open-edge-platform/infra-core/inventory/v2 v2.35.0/go.mod h1:WNM18zJ5iCFR9LgESM4RT/jgo+oicNrfdwtaOh19EHA=
 github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.22.1 h1:jCaJNuBI6koNIkXw7V0JR4nf7RVaNjRhfg2nG6jRW18=
 github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.22.1/go.mod h1:Qmf2EPs2I/1lQRzd4en5sgxRQ9WoyNp7ifxBKyX0d0s=
 github.com/open-edge-platform/orch-library/go v0.6.3 h1:zLdAtY5KuArT1D2xCvVLysD7r8GxqvkP8Vj1sO5ZJk8=
