@@ -3,7 +3,7 @@
 
 module github.com/open-edge-platform/infra-external/dm-manager
 
-go 1.25.7
+go 1.26.0
 
 require (
 	github.com/google/uuid v1.6.0
@@ -15,8 +15,8 @@ require (
 	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.80.0
-	google.golang.org/protobuf v1.36.11
-	k8s.io/apimachinery v0.35.4
+	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
+	k8s.io/apimachinery v0.36.0
 )
 
 require (
