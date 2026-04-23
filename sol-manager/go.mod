@@ -8,7 +8,7 @@ go 1.25.7
 require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/oapi-codegen/runtime v1.1.1
-	github.com/open-edge-platform/infra-core/inventory/v2 v2.34.6-0.20260415055512-f378cac29238
+	github.com/open-edge-platform/infra-core/inventory/v2 v2.35.1-0.20260423082009-00c3b74afcee
 	github.com/open-edge-platform/orch-library/go v0.6.3
 	github.com/prometheus/client_golang v1.23.2
 	github.com/stretchr/testify v1.11.1
