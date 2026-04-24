@@ -3,7 +3,14 @@
 
 // Package kvm implements the KVM session lifecycle reconciler.
 // It watches Inventory for desired_kvm_state changes and drives the
-// session start/stop/consent flow by calling MPS REST APIs.
+// session start/stop/consent flow.
+//
+// New design: orch-cli calls MPS directly for consent code submission and
+// relay token acquisition. kvm-manager only handles:
+//   - Feature check and consent trigger (KVM_STATE_AWAITING_CONSENT)
+//   - Acknowledgement of KVM_STATE_CONSENT_RECEIVED (orch-cli submitted code)
+//   - KVM_STATE_REDIRECTION_RECEIVED → sets current_kvm_state=KVM_STATE_START
+//   - KVM_STATE_STOP teardown
 package kvm
 
 import (
@@ -20,7 +27,6 @@ import (
 
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
-	statusv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/status/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
@@ -32,18 +38,6 @@ import (
 const (
 	minDelay = 1 * time.Second
 	maxDelay = 5 * time.Second
-
-	// mpsWssRelayPathTemplate is the WebSocket relay URL written into inventory after a
-	// redirect token is acquired. orch-cli reads this URL and opens the relay directly.
-	mpsWssRelayPathTemplate = "wss://%s/relay/webrelay.ashx?token=%s&host=%s"
-
-	// userConsentNone is sent to MPS POST /features in ACM mode to disable consent prompts.
-	userConsentNone = "none"
-
-	// userConsentKVM / userConsentAll are returned by GET /features for CCM devices that
-	// require operator consent before a KVM session can begin.
-	userConsentKVM = "kvm"
-	userConsentAll = "all"
 )
 
 var log = logging.GetLogger("KvmReconciler")
@@ -83,10 +77,6 @@ type Controller struct {
 	EventsWatcher     chan *client.WatchEvents
 	WaitGroup         *sync.WaitGroup
 	KvmController     *rec_v2.Controller[ID]
-
-	// MpsDomain is the public MPS WebSocket relay hostname written into kvm_session_url,
-	// e.g. "mps-wss.example.com". Set via --mpsDomain flag.
-	MpsDomain string
 
 	ReconcilePeriod time.Duration
 	RequestTimeout  time.Duration
@@ -182,6 +172,13 @@ func (kc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 		return kc.handleStartKVMSession(ctx, request, invHost)
 	case kc.shouldStopKVMSession(invHost):
 		return kc.handleStopKVMSession(ctx, request, invHost)
+	case invHost.GetDesiredKvmState() == computev1.KvmState_KVM_STATE_CONSENT_RECEIVED:
+		// orch-cli has submitted the consent code directly to MPS
+		log.Info().Msgf("host %v: KVM_STATE_CONSENT_RECEIVED acknowledged", request.ID)
+		return request.Ack()
+	case invHost.GetDesiredKvmState() == computev1.KvmState_KVM_STATE_REDIRECTION_RECEIVED:
+		// orch-cli has obtained the relay token directly from MPS
+		return kc.handleRedirectionReceived(ctx, request, invHost)
 	default:
 		log.Debug().Msgf("host %v: no KVM action needed (desired=%v current=%v)",
 			request.ID, invHost.GetDesiredKvmState(), invHost.GetCurrentKvmState())
@@ -204,7 +201,10 @@ func isDisruptivePowerOp(ps computev1.PowerState) bool {
 
 // kvmStartInProgress returns true whenever a KVM start has been requested
 func kvmStartInProgress(invHost *computev1.HostResource) bool {
-	if invHost.GetDesiredKvmState() == computev1.KvmState_KVM_STATE_START {
+	switch invHost.GetDesiredKvmState() {
+	case computev1.KvmState_KVM_STATE_START,
+		computev1.KvmState_KVM_STATE_CONSENT_RECEIVED,
+		computev1.KvmState_KVM_STATE_REDIRECTION_RECEIVED:
 		return true
 	}
 	switch invHost.GetCurrentKvmState() {
@@ -243,15 +243,14 @@ func (kc *Controller) blockDisruptivePowerOp(
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldDesiredPowerState,
 			computev1.HostResourceFieldKvmSessionStatus,
-			computev1.HostResourceFieldKvmSessionStatusIndicator,
 		}},
 		&computev1.HostResource{
-			DesiredPowerState:         computev1.PowerState_POWER_STATE_UNSPECIFIED,
-			KvmSessionStatus:          msg,
-			KvmSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
+			DesiredPowerState: computev1.PowerState_POWER_STATE_UNSPECIFIED,
+			KvmSessionStatus:  msg,
 		},
 	); updateErr != nil {
 		log.Err(updateErr).Msgf("failed to reset desired_power_state for host %v", hostUUID)
+		return true, request.Fail(updateErr)
 	}
 	return true, request.Ack()
 }
@@ -270,14 +269,13 @@ func (kc *Controller) shouldStopKVMSession(invHost *computev1.HostResource) bool
 		invHost.GetCurrentKvmState() != computev1.KvmState_KVM_STATE_STOP
 }
 
-// handleStartKVMSession drives the full KVM start lifecycle:
+// handleStartKVMSession drives the KVM start lifecycle:
 //  1. Pre-condition: host must be AMT_STATE_PROVISIONED.
 //  2. GET /api/v1/amt/features/{guid} — verify KVM enabled, read userConsent.
-//  3. If KVM disabled: POST /api/v1/amt/features/{guid} to enable it.
-//  4. Consent flow (CCM only): trigger on-screen code, write AWAITING_CONSENT,
-//     wait for desired_consent_code, submit to MPS.
-//  5. GET /api/v1/authorize/redirection/{guid} — obtain short-lived relay token.
-//  6. Write current_kvm_state=KVM_STATE_START + kvm_session_url to inventory.
+//  3. CCM only: trigger on-screen consent code display, write KVM_STATE_AWAITING_CONSENT.
+//     orch-cli submits the code directly to MPS and signals KVM_STATE_CONSENT_RECEIVED.
+//  4. ACM: write KVM_STATE_AWAITING_CONSENT skipped; orch-cli will signal KVM_STATE_REDIRECTION_RECEIVED
+//     after obtaining the relay token directly from MPS.
 func (kc *Controller) handleStartKVMSession(
 	ctx context.Context,
 	request rec_v2.Request[ID],
@@ -333,15 +331,29 @@ func (kc *Controller) handleStartKVMSession(
 			ctx, updatedCtx, request, invHost, tenantID, resourceID, hostUUID)
 	}
 
-	// Step 4 — ACM: only token acquisition.
-	log.Info().Msgf("host %v: ACM device — skipping consent, acquiring token", hostUUID)
-	return kc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
+	// Step 2 — ACM: signal ready for orch-cli to acquire token.
+	// orch-cli will call MPS GET /authorize/redirection and signal KVM_STATE_REDIRECTION_RECEIVED.
+	log.Info().Msgf("host %v: ACM device — waiting for orch-cli to acquire relay token", hostUUID)
+	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
+		&fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldCurrentKvmState,
+			computev1.HostResourceFieldKvmSessionStatus,
+		}},
+		&computev1.HostResource{
+			CurrentKvmState:  computev1.KvmState_KVM_STATE_AWAITING_CONSENT,
+			KvmSessionStatus: "Waiting for orch-cli to obtain relay token from MPS",
+		},
+	); updateErr != nil {
+		log.Err(updateErr).Msgf("failed to set ready state for host %v", hostUUID)
+		return request.Fail(updateErr)
+	}
+	return request.Ack()
 }
 
 // handleConsentFlow manages the CCM user-consent sub-flow.
-// On first entry it triggers the on-screen code display and writes
-// KVM_STATE_AWAITING_CONSENT. On subsequent entries (when desired_consent_code
-// is populated by orch-cli) it submits the code to MPS.
+// Triggers the on-screen code display and writes KVM_STATE_AWAITING_CONSENT.
+// orch-cli is responsible for prompting the operator, submitting the code
+// directly to MPS, and signalling KVM_STATE_CONSENT_RECEIVED.
 func (kc *Controller) handleConsentFlow(
 	ctx context.Context,
 	updatedCtx context.Context,
@@ -349,160 +361,85 @@ func (kc *Controller) handleConsentFlow(
 	invHost *computev1.HostResource,
 	tenantID, resourceID, hostUUID string,
 ) rec_v2.Directive[ID] {
-	// If consent code already entered by operator, submit it immediately.
+	// Already awaiting consent — nothing more for kvm-manager to do until orch-cli signals.
 	if invHost.GetCurrentKvmState() == computev1.KvmState_KVM_STATE_AWAITING_CONSENT {
-		consentCode := invHost.GetDesiredConsentCode()
-		if consentCode == "" {
-			log.Info().Msgf("host %v: waiting for operator consent code", invHost.GetUuid())
-			return request.Ack()
-		}
-		return kc.submitConsentCode(
-			ctx, updatedCtx, request, tenantID, resourceID, hostUUID, consentCode)
+		log.Info().Msgf("host %v: waiting for orch-cli to submit consent code to MPS", hostUUID)
+		return request.Ack()
 	}
 
 	// Trigger on-screen 6-digit code display.
 	log.Info().Msgf("host %v: triggering user consent code display via MPS", hostUUID)
-	log.Debug().Msgf("host %v: GET /api/v1/amt/userConsentCode/%s", hostUUID, hostUUID)
 	consentResp, err := kc.MpsClient.GetApiV1AmtUserConsentCodeGuidWithResponse(
 		updatedCtx, hostUUID, clientCallback())
-	if err != nil && (consentResp == nil || !strings.Contains(err.Error(), "json")) {
-		log.Err(err).Msgf("GET /amt/userConsentCode failed for host %v", hostUUID)
-		return request.Fail(err)
+	if err != nil {
+		// MPS returns Header.RelatesTo as an integer but the generated client expects string,
+		// causing a JSON unmarshal error. The parser only runs after HTTP 200 is confirmed,
+		// so a json/unmarshal error here means the request succeeded. Proceed.
+		if consentResp != nil && (strings.Contains(err.Error(), "json") || strings.Contains(err.Error(), "unmarshal")) {
+			log.Info().Msgf("host %v: GET /amt/userConsentCode HTTP 200 received (response parse skipped due to Header.RelatesTo type mismatch), proceeding", hostUUID)
+		} else {
+			log.Err(err).Msgf("GET /amt/userConsentCode failed for host %v", hostUUID)
+			return request.Fail(err)
+		}
 	}
 	if consentResp != nil && consentResp.StatusCode() != http.StatusOK {
 		body := string(consentResp.Body)
-		if strings.Contains(body, "INVALID_PT_MODE") {
-			// Device is in ACM mode — no consent required.
-			log.Info().Msgf("host %v: INVALID_PT_MODE — ACM device, skipping consent", hostUUID)
-			return kc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
-		}
 		if !strings.Contains(body, "NOT_READY") {
-			// NOT_READY means code already displayed — treat as success.
-			// Any other error is fatal.
+			// NOT_READY means the code is already displayed — treat as success and proceed.
+			// Any other non-OK status is a fatal error.
 			errMsg := fmt.Sprintf("GET /amt/userConsentCode returned %d: %s", consentResp.StatusCode(), body)
 			log.Error().Msg(errMsg)
 			return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
 		}
+		log.Info().Msgf("host %v: consent code already displayed (NOT_READY), proceeding", hostUUID)
 	}
 	log.Debug().Msgf("host %v: consent code display triggered, setting AWAITING_CONSENT", hostUUID)
 	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentKvmState,
 			computev1.HostResourceFieldKvmSessionStatus,
-			computev1.HostResourceFieldKvmSessionStatusIndicator,
 		}},
 		&computev1.HostResource{
-			CurrentKvmState:           computev1.KvmState_KVM_STATE_AWAITING_CONSENT,
-			KvmSessionStatus:          "Waiting for operator to enter consent code from device screen",
-			KvmSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IN_PROGRESS,
+			CurrentKvmState:  computev1.KvmState_KVM_STATE_AWAITING_CONSENT,
+			KvmSessionStatus: "Waiting for operator to enter consent code from device screen",
 		},
 	); updateErr != nil {
 		log.Err(updateErr).Msgf("failed to set AWAITING_CONSENT for host %v", hostUUID)
 		return request.Fail(updateErr)
 	}
-	log.Info().Msgf("host %v: set current_kvm_state=KVM_STATE_AWAITING_CONSENT", hostUUID)
+	log.Info().Msgf("host %v: set current_kvm_state=KVM_STATE_AWAITING_CONSENT, waiting for orch-cli to submit consent", hostUUID)
 	return request.Ack()
 }
 
-// submitConsentCode sends the operator-entered 6-digit code to MPS.
-// HTTP 200 = proceed to token acquisition. Any other status = error.
-func (kc *Controller) submitConsentCode(
+// handleRedirectionReceived is called when orch-cli signals KVM_STATE_REDIRECTION_RECEIVED,
+// meaning it has already obtained the relay token directly from MPS.
+// kvm-manager simply sets current_kvm_state=KVM_STATE_START to confirm the session is active.
+func (kc *Controller) handleRedirectionReceived(
 	ctx context.Context,
-	updatedCtx context.Context,
 	request rec_v2.Request[ID],
-	tenantID, resourceID, hostUUID, consentCode string,
+	invHost *computev1.HostResource,
 ) rec_v2.Directive[ID] {
-	log.Info().Msgf("host %v: submitting consent code to MPS", hostUUID)
-	log.Debug().Msgf("host %v: POST /api/v1/amt/userConsentCode/%s consentCode=%s", hostUUID, hostUUID, consentCode)
-	var codeInt int
-	if _, scanErr := fmt.Sscanf(consentCode, "%d", &codeInt); scanErr != nil {
-		errMsg := fmt.Sprintf("invalid consent code format for host %v: %q", hostUUID, consentCode)
-		log.Error().Msg(errMsg)
-		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
-	}
+	tenantID := request.ID.GetTenantID()
+	resourceID := invHost.GetResourceId()
+	hostUUID := request.ID.GetHostUUID()
 
-	submitResp, err := kc.MpsClient.PostApiV1AmtUserConsentCodeGuidWithResponse(
-		updatedCtx, hostUUID,
-		mps.UserConsentRequest{ConsentCode: codeInt},
-		clientCallback())
-	if err != nil {
-		// MPS returns Header.RelatesTo as an integer, but the generated client struct
-		// defines it as *string, causing a JSON unmarshal error. The generated parser
-		// only attempts JSON parsing after confirming HTTP 200, so a JSON error here
-		// guarantees the POST reached MPS and was accepted. Proceed to token acquisition.
-		if strings.Contains(err.Error(), "json") || strings.Contains(err.Error(), "unmarshal") {
-			log.Info().Msgf("host %v: POST /amt/userConsentCode HTTP 200 received (response body parse skipped due to MPS Header.RelatesTo type mismatch), acquiring token", hostUUID)
-			return kc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
-		}
-		log.Err(err).Msgf("POST /amt/userConsentCode failed for host %v", hostUUID)
-		return request.Fail(err)
-	}
-	log.Debug().Msgf("host %v: POST /amt/userConsentCode HTTP status=%d", hostUUID, submitResp.StatusCode())
-	if submitResp.StatusCode() != http.StatusOK {
-		errMsg := fmt.Sprintf("POST /amt/userConsentCode returned %d: %s",
-			submitResp.StatusCode(), string(submitResp.Body))
-		log.Error().Msg(errMsg)
-		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
-	}
-
-	log.Info().Msgf("host %v: consent accepted, acquiring redirect token", hostUUID)
-	return kc.acquireTokenAndActivate(ctx, updatedCtx, request, tenantID, resourceID, hostUUID)
-}
-
-// acquireTokenAndActivate calls GET /api/v1/authorize/redirection/{guid} to get
-// a short-lived relay token, then writes kvm_session_url and
-// current_kvm_state=KVM_STATE_START to inventory.
-func (kc *Controller) acquireTokenAndActivate(
-	ctx, updatedCtx context.Context,
-	request rec_v2.Request[ID],
-	tenantID, resourceID, hostUUID string,
-) rec_v2.Directive[ID] {
-	log.Debug().Msgf("host %v: GET /api/v1/authorize/redirection/%s", hostUUID, hostUUID)
-	tokenResp, err := kc.MpsClient.GetApiV1AuthorizeRedirectionGuidWithResponse(
-		updatedCtx, hostUUID, clientCallback())
-	if err != nil {
-		log.Err(err).Msgf("GET /authorize/redirection failed for host %v", hostUUID)
-		return request.Fail(err)
-	}
-	if tokenResp.StatusCode() != http.StatusOK {
-		errMsg := fmt.Sprintf("GET /authorize/redirection returned %d: %s",
-			tokenResp.StatusCode(), string(tokenResp.Body))
-		log.Error().Msg(errMsg)
-		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
-	}
-	log.Debug().Msgf("host %v: GET /authorize/redirection response HTTP %d (token present=%v)",
-		hostUUID, tokenResp.StatusCode(), tokenResp.JSON200 != nil && tokenResp.JSON200.Token != nil)
-	if tokenResp.JSON200 == nil || tokenResp.JSON200.Token == nil {
-		errMsg := fmt.Sprintf("GET /authorize/redirection returned empty token for host %v", hostUUID)
-		log.Error().Msg(errMsg)
-		return kc.writeKvmError(ctx, request, tenantID, resourceID, errMsg)
-	}
-
-	token := *tokenResp.JSON200.Token
-	sessionURL := fmt.Sprintf(mpsWssRelayPathTemplate, kc.MpsDomain, token, hostUUID)
-	log.Info().Msgf("host %v: relay token acquired, writing KVM session URL", hostUUID)
-	log.Debug().Msgf("host %v: session URL = %s", hostUUID, sessionURL)
-
+	log.Info().Msgf("host %v: KVM_STATE_REDIRECTION_RECEIVED — activating session", hostUUID)
 	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentKvmState,
-			computev1.HostResourceFieldKvmSessionUrl,
+			computev1.HostResourceFieldKvmStatus,
 			computev1.HostResourceFieldKvmSessionStatus,
-			computev1.HostResourceFieldKvmSessionStatusIndicator,
 		}},
 		&computev1.HostResource{
-			CurrentKvmState:           computev1.KvmState_KVM_STATE_START,
-			KvmStatus:                 computev1.KvmStatus_KVM_STATUS_ACTIVATED,
-			KvmSessionUrl:             sessionURL,
-			KvmSessionStatus:          "KVM session active",
-			KvmSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+			CurrentKvmState:  computev1.KvmState_KVM_STATE_START,
+			KvmStatus:        computev1.KvmStatus_KVM_STATUS_ACTIVATED,
+			KvmSessionStatus: "KVM session active",
 		},
 	); updateErr != nil {
 		log.Err(updateErr).Msgf("failed to activate KVM session for host %v", hostUUID)
 		return request.Retry(updateErr).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 	}
-
-	log.Info().Msgf("host %v: KVM_STATE_START written, session URL in inventory", hostUUID)
+	log.Info().Msgf("host %v: KVM_STATE_START written — session active", hostUUID)
 	return request.Ack()
 }
 
@@ -524,16 +461,12 @@ func (kc *Controller) handleStopKVMSession(
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentKvmState,
 			computev1.HostResourceFieldKvmStatus,
-			computev1.HostResourceFieldKvmSessionUrl,
 			computev1.HostResourceFieldKvmSessionStatus,
-			computev1.HostResourceFieldKvmSessionStatusIndicator,
 		}},
 		&computev1.HostResource{
-			CurrentKvmState:           computev1.KvmState_KVM_STATE_STOP,
-			KvmStatus:                 computev1.KvmStatus_KVM_STATUS_DEACTIVATED,
-			KvmSessionUrl:             "",
-			KvmSessionStatus:          "KVM session stopped",
-			KvmSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_IDLE,
+			CurrentKvmState:  computev1.KvmState_KVM_STATE_STOP,
+			KvmStatus:        computev1.KvmStatus_KVM_STATUS_DEACTIVATED,
+			KvmSessionStatus: "KVM session stopped",
 		},
 	); updateErr != nil {
 		log.Err(updateErr).Msgf("failed to stop KVM session for host %v", hostUUID)
@@ -554,15 +487,11 @@ func (kc *Controller) writeKvmError(
 	updateErr := kc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentKvmState,
-			computev1.HostResourceFieldKvmSessionUrl,
 			computev1.HostResourceFieldKvmSessionStatus,
-			computev1.HostResourceFieldKvmSessionStatusIndicator,
 		}},
 		&computev1.HostResource{
-			CurrentKvmState:           computev1.KvmState_KVM_STATE_ERROR,
-			KvmSessionUrl:             "",
-			KvmSessionStatus:          errMsg,
-			KvmSessionStatusIndicator: statusv1.StatusIndication_STATUS_INDICATION_ERROR,
+			CurrentKvmState:  computev1.KvmState_KVM_STATE_ERROR,
+			KvmSessionStatus: errMsg,
 		})
 	if updateErr != nil {
 		log.Err(updateErr).Msg("failed to write KVM_STATE_ERROR to inventory")

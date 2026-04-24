@@ -48,8 +48,6 @@ var (
 		"inventory.orch-infra.svc:50051", invClient.InventoryAddressDescription)
 	mpsAddress = flag.String(flags.MpsAddressFlag, "http://mps.orch-infra.svc:3000",
 		flags.MpsAddressDescription)
-	mpsDomain = flag.String(flags.MpsDomainFlag, "mps-wss.kind.internal",
-		flags.MpsDomainDescription)
 	reconcilePeriod = flag.Duration(flags.ReconcilePeriod, time.Minute,
 		flags.ReconcilePeriodDescription)
 	requestTimeout = flag.Duration(flags.RequestTimeout, 30*time.Second,
@@ -122,7 +120,6 @@ func getKvmController(mpsClient *mps.ClientWithResponses) *kvm.Controller {
 		ReadyChan:         readyChan,
 		EventsWatcher:     eventsWatcher,
 		WaitGroup:         wg,
-		MpsDomain:         *mpsDomain,
 		ReconcilePeriod:   *reconcilePeriod,
 		RequestTimeout:    *requestTimeout,
 	}
