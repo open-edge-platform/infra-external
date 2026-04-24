@@ -774,7 +774,7 @@ type UserConsentResponse struct {
 		Action      *string `json:"Action,omitempty"`
 		MessageID   *string `json:"MessageID,omitempty"`
 		Method      *string `json:"Method,omitempty"`
-		RelatesTo   *string `json:"RelatesTo,omitempty"`
+		RelatesTo   *int    `json:"RelatesTo,omitempty"`
 		ResourceURI *string `json:"ResourceURI,omitempty"`
 		To          *string `json:"To,omitempty"`
 	} `json:"Header,omitempty"`

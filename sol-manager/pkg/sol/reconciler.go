@@ -3,7 +3,14 @@
 
 // Package sol implements the SOL session lifecycle reconciler.
 // It watches Inventory for desired_sol_state changes and drives the
-// session start/stop flow by calling MPS REST APIs.
+// session start/stop/consent flow.
+//
+// New design: orch-cli calls MPS directly for consent code submission and
+// relay token acquisition. sol-manager only handles:
+//   - Feature check and consent trigger (SOL_STATE_AWAITING_CONSENT)
+//   - Acknowledgement of SOL_STATE_CONSENT_RECEIVED (orch-cli submitted code)
+//   - SOL_STATE_REDIRECTION_RECEIVED → sets current_sol_state=SOL_STATE_START
+//   - SOL_STATE_STOP teardown
 package sol
 
 import (
@@ -25,7 +32,6 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_util "github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
 	"github.com/open-edge-platform/infra-external/sol-manager/pkg/api/mps"
-	"github.com/open-edge-platform/infra-external/sol-manager/pkg/auth"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -62,9 +68,7 @@ func NewID(tenantID, hostUUID string) ID {
 
 // Controller is the SOL resource manager. It watches Inventory for
 // desired_sol_state changes on HostResource and drives the SOL session
-// lifecycle by calling MPS REST APIs. It writes session connection info
-// (MPS URL, tokens, AMT credentials) into sol_session_url for orch-cli
-// to consume directly.
+// lifecycle by calling MPS REST APIs.
 type Controller struct {
 	MpsClient         mps.ClientWithResponsesInterface
 	InventoryRmClient client.TenantAwareInventoryClient
@@ -74,17 +78,9 @@ type Controller struct {
 	WaitGroup         *sync.WaitGroup
 	SOLController     *rec_v2.Controller[ID]
 
-	// MpsDomain is the MPS WebSocket relay hostname written into sol_session_url
-	// so orch-cli can connect directly to the MPS relay.
-	MpsDomain string
-
 	ReconcilePeriod time.Duration
 	RequestTimeout  time.Duration
 	Insecure        bool
-
-	// TokenProvider obtains Keycloak JWT tokens for MPS auth using
-	// the inventory auth package (GetCredentialsByUUID + client_credentials grant).
-	TokenProvider *auth.TokenProvider
 }
 
 // Start begins event-driven and periodic reconciliation.
@@ -171,6 +167,13 @@ func (sc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 		return sc.handleStartSOLSession(ctx, request, invHost)
 	case sc.shouldStopSOLSession(invHost):
 		return sc.handleStopSOLSession(ctx, request, invHost)
+	case invHost.GetDesiredSolState() == computev1.SolState_SOL_STATE_CONSENT_RECEIVED:
+		// orch-cli has submitted the consent code directly to MPS
+		log.Info().Msgf("host %v: SOL_STATE_CONSENT_RECEIVED acknowledged", request.ID)
+		return request.Ack()
+	case invHost.GetDesiredSolState() == computev1.SolState_SOL_STATE_REDIRECTION_RECEIVED:
+		// orch-cli has obtained the relay token directly from MPS
+		return sc.handleRedirectionReceived(ctx, request, invHost)
 	default:
 		log.Debug().Msgf("host %v: no SOL action needed (desired=%v current=%v)",
 			request.ID, invHost.GetDesiredSolState(), invHost.GetCurrentSolState())
@@ -179,31 +182,10 @@ func (sc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 }
 
 // shouldStartSOLSession returns true when the operator requested SOL_STATE_START
-// and the session is not yet active. Also handles CONSENT_RECEIVED and
-// REDIRECTION_RECEIVED desired states from orch-cli.
+// and the session is not yet active.
 func (sc *Controller) shouldStartSOLSession(invHost *computev1.HostResource) bool {
-	desired := invHost.GetDesiredSolState()
-	current := invHost.GetCurrentSolState()
-
-	switch desired {
-	case computev1.SolState_SOL_STATE_START:
-		// Not yet started — normal start flow (triggers consent for CCM or direct for ACM).
-		if current != computev1.SolState_SOL_STATE_START {
-			return true
-		}
-		return false
-
-	case computev1.SolState_SOL_STATE_CONSENT_RECEIVED:
-		// orch-cli has submitted the consent code directly to MPS.
-		// sol-manager should ACK and wait for orch-cli to get redirect token.
-		return true
-
-	case computev1.SolState_SOL_STATE_REDIRECTION_RECEIVED:
-		// orch-cli has obtained the redirect token from MPS.
-		// sol-manager should set current_sol_state=SOL_STATE_START.
-		return true
-	}
-	return false
+	return invHost.GetDesiredSolState() == computev1.SolState_SOL_STATE_START &&
+		invHost.GetCurrentSolState() != computev1.SolState_SOL_STATE_START
 }
 
 // shouldStopSOLSession returns true when the operator requested SOL_STATE_STOP
@@ -214,15 +196,12 @@ func (sc *Controller) shouldStopSOLSession(invHost *computev1.HostResource) bool
 }
 
 // handleStartSOLSession drives the SOL start lifecycle:
-//
 //  1. Pre-condition: host must be AMT_STATE_PROVISIONED.
 //  2. GET /api/v1/amt/features/{guid} — verify SOL is already enabled.
-//  3. CCM devices: trigger consent code display, set AWAITING_CONSENT.
-//     orch-cli prompts operator → POSTs consent to MPS → PATCHes CONSENT_RECEIVED.
-//  4. On CONSENT_RECEIVED: ACK, wait for orch-cli to get redirect token.
-//     orch-cli GETs redirect token → PATCHes REDIRECTION_RECEIVED.
-//  5. On REDIRECTION_RECEIVED: set current_sol_state=SOL_STATE_START.
-//  6. ACM devices: set current_sol_state=SOL_STATE_START directly (orch-cli handles token+connect).
+//  3. CCM only: trigger on-screen consent code display, write SOL_STATE_AWAITING_CONSENT.
+//     orch-cli submits the code directly to MPS and signals SOL_STATE_CONSENT_RECEIVED.
+//  4. ACM: write SOL_STATE_AWAITING_CONSENT (orch-cli will signal SOL_STATE_REDIRECTION_RECEIVED
+//     after obtaining the relay token directly from MPS).
 func (sc *Controller) handleStartSOLSession(
 	ctx context.Context,
 	request rec_v2.Request[ID],
@@ -231,36 +210,6 @@ func (sc *Controller) handleStartSOLSession(
 	hostUUID := request.ID.GetHostUUID()
 	tenantID := request.ID.GetTenantID()
 	resourceID := invHost.GetResourceId()
-	desired := invHost.GetDesiredSolState()
-
-	// Handle REDIRECTION_RECEIVED: orch-cli has the redirect token, confirm START.
-	if desired == computev1.SolState_SOL_STATE_REDIRECTION_RECEIVED {
-		log.Info().Msgf("host %v: REDIRECTION_RECEIVED — setting SOL_STATE_START", hostUUID)
-		if updateErr := sc.updateHost(ctx, tenantID, resourceID,
-			&fieldmaskpb.FieldMask{Paths: []string{
-				computev1.HostResourceFieldCurrentSolState,
-				computev1.HostResourceFieldSolStatus,
-				computev1.HostResourceFieldSolSessionStatus,
-			}},
-			&computev1.HostResource{
-				CurrentSolState:  computev1.SolState_SOL_STATE_START,
-				SolStatus:        computev1.SolStatus_SOL_STATUS_ACTIVATED,
-				SolSessionStatus: "SOL_SESSION_STATUS_ACTIVATED",
-			},
-		); updateErr != nil {
-			log.Err(updateErr).Msgf("failed to set SOL_STATE_START for host %v", hostUUID)
-			return request.Fail(updateErr)
-		}
-		log.Info().Msgf("host %v: SOL_STATE_START confirmed (orch-cli connects directly)", hostUUID)
-		return request.Ack()
-	}
-
-	// Handle CONSENT_RECEIVED: orch-cli submitted consent code to MPS, now wait
-	// for orch-cli to get redirect token and send REDIRECTION_RECEIVED.
-	if desired == computev1.SolState_SOL_STATE_CONSENT_RECEIVED {
-		log.Info().Msgf("host %v: CONSENT_RECEIVED — waiting for orch-cli to obtain redirect token", hostUUID)
-		return request.Ack()
-	}
 
 	// Pre-condition: device must be fully provisioned via RPS.
 	if invHost.GetCurrentAmtState() != computev1.AmtState_AMT_STATE_PROVISIONED {
@@ -273,7 +222,8 @@ func (sc *Controller) handleStartSOLSession(
 
 	updatedCtx := context.WithValue(ctx, contextValue("tenantId"), tenantID)
 
-	// Step 1 — GET AMT features.
+	// Step 1 — GET AMT features from MPS.
+	log.Debug().Msgf("host %v: GET /api/v1/amt/features", hostUUID)
 	featResp, err := sc.MpsClient.GetApiV1AmtFeaturesGuidWithResponse(
 		updatedCtx, hostUUID, sc.clientCallback(updatedCtx, tenantID, hostUUID))
 	if err != nil {
@@ -286,8 +236,15 @@ func (sc *Controller) handleStartSOLSession(
 		log.Error().Msg(errMsg)
 		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
 	}
-
+	log.Debug().Msgf("host %v: GET /amt/features response: %s", hostUUID, string(featResp.Body))
 	features := featResp.JSON200
+	if features == nil {
+		errMsg := fmt.Sprintf("GET /amt/features returned empty body for host %v", hostUUID)
+		log.Error().Msg(errMsg)
+		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
+	}
+	log.Debug().Msgf("host %v: AMT features — SOL=%v userConsent=%v",
+		hostUUID, features.SOL, features.UserConsent)
 
 	// Step 2 — SOL must already be enabled via AMT profile during provisioning.
 	solActivated := features.SOL != nil && *features.SOL
@@ -298,15 +255,110 @@ func (sc *Controller) handleStartSOLSession(
 		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
 	}
 
-	// Step 3 — CCM devices: trigger consent code display on device screen.
-	// orch-cli will prompt for code, POST to MPS, then PATCH CONSENT_RECEIVED.
-	if invHost.GetAmtControlMode() == computev1.AmtControlMode_AMT_CONTROL_MODE_CCM {
-		return sc.handleConsentFlow(ctx, updatedCtx, request, invHost, tenantID, resourceID, hostUUID)
+	// Step 3 — Consent flow for CCM devices.
+	// CCM requires user consent, ACM does not.
+	isCCM := invHost.GetAmtControlMode() == computev1.AmtControlMode_AMT_CONTROL_MODE_CCM
+	log.Debug().Msgf("host %v: amtControlMode=%v isCCM=%v",
+		hostUUID, invHost.GetAmtControlMode(), isCCM)
+	if isCCM {
+		log.Info().Msgf("host %v: CCM device — consent flow required", hostUUID)
+		return sc.handleConsentFlow(
+			ctx, updatedCtx, request, invHost, tenantID, resourceID, hostUUID)
 	}
 
-	// Step 4 — ACM mode: set current_sol_state=SOL_STATE_START directly.
-	// orch-cli handles redirect token acquisition and MPS WebSocket connection.
-	log.Info().Msgf("host %v: ACM mode — setting SOL_STATE_START (orch-cli connects directly)", hostUUID)
+	// Step 4 — ACM: signal ready for orch-cli to acquire token.
+	// orch-cli will call MPS GET /authorize/redirection and signal SOL_STATE_REDIRECTION_RECEIVED.
+	log.Info().Msgf("host %v: ACM device — waiting for orch-cli to acquire relay token", hostUUID)
+	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
+		&fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldCurrentSolState,
+			computev1.HostResourceFieldSolSessionStatus,
+		}},
+		&computev1.HostResource{
+			CurrentSolState:  computev1.SolState_SOL_STATE_AWAITING_CONSENT,
+			SolSessionStatus: "Waiting for orch-cli to obtain relay token from MPS",
+		},
+	); updateErr != nil {
+		log.Err(updateErr).Msgf("failed to set ready state for host %v", hostUUID)
+		return request.Fail(updateErr)
+	}
+	return request.Ack()
+}
+
+// handleConsentFlow manages the CCM user-consent sub-flow.
+// Triggers the on-screen code display and writes SOL_STATE_AWAITING_CONSENT.
+// orch-cli is responsible for prompting the operator, submitting the code
+// directly to MPS, and signalling SOL_STATE_CONSENT_RECEIVED.
+func (sc *Controller) handleConsentFlow(
+	ctx context.Context,
+	updatedCtx context.Context,
+	request rec_v2.Request[ID],
+	invHost *computev1.HostResource,
+	tenantID, resourceID, hostUUID string,
+) rec_v2.Directive[ID] {
+	// Already awaiting consent — nothing more for sol-manager to do until orch-cli signals.
+	if invHost.GetCurrentSolState() == computev1.SolState_SOL_STATE_AWAITING_CONSENT {
+		log.Info().Msgf("host %v: waiting for orch-cli to submit consent code to MPS", hostUUID)
+		return request.Ack()
+	}
+
+	// Trigger on-screen 6-digit code display.
+	log.Info().Msgf("host %v: triggering user consent code display via MPS", hostUUID)
+	consentResp, err := sc.MpsClient.GetApiV1AmtUserConsentCodeGuidWithResponse(
+		updatedCtx, hostUUID, sc.clientCallback(updatedCtx, tenantID, hostUUID))
+	if err != nil {
+		// MPS returns Header.RelatesTo as an integer but the generated client expects string,
+		// causing a JSON unmarshal error. The parser only runs after HTTP 200 is confirmed,
+		// so a json/unmarshal error here means the request succeeded. Proceed.
+		if consentResp != nil && (strings.Contains(err.Error(), "json") || strings.Contains(err.Error(), "unmarshal")) {
+			log.Info().Msgf("host %v: GET /amt/userConsentCode HTTP 200 received (response parse skipped due to Header.RelatesTo type mismatch), proceeding", hostUUID)
+		} else {
+			log.Err(err).Msgf("GET /amt/userConsentCode failed for host %v", hostUUID)
+			return request.Fail(err)
+		}
+	}
+	if consentResp != nil && consentResp.StatusCode() != http.StatusOK {
+		body := string(consentResp.Body)
+		if !strings.Contains(body, "NOT_READY") {
+			// NOT_READY means the code is already displayed — treat as success and proceed.
+			// Any other non-OK status is a fatal error.
+			errMsg := fmt.Sprintf("GET /amt/userConsentCode returned %d: %s", consentResp.StatusCode(), body)
+			log.Error().Msg(errMsg)
+			return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
+		}
+		log.Info().Msgf("host %v: consent code already displayed (NOT_READY), proceeding", hostUUID)
+	}
+	log.Debug().Msgf("host %v: consent code display triggered, setting AWAITING_CONSENT", hostUUID)
+	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
+		&fieldmaskpb.FieldMask{Paths: []string{
+			computev1.HostResourceFieldCurrentSolState,
+			computev1.HostResourceFieldSolSessionStatus,
+		}},
+		&computev1.HostResource{
+			CurrentSolState:  computev1.SolState_SOL_STATE_AWAITING_CONSENT,
+			SolSessionStatus: "Waiting for operator to enter consent code from device screen",
+		},
+	); updateErr != nil {
+		log.Err(updateErr).Msgf("failed to set AWAITING_CONSENT for host %v", hostUUID)
+		return request.Fail(updateErr)
+	}
+	log.Info().Msgf("host %v: set current_sol_state=SOL_STATE_AWAITING_CONSENT, waiting for orch-cli to submit consent", hostUUID)
+	return request.Ack()
+}
+
+// handleRedirectionReceived is called when orch-cli signals SOL_STATE_REDIRECTION_RECEIVED,
+// meaning it has already obtained the relay token directly from MPS.
+// sol-manager simply sets current_sol_state=SOL_STATE_START to confirm the session is active.
+func (sc *Controller) handleRedirectionReceived(
+	ctx context.Context,
+	request rec_v2.Request[ID],
+	invHost *computev1.HostResource,
+) rec_v2.Directive[ID] {
+	tenantID := request.ID.GetTenantID()
+	resourceID := invHost.GetResourceId()
+	hostUUID := request.ID.GetHostUUID()
+
+	log.Info().Msgf("host %v: SOL_STATE_REDIRECTION_RECEIVED — activating session", hostUUID)
 	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
 		&fieldmaskpb.FieldMask{Paths: []string{
 			computev1.HostResourceFieldCurrentSolState,
@@ -316,64 +368,13 @@ func (sc *Controller) handleStartSOLSession(
 		&computev1.HostResource{
 			CurrentSolState:  computev1.SolState_SOL_STATE_START,
 			SolStatus:        computev1.SolStatus_SOL_STATUS_ACTIVATED,
-			SolSessionStatus: "SOL_SESSION_STATUS_ACTIVATED",
+			SolSessionStatus: "SOL session active",
 		},
 	); updateErr != nil {
-		log.Err(updateErr).Msgf("failed to set SOL_STATE_START for host %v", hostUUID)
-		return request.Fail(updateErr)
+		log.Err(updateErr).Msgf("failed to activate SOL session for host %v", hostUUID)
+		return request.Retry(updateErr).With(rec_v2.ExponentialBackoff(minDelay, maxDelay))
 	}
-	log.Info().Msgf("host %v: SOL_STATE_START written for ACM device", hostUUID)
-	return request.Ack()
-}
-
-// handleConsentFlow manages the CCM user-consent sub-flow.
-// On first entry it triggers the on-screen code display via GET /amt/userConsentCode
-// and writes SOL_STATE_AWAITING_CONSENT. orch-cli will then prompt the operator,
-// POST the code directly to MPS, and PATCH desired_sol_state=CONSENT_RECEIVED.
-// On subsequent entries (already AWAITING_CONSENT), sol-manager just ACKs.
-func (sc *Controller) handleConsentFlow(
-	ctx context.Context,
-	updatedCtx context.Context,
-	request rec_v2.Request[ID],
-	invHost *computev1.HostResource,
-	tenantID, resourceID, hostUUID string,
-) rec_v2.Directive[ID] {
-	// If already AWAITING_CONSENT, just ACK — waiting for orch-cli to submit consent.
-	if invHost.GetCurrentSolState() == computev1.SolState_SOL_STATE_AWAITING_CONSENT {
-		log.Info().Msgf("host %v: still AWAITING_CONSENT, waiting for orch-cli to submit consent and PATCH CONSENT_RECEIVED", hostUUID)
-		return request.Ack()
-	}
-
-	// First pass: trigger on-screen 6-digit code display via MPS.
-	log.Info().Msgf("host %v: CCM mode — triggering user consent code display via MPS", hostUUID)
-	consentResp, err := sc.MpsClient.GetApiV1AmtUserConsentCodeGuidWithResponse(
-		updatedCtx, hostUUID, sc.clientCallback(updatedCtx, tenantID, hostUUID))
-	if err != nil {
-		log.Err(err).Msgf("GET /amt/userConsentCode failed for host %v", hostUUID)
-		return request.Fail(err)
-	}
-	if consentResp.StatusCode() != http.StatusOK {
-		errMsg := fmt.Sprintf("GET /amt/userConsentCode returned %d: %s",
-			consentResp.StatusCode(), string(consentResp.Body))
-		log.Error().Msg(errMsg)
-		return sc.writeSolError(ctx, request, tenantID, resourceID, errMsg)
-	}
-
-	// Write SOL_STATE_AWAITING_CONSENT so orch-cli prompts the operator.
-	if updateErr := sc.updateHost(ctx, tenantID, resourceID,
-		&fieldmaskpb.FieldMask{Paths: []string{
-			computev1.HostResourceFieldCurrentSolState,
-			computev1.HostResourceFieldSolSessionStatus,
-		}},
-		&computev1.HostResource{
-			CurrentSolState:  computev1.SolState_SOL_STATE_AWAITING_CONSENT,
-			SolSessionStatus: "SOL_SESSION_STATUS_AWAITING_CONSENT",
-		},
-	); updateErr != nil {
-		log.Err(updateErr).Msgf("failed to set AWAITING_CONSENT for host %v", hostUUID)
-		return request.Fail(updateErr)
-	}
-	log.Info().Msgf("host %v: set current_sol_state=SOL_STATE_AWAITING_CONSENT", hostUUID)
+	log.Info().Msgf("host %v: SOL_STATE_START written — session active", hostUUID)
 	return request.Ack()
 }
 
@@ -475,23 +476,13 @@ func (sc *Controller) updateHost(
 	return nil
 }
 
-// clientCallback injects the tenantId ActiveProjectId header and Keycloak JWT into MPS requests.
-// It uses the TokenProvider (backed by GetCredentialsByUUID) to obtain a JWT.
-func (sc *Controller) clientCallback(ctx context.Context, tenantID, hostUUID string) mps.RequestEditorFn {
+// clientCallback injects the tenantId ActiveProjectId header into MPS requests.
+func (sc *Controller) clientCallback(_ context.Context, tenantID, _ string) mps.RequestEditorFn {
 	return func(_ context.Context, req *http.Request) error {
 		if tenantID != "" {
 			req.Header.Add("ActiveProjectId", tenantID)
 		}
 		req.Header.Add("User-Agent", "sol-manager")
-
-		// Inject Keycloak JWT for MPS authentication.
-		if sc.TokenProvider != nil {
-			if token, err := sc.TokenProvider.GetTokenForHost(ctx, tenantID, hostUUID); err == nil {
-				req.AddCookie(&http.Cookie{Name: "jwt", Value: token})
-			} else {
-				log.Warn().Err(err).Msg("failed to get Keycloak token for MPS request")
-			}
-		}
 		return nil
 	}
 }

@@ -10,14 +10,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"k8s.io/apimachinery/pkg/util/yaml"
 
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	invClient "github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
@@ -25,18 +22,14 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/metrics"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/oam"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/policy/rbac"
-	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/secretprovider"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/tracing"
 	"github.com/open-edge-platform/infra-external/sol-manager/pkg/api/mps"
-	"github.com/open-edge-platform/infra-external/sol-manager/pkg/auth"
 	"github.com/open-edge-platform/infra-external/sol-manager/pkg/flags"
 	"github.com/open-edge-platform/infra-external/sol-manager/pkg/sol"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
 const (
-	orchMpsWssHostKey         = "orchMPSWHost"
-	infraConfigPath           = "/etc/infra-config/config.yaml"
 	solManagerName            = "sol-manager"
 	eventsWatcherBufSize      = 10
 	defaultRequestTimeout     = 30 * time.Second
@@ -73,9 +66,6 @@ var (
 	tlsKeyPath   = flag.String(invClient.TLSKeyPath, "", invClient.TLSKeyPathDescription)
 	enableAuth   = flag.Bool(rbac.EnableAuth, true, rbac.EnableAuthDescription)
 	rbacRules    = flag.String(rbac.RbacRules, "/rego/authz.rego", rbac.RbacRulesDescription)
-	// Keycloak flags for obtaining JWT used by MPS.
-	keycloakURL   = flag.String("keycloakURL", envOrDefault("KEYCLOAK_URL", "http://platform-keycloak.orch-platform:8080"), "Keycloak base URL")
-	keycloakRealm = flag.String("keycloakRealm", envOrDefault("KEYCLOAK_REALM", "master"), "Keycloak realm")
 )
 
 func main() {
@@ -91,17 +81,7 @@ func main() {
 
 	signal.Notify(osChan, syscall.SIGTERM, syscall.SIGINT)
 
-	// Resolve external MPS host for SOL WebSocket connections
-	orchMpsHost, _ := getMpsAddress(infraConfigPath)
-
-	// Initialize inventory secretprovider + auth package (used by GetCredentialsByUUID).
-	spCtx, spCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer spCancel()
-	if initErr := secretprovider.Init(spCtx, []string{os.Getenv("ONBOARDING_CREDENTIALS_SECRET_NAME")}); initErr != nil {
-		log.Warn().Err(initErr).Msg("Failed to initialize inventory secretprovider; Keycloak JWT will not be available")
-	}
-
-	// Create MPS API client (used by reconciler for redirect tokens)
+	// Create MPS API client
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 	}
@@ -119,9 +99,8 @@ func main() {
 		log.Fatal().Err(err).Msgf("cannot create MPS client")
 	}
 
-	// Create SOL session reconciler with Keycloak token provider.
-	tokenProvider := auth.NewTokenProvider(*keycloakURL, *keycloakRealm)
-	solReconciler := getSOLController(orchMpsHost, mpsClient, tokenProvider)
+	// Create SOL session reconciler.
+	solReconciler := getSOLController(mpsClient)
 
 	wg.Add(1)
 	go solReconciler.Start()
@@ -136,8 +115,7 @@ func main() {
 	log.Info().Msg("SOL Manager successfully stopped")
 }
 
-func getSOLController(orchMpsHost string, mpsClient mps.ClientWithResponsesInterface,
-	tokenProvider *auth.TokenProvider,
+func getSOLController(mpsClient mps.ClientWithResponsesInterface,
 ) *sol.Controller {
 	rmClient, eventsWatcher := prepareInventoryClients()
 
@@ -148,11 +126,9 @@ func getSOLController(orchMpsHost string, mpsClient mps.ClientWithResponsesInter
 		ReadyChan:         readyChan,
 		EventsWatcher:     eventsWatcher,
 		WaitGroup:         wg,
-		MpsDomain:         orchMpsHost,
 		ReconcilePeriod:   *reconcilePeriod,
 		RequestTimeout:    *requestTimeout,
 		Insecure:          *insecure,
-		TokenProvider:     tokenProvider,
 	}
 
 	solController := rec_v2.NewController(
@@ -161,48 +137,6 @@ func getSOLController(orchMpsHost string, mpsClient mps.ClientWithResponsesInter
 		rec_v2.WithTimeout(*requestTimeout))
 	solReconciler.SOLController = solController
 	return solReconciler
-}
-
-//nolint:gocritic // named results mean additional assignment/typecast.
-func getMpsAddress(filepath string) (string, int32) {
-	data, err := os.ReadFile(filepath) //nolint:gosec,nolintlint // G703: filepath is from trusted config
-	if err != nil {
-		log.Fatal().Err(err).Msgf("Failed to read configuration file: %v", filepath)
-		return "", 0
-	}
-
-	var config map[string]any
-	if err = yaml.Unmarshal(data, &config); err != nil {
-		log.Fatal().Err(err).Msgf("Failed to unmarshal configuration file")
-		return "", 0
-	}
-
-	value, ok := config[orchMpsWssHostKey]
-	if !ok {
-		log.Fatal().Msgf("Key 'orchMPSWHost' not found in configuration file")
-		return "", 0
-	}
-
-	stringValue, ok := value.(string)
-	if !ok {
-		log.Fatal().Msgf("failed to parse '%v' as string", value)
-	}
-
-	splitted := strings.Split(stringValue, ":")
-	const expectedHostAndPortLen = 2
-	if len(splitted) != expectedHostAndPortLen {
-		log.Fatal().Msgf("Variable 'orchMPSWHost' is not set or has an invalid format."+
-			" Current value: '%v'", stringValue)
-		return "", 0
-	}
-	orchMpsHost := splitted[0]
-	orchMpsPort, err := strconv.ParseInt(splitted[1], 10, 32)
-	if err != nil {
-		log.Fatal().Err(err).Msgf("Failed to parse port from 'orchMPSWHost': '%v'", stringValue)
-		return "", 0
-	}
-
-	return orchMpsHost, int32(orchMpsPort)
 }
 
 func prepareInventoryClients() (
@@ -266,12 +200,4 @@ func setupTracing(traceURL string) func(context.Context) error {
 func startMetricsServer() {
 	metrics.StartMetricsExporter([]prometheus.Collector{metrics.GetClientMetricsWithLatency()},
 		metrics.WithListenAddress(*metricsAddress))
-}
-
-// envOrDefault returns the environment variable value or a default.
-func envOrDefault(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
 }
