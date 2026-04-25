@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-package sol
+package sol //nolint:testpackage // tests access unexported helpers
 
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"testing"
@@ -18,8 +19,8 @@ import (
 	computev1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/compute/v1"
 	inventoryv1 "github.com/open-edge-platform/infra-core/inventory/v2/pkg/api/inventory/v1"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client"
-	"github.com/open-edge-platform/infra-external/sol-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/client/cache"
+	"github.com/open-edge-platform/infra-external/sol-manager/pkg/api/mps"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -43,7 +44,11 @@ func (m *mockInventoryClient) List(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*inventoryv1.ListResourcesResponse), args.Error(1)
+	res, ok := args.Get(0).(*inventoryv1.ListResourcesResponse)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) ListAll(
@@ -53,7 +58,11 @@ func (m *mockInventoryClient) ListAll(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*inventoryv1.Resource), args.Error(1)
+	res, ok := args.Get(0).([]*inventoryv1.Resource)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) Find(
@@ -63,7 +72,11 @@ func (m *mockInventoryClient) Find(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*inventoryv1.FindResourcesResponse), args.Error(1)
+	res, ok := args.Get(0).(*inventoryv1.FindResourcesResponse)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) FindAll(
@@ -73,7 +86,11 @@ func (m *mockInventoryClient) FindAll(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*client.ResourceTenantIDCarrier), args.Error(1)
+	res, ok := args.Get(0).([]*client.ResourceTenantIDCarrier)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) Get(
@@ -83,7 +100,11 @@ func (m *mockInventoryClient) Get(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*inventoryv1.GetResourceResponse), args.Error(1)
+	res, ok := args.Get(0).(*inventoryv1.GetResourceResponse)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) Create(
@@ -93,7 +114,11 @@ func (m *mockInventoryClient) Create(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*inventoryv1.Resource), args.Error(1)
+	res, ok := args.Get(0).(*inventoryv1.Resource)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) Update(
@@ -104,7 +129,11 @@ func (m *mockInventoryClient) Update(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*inventoryv1.Resource), args.Error(1)
+	res, ok := args.Get(0).(*inventoryv1.Resource)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) Delete(
@@ -114,7 +143,11 @@ func (m *mockInventoryClient) Delete(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*inventoryv1.DeleteResourceResponse), args.Error(1)
+	res, ok := args.Get(0).(*inventoryv1.DeleteResourceResponse)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) UpdateSubscriptions(
@@ -136,7 +169,11 @@ func (m *mockInventoryClient) ListInheritedTelemetryProfiles(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*inventoryv1.ListInheritedTelemetryProfilesResponse), args.Error(1)
+	res, ok := args.Get(0).(*inventoryv1.ListInheritedTelemetryProfilesResponse)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) GetHostByUUID(
@@ -146,7 +183,11 @@ func (m *mockInventoryClient) GetHostByUUID(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*computev1.HostResource), args.Error(1)
+	res, ok := args.Get(0).(*computev1.HostResource)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) GetTreeHierarchy(
@@ -156,7 +197,11 @@ func (m *mockInventoryClient) GetTreeHierarchy(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*inventoryv1.GetTreeHierarchyResponse_TreeNode), args.Error(1)
+	res, ok := args.Get(0).([]*inventoryv1.GetTreeHierarchyResponse_TreeNode)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) GetSitesPerRegion(
@@ -166,7 +211,11 @@ func (m *mockInventoryClient) GetSitesPerRegion(
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*inventoryv1.GetSitesPerRegionResponse), args.Error(1)
+	res, ok := args.Get(0).(*inventoryv1.GetSitesPerRegionResponse)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T", args.Get(0))
+	}
+	return res, args.Error(1)
 }
 
 func (m *mockInventoryClient) DeleteAllResources(
@@ -192,7 +241,6 @@ const (
 	testResourceID = "host-abc123"
 )
 
-func boolPtr(b bool) *bool       { return &b }
 func stringPtr(s string) *string { return &s }
 
 func newTestController(
@@ -225,7 +273,10 @@ func makeHostResource(
 }
 
 func httpResponse(status int) *http.Response {
-	return &http.Response{StatusCode: status}
+	return &http.Response{
+		StatusCode: status,
+		Body:       io.NopCloser(nil),
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -252,12 +303,18 @@ func TestShouldStartSOLSession(t *testing.T) {
 		current  computev1.SolState
 		expected bool
 	}{
-		{"start requested, not started", computev1.SolState_SOL_STATE_START,
-			computev1.SolState_SOL_STATE_UNSPECIFIED, true},
-		{"start requested, already started", computev1.SolState_SOL_STATE_START,
-			computev1.SolState_SOL_STATE_START, false},
-		{"stop requested", computev1.SolState_SOL_STATE_STOP,
-			computev1.SolState_SOL_STATE_UNSPECIFIED, false},
+		{
+			"start requested, not started", computev1.SolState_SOL_STATE_START,
+			computev1.SolState_SOL_STATE_UNSPECIFIED, true,
+		},
+		{
+			"start requested, already started", computev1.SolState_SOL_STATE_START,
+			computev1.SolState_SOL_STATE_START, false,
+		},
+		{
+			"stop requested", computev1.SolState_SOL_STATE_STOP,
+			computev1.SolState_SOL_STATE_UNSPECIFIED, false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -282,12 +339,18 @@ func TestShouldStopSOLSession(t *testing.T) {
 		current  computev1.SolState
 		expected bool
 	}{
-		{"stop requested, not stopped", computev1.SolState_SOL_STATE_STOP,
-			computev1.SolState_SOL_STATE_START, true},
-		{"stop requested, already stopped", computev1.SolState_SOL_STATE_STOP,
-			computev1.SolState_SOL_STATE_STOP, false},
-		{"start requested", computev1.SolState_SOL_STATE_START,
-			computev1.SolState_SOL_STATE_STOP, false},
+		{
+			"stop requested, not stopped", computev1.SolState_SOL_STATE_STOP,
+			computev1.SolState_SOL_STATE_START, true,
+		},
+		{
+			"stop requested, already stopped", computev1.SolState_SOL_STATE_STOP,
+			computev1.SolState_SOL_STATE_STOP, false,
+		},
+		{
+			"start requested", computev1.SolState_SOL_STATE_START,
+			computev1.SolState_SOL_STATE_STOP, false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -336,7 +399,6 @@ func TestReconcile_NoActionNeeded(t *testing.T) {
 		computev1.AmtState_AMT_STATE_PROVISIONED,
 		computev1.AmtControlMode_AMT_CONTROL_MODE_CCM,
 	)
-	// Override desired to something that doesn't match start/stop/consent/redirect
 	host.DesiredSolState = computev1.SolState_SOL_STATE_UNSPECIFIED
 
 	invMock.On("GetHostByUUID", mock.Anything, testTenantID, testHostUUID).
@@ -349,7 +411,7 @@ func TestReconcile_NoActionNeeded(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// handleStartSOLSession — not provisioned → error
+// handleStartSOLSession — not provisioned -> error
 // ---------------------------------------------------------------------------
 
 func TestHandleStartSOLSession_NotProvisioned(t *testing.T) {
@@ -360,13 +422,12 @@ func TestHandleStartSOLSession_NotProvisioned(t *testing.T) {
 	host := makeHostResource(
 		computev1.SolState_SOL_STATE_START,
 		computev1.SolState_SOL_STATE_UNSPECIFIED,
-		computev1.AmtState_AMT_STATE_UNPROVISIONED, // not provisioned
+		computev1.AmtState_AMT_STATE_UNPROVISIONED,
 		computev1.AmtControlMode_AMT_CONTROL_MODE_CCM,
 	)
 
 	invMock.On("GetHostByUUID", mock.Anything, testTenantID, testHostUUID).
 		Return(host, nil)
-	// writeSolError will call Update
 	invMock.On("Update", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(&inventoryv1.Resource{}, nil)
 
@@ -432,7 +493,7 @@ func TestHandleStartSOLSession_GetFeaturesNon200(t *testing.T) {
 		mock.Anything, testHostUUID, mock.Anything).
 		Return(&mps.GetApiV1AmtFeaturesGuidResponse{
 			Body:         []byte(`{"error":"not found"}`),
-			HTTPResponse: httpResponse(http.StatusNotFound),
+			HTTPResponse: httpResponse(http.StatusNotFound), //nolint:bodyclose
 		}, nil)
 
 	ctx := context.Background()
@@ -442,7 +503,7 @@ func TestHandleStartSOLSession_GetFeaturesNon200(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// handleStartSOLSession — SOL not enabled → error
+// handleStartSOLSession — SOL not enabled -> error
 // ---------------------------------------------------------------------------
 
 func TestHandleStartSOLSession_SOLNotEnabled(t *testing.T) {
@@ -467,7 +528,7 @@ func TestHandleStartSOLSession_SOLNotEnabled(t *testing.T) {
 		mock.Anything, testHostUUID, mock.Anything).
 		Return(&mps.GetApiV1AmtFeaturesGuidResponse{
 			Body:         []byte(`{}`),
-			HTTPResponse: httpResponse(http.StatusOK),
+			HTTPResponse: httpResponse(http.StatusOK), //nolint:bodyclose
 			JSON200: &mps.GetAMTFeaturesResponse{
 				SOL:         &solDisabled,
 				UserConsent: stringPtr("all"),
@@ -478,13 +539,12 @@ func TestHandleStartSOLSession_SOLNotEnabled(t *testing.T) {
 	req := rec_v2.Request[ID]{ID: NewID(testTenantID, testHostUUID)}
 	directive := sc.Reconcile(ctx, req)
 	assert.NotNil(t, directive)
-	// Should have written SOL_STATE_ERROR
 	invMock.AssertCalled(t, "Update", mock.Anything, testTenantID, testResourceID,
 		mock.Anything, mock.Anything)
 }
 
 // ---------------------------------------------------------------------------
-// handleStartSOLSession — CCM happy path → consent flow → AWAITING_CONSENT
+// handleStartSOLSession — CCM happy path -> consent flow -> AWAITING_CONSENT
 // ---------------------------------------------------------------------------
 
 func TestHandleStartSOLSession_CCM_HappyPath(t *testing.T) {
@@ -509,7 +569,7 @@ func TestHandleStartSOLSession_CCM_HappyPath(t *testing.T) {
 		mock.Anything, testHostUUID, mock.Anything).
 		Return(&mps.GetApiV1AmtFeaturesGuidResponse{
 			Body:         []byte(`{}`),
-			HTTPResponse: httpResponse(http.StatusOK),
+			HTTPResponse: httpResponse(http.StatusOK), //nolint:bodyclose
 			JSON200: &mps.GetAMTFeaturesResponse{
 				SOL:         &solEnabled,
 				UserConsent: stringPtr("all"),
@@ -520,20 +580,19 @@ func TestHandleStartSOLSession_CCM_HappyPath(t *testing.T) {
 		mock.Anything, testHostUUID, mock.Anything).
 		Return(&mps.GetApiV1AmtUserConsentCodeGuidResponse{
 			Body:         []byte(`{"Body":{"ReturnValue":0}}`),
-			HTTPResponse: httpResponse(http.StatusOK),
+			HTTPResponse: httpResponse(http.StatusOK), //nolint:bodyclose
 		}, nil)
 
 	ctx := context.Background()
 	req := rec_v2.Request[ID]{ID: NewID(testTenantID, testHostUUID)}
 	directive := sc.Reconcile(ctx, req)
 	assert.NotNil(t, directive)
-	// Should have written AWAITING_CONSENT via Update
 	invMock.AssertCalled(t, "Update", mock.Anything, testTenantID, testResourceID,
 		mock.Anything, mock.Anything)
 }
 
 // ---------------------------------------------------------------------------
-// handleStartSOLSession — CCM already awaiting consent → Ack
+// handleStartSOLSession — CCM already awaiting consent -> Ack
 // ---------------------------------------------------------------------------
 
 func TestHandleConsentFlow_AlreadyAwaiting(t *testing.T) {
@@ -543,7 +602,7 @@ func TestHandleConsentFlow_AlreadyAwaiting(t *testing.T) {
 
 	host := makeHostResource(
 		computev1.SolState_SOL_STATE_START,
-		computev1.SolState_SOL_STATE_AWAITING_CONSENT, // already awaiting
+		computev1.SolState_SOL_STATE_AWAITING_CONSENT,
 		computev1.AmtState_AMT_STATE_PROVISIONED,
 		computev1.AmtControlMode_AMT_CONTROL_MODE_CCM,
 	)
@@ -556,7 +615,7 @@ func TestHandleConsentFlow_AlreadyAwaiting(t *testing.T) {
 		mock.Anything, testHostUUID, mock.Anything).
 		Return(&mps.GetApiV1AmtFeaturesGuidResponse{
 			Body:         []byte(`{}`),
-			HTTPResponse: httpResponse(http.StatusOK),
+			HTTPResponse: httpResponse(http.StatusOK), //nolint:bodyclose
 			JSON200: &mps.GetAMTFeaturesResponse{
 				SOL:         &solEnabled,
 				UserConsent: stringPtr("all"),
@@ -567,13 +626,12 @@ func TestHandleConsentFlow_AlreadyAwaiting(t *testing.T) {
 	req := rec_v2.Request[ID]{ID: NewID(testTenantID, testHostUUID)}
 	directive := sc.Reconcile(ctx, req)
 	assert.NotNil(t, directive)
-	// Should NOT have called Update (Ack immediately)
 	invMock.AssertNotCalled(t, "Update", mock.Anything, mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything)
 }
 
 // ---------------------------------------------------------------------------
-// handleStartSOLSession — CCM consent code with JSON unmarshal error → success
+// handleStartSOLSession — CCM consent code with JSON unmarshal error -> success
 // ---------------------------------------------------------------------------
 
 func TestHandleConsentFlow_JsonUnmarshalError(t *testing.T) {
@@ -598,32 +656,30 @@ func TestHandleConsentFlow_JsonUnmarshalError(t *testing.T) {
 		mock.Anything, testHostUUID, mock.Anything).
 		Return(&mps.GetApiV1AmtFeaturesGuidResponse{
 			Body:         []byte(`{}`),
-			HTTPResponse: httpResponse(http.StatusOK),
+			HTTPResponse: httpResponse(http.StatusOK), //nolint:bodyclose
 			JSON200: &mps.GetAMTFeaturesResponse{
 				SOL:         &solEnabled,
 				UserConsent: stringPtr("all"),
 			},
 		}, nil)
 
-	// Simulate the RelatesTo type mismatch — error contains "json" / "unmarshal"
 	mpsMock.On("GetApiV1AmtUserConsentCodeGuidWithResponse",
 		mock.Anything, testHostUUID, mock.Anything).
 		Return(&mps.GetApiV1AmtUserConsentCodeGuidResponse{
 			Body:         []byte(`{"Header":{"RelatesTo":1}}`),
-			HTTPResponse: httpResponse(http.StatusOK),
+			HTTPResponse: httpResponse(http.StatusOK), //nolint:bodyclose
 		}, fmt.Errorf("json: cannot unmarshal number into Go struct field"))
 
 	ctx := context.Background()
 	req := rec_v2.Request[ID]{ID: NewID(testTenantID, testHostUUID)}
 	directive := sc.Reconcile(ctx, req)
 	assert.NotNil(t, directive)
-	// Should still proceed and set AWAITING_CONSENT
 	invMock.AssertCalled(t, "Update", mock.Anything, testTenantID, testResourceID,
 		mock.Anything, mock.Anything)
 }
 
 // ---------------------------------------------------------------------------
-// handleStartSOLSession — ACM happy path → AWAITING_CONSENT (no consent dialog)
+// handleStartSOLSession — ACM happy path -> AWAITING_CONSENT (no consent dialog)
 // ---------------------------------------------------------------------------
 
 func TestHandleStartSOLSession_ACM_HappyPath(t *testing.T) {
@@ -648,7 +704,7 @@ func TestHandleStartSOLSession_ACM_HappyPath(t *testing.T) {
 		mock.Anything, testHostUUID, mock.Anything).
 		Return(&mps.GetApiV1AmtFeaturesGuidResponse{
 			Body:         []byte(`{}`),
-			HTTPResponse: httpResponse(http.StatusOK),
+			HTTPResponse: httpResponse(http.StatusOK), //nolint:bodyclose
 			JSON200: &mps.GetAMTFeaturesResponse{
 				SOL:         &solEnabled,
 				UserConsent: stringPtr("none"),
@@ -659,16 +715,14 @@ func TestHandleStartSOLSession_ACM_HappyPath(t *testing.T) {
 	req := rec_v2.Request[ID]{ID: NewID(testTenantID, testHostUUID)}
 	directive := sc.Reconcile(ctx, req)
 	assert.NotNil(t, directive)
-	// ACM should set AWAITING_CONSENT directly (no consent code call)
 	invMock.AssertCalled(t, "Update", mock.Anything, testTenantID, testResourceID,
 		mock.Anything, mock.Anything)
-	// Should NOT call userConsentCode
 	mpsMock.AssertNotCalled(t, "GetApiV1AmtUserConsentCodeGuidWithResponse",
 		mock.Anything, mock.Anything, mock.Anything)
 }
 
 // ---------------------------------------------------------------------------
-// Reconcile — CONSENT_RECEIVED → Ack
+// Reconcile — CONSENT_RECEIVED -> Ack
 // ---------------------------------------------------------------------------
 
 func TestReconcile_ConsentReceived(t *testing.T) {
@@ -690,13 +744,12 @@ func TestReconcile_ConsentReceived(t *testing.T) {
 	req := rec_v2.Request[ID]{ID: NewID(testTenantID, testHostUUID)}
 	directive := sc.Reconcile(ctx, req)
 	assert.NotNil(t, directive)
-	// Should just Ack — no Update call
 	invMock.AssertNotCalled(t, "Update", mock.Anything, mock.Anything, mock.Anything,
 		mock.Anything, mock.Anything)
 }
 
 // ---------------------------------------------------------------------------
-// Reconcile — REDIRECTION_RECEIVED → sets SOL_STATE_START
+// Reconcile — REDIRECTION_RECEIVED -> sets SOL_STATE_START
 // ---------------------------------------------------------------------------
 
 func TestReconcile_RedirectionReceived(t *testing.T) {
@@ -735,7 +788,7 @@ func TestHandleStopSOLSession_HappyPath(t *testing.T) {
 
 	host := makeHostResource(
 		computev1.SolState_SOL_STATE_STOP,
-		computev1.SolState_SOL_STATE_START, // currently active
+		computev1.SolState_SOL_STATE_START,
 		computev1.AmtState_AMT_STATE_PROVISIONED,
 		computev1.AmtControlMode_AMT_CONTROL_MODE_CCM,
 	)
@@ -795,7 +848,7 @@ func TestController_StartStop(t *testing.T) {
 	invMock.On("ListAll", mock.Anything, mock.Anything).
 		Return([]*inventoryv1.Resource{}, nil)
 
-	ctrl := rec_v2.NewController[ID](func(ctx context.Context, req rec_v2.Request[ID]) rec_v2.Directive[ID] {
+	ctrl := rec_v2.NewController[ID](func(_ context.Context, req rec_v2.Request[ID]) rec_v2.Directive[ID] {
 		return req.Ack()
 	}, rec_v2.WithParallelism(1))
 
@@ -875,8 +928,9 @@ func TestClientCallback(t *testing.T) {
 	ctx := context.Background()
 	cb := sc.clientCallback(ctx, testTenantID, testHostUUID)
 
-	req, _ := http.NewRequest(http.MethodGet, "http://example.com", nil)
-	err := cb(ctx, req)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com", http.NoBody)
+	assert.NoError(t, err)
+	err = cb(ctx, req)
 	assert.NoError(t, err)
 	assert.Equal(t, testTenantID, req.Header.Get("ActiveProjectId"))
 	assert.Equal(t, "sol-manager", req.Header.Get("User-Agent"))
@@ -891,8 +945,9 @@ func TestClientCallback_EmptyTenant(t *testing.T) {
 	ctx := context.Background()
 	cb := sc.clientCallback(ctx, "", testHostUUID)
 
-	req, _ := http.NewRequest(http.MethodGet, "http://example.com", nil)
-	err := cb(ctx, req)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://example.com", http.NoBody)
+	assert.NoError(t, err)
+	err = cb(ctx, req)
 	assert.NoError(t, err)
 	assert.Empty(t, req.Header.Get("ActiveProjectId"))
 	assert.Equal(t, "sol-manager", req.Header.Get("User-Agent"))
@@ -906,7 +961,7 @@ func TestReconcileAll_SkipsUnspecified(t *testing.T) {
 	mpsMock := mps.NewMockClientWithResponsesInterface(t)
 	invMock := &mockInventoryClient{}
 
-	ctrl := rec_v2.NewController[ID](func(ctx context.Context, req rec_v2.Request[ID]) rec_v2.Directive[ID] {
+	ctrl := rec_v2.NewController[ID](func(_ context.Context, req rec_v2.Request[ID]) rec_v2.Directive[ID] {
 		return req.Ack()
 	}, rec_v2.WithParallelism(1))
 
@@ -933,7 +988,6 @@ func TestReconcileAll_SkipsUnspecified(t *testing.T) {
 		}, nil)
 
 	sc.ReconcileAll()
-	// Only uuid-2 should be reconciled (uuid-1 is unspecified)
 	invMock.AssertCalled(t, "ListAll", mock.Anything, mock.Anything)
 }
 
@@ -945,7 +999,7 @@ func TestReconcileAll_ListAllFails(t *testing.T) {
 	mpsMock := mps.NewMockClientWithResponsesInterface(t)
 	invMock := &mockInventoryClient{}
 
-	ctrl := rec_v2.NewController[ID](func(ctx context.Context, req rec_v2.Request[ID]) rec_v2.Directive[ID] {
+	ctrl := rec_v2.NewController[ID](func(_ context.Context, req rec_v2.Request[ID]) rec_v2.Directive[ID] {
 		return req.Ack()
 	}, rec_v2.WithParallelism(1))
 
