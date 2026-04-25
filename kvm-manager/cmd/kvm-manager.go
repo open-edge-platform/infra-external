@@ -23,7 +23,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/metrics"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/oam"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/tracing"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
+	"github.com/open-edge-platform/infra-external/kvm-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/kvm-manager/pkg/flags"
 	"github.com/open-edge-platform/infra-external/kvm-manager/pkg/kvm"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"

@@ -5,11 +5,10 @@
 // It watches Inventory for desired_kvm_state changes and drives the
 // session start/stop/consent flow.
 //
-// New design: orch-cli calls MPS directly for consent code submission and
 // relay token acquisition. kvm-manager only handles:
 //   - Feature check and consent trigger (KVM_STATE_AWAITING_CONSENT)
-//   - Acknowledgement of KVM_STATE_CONSENT_RECEIVED (orch-cli submitted code)
-//   - KVM_STATE_REDIRECTION_RECEIVED → sets current_kvm_state=KVM_STATE_START
+//   - Acknowledgement of KVM_STATE_CONSENT_RECEIVED
+//   - KVM_STATE_REDIRECTION_RECEIVED and sets current_kvm_state=KVM_STATE_START
 //   - KVM_STATE_STOP teardown
 package kvm
 
@@ -31,7 +30,7 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/errors"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	inv_util "github.com/open-edge-platform/infra-core/inventory/v2/pkg/util"
-	"github.com/open-edge-platform/infra-external/dm-manager/pkg/api/mps"
+	"github.com/open-edge-platform/infra-external/kvm-manager/pkg/api/mps"
 	rec_v2 "github.com/open-edge-platform/orch-library/go/pkg/controller/v2"
 )
 
@@ -186,10 +185,10 @@ func (kc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 	return request.Ack()
 }
 
-// isDisruptivePowerOp returns true for power states that would terminate an active
-// KVM session
+// isDisruptivePowerOp returns true for power states that
+// would terminate an active KVM session.
 func isDisruptivePowerOp(ps computev1.PowerState) bool {
-	switch ps {
+	switch ps { //nolint:exhaustive
 	case computev1.PowerState_POWER_STATE_OFF,
 		computev1.PowerState_POWER_STATE_RESET,
 		computev1.PowerState_POWER_STATE_RESET_REPEAT:
@@ -199,15 +198,15 @@ func isDisruptivePowerOp(ps computev1.PowerState) bool {
 	}
 }
 
-// kvmStartInProgress returns true whenever a KVM start has been requested
+// kvmStartInProgress returns true whenever a KVM start has been requested.
 func kvmStartInProgress(invHost *computev1.HostResource) bool {
-	switch invHost.GetDesiredKvmState() {
+	switch invHost.GetDesiredKvmState() { //nolint:exhaustive
 	case computev1.KvmState_KVM_STATE_START,
 		computev1.KvmState_KVM_STATE_CONSENT_RECEIVED,
 		computev1.KvmState_KVM_STATE_REDIRECTION_RECEIVED:
 		return true
 	}
-	switch invHost.GetCurrentKvmState() {
+	switch invHost.GetCurrentKvmState() { //nolint:exhaustive
 	case computev1.KvmState_KVM_STATE_AWAITING_CONSENT,
 		computev1.KvmState_KVM_STATE_START:
 		return true
@@ -224,7 +223,7 @@ func (kc *Controller) blockDisruptivePowerOp(
 	ctx context.Context,
 	request rec_v2.Request[ID],
 	invHost *computev1.HostResource,
-) (blocked bool, dir rec_v2.Directive[ID]) {
+) (bool, rec_v2.Directive[ID]) {
 	if !kvmStartInProgress(invHost) {
 		return false, request.Ack()
 	}
@@ -285,7 +284,7 @@ func (kc *Controller) handleStartKVMSession(
 	tenantID := request.ID.GetTenantID()
 	resourceID := invHost.GetResourceId()
 
-	// Pre-condition: device must be fully provisioned via RPS.
+	// device must be fully provisioned via RPS.
 	if invHost.GetCurrentAmtState() != computev1.AmtState_AMT_STATE_PROVISIONED {
 		errMsg := fmt.Sprintf(
 			"KVM_STATE_START rejected: host %v AMT state is %v, must be AMT_STATE_PROVISIONED",
@@ -376,7 +375,8 @@ func (kc *Controller) handleConsentFlow(
 		// causing a JSON unmarshal error. The parser only runs after HTTP 200 is confirmed,
 		// so a json/unmarshal error here means the request succeeded. Proceed.
 		if consentResp != nil && (strings.Contains(err.Error(), "json") || strings.Contains(err.Error(), "unmarshal")) {
-			log.Info().Msgf("host %v: GET /amt/userConsentCode HTTP 200 received (response parse skipped due to Header.RelatesTo type mismatch), proceeding", hostUUID)
+			// HTTP 200 was received; the parse error is a known Header.RelatesTo type mismatch — proceed.
+			log.Info().Msgf("host %v: GET /amt/userConsentCode HTTP 200 (parse skipped: Header.RelatesTo mismatch)", hostUUID)
 		} else {
 			log.Err(err).Msgf("GET /amt/userConsentCode failed for host %v", hostUUID)
 			return request.Fail(err)
@@ -412,8 +412,8 @@ func (kc *Controller) handleConsentFlow(
 }
 
 // handleRedirectionReceived is called when orch-cli signals KVM_STATE_REDIRECTION_RECEIVED,
-// meaning it has already obtained the relay token directly from MPS.
-// kvm-manager simply sets current_kvm_state=KVM_STATE_START to confirm the session is active.
+// relay token has been created from MPS.
+// set current_kvm_state=KVM_STATE_START to confirm the session is active.
 func (kc *Controller) handleRedirectionReceived(
 	ctx context.Context,
 	request rec_v2.Request[ID],
@@ -477,8 +477,8 @@ func (kc *Controller) handleStopKVMSession(
 	return request.Ack()
 }
 
-// writeKvmError writes KVM_STATE_ERROR + status message to inventory and
-// returns request.Fail (no automatic retry).
+// writeKvmError writes KVM_STATE_ERROR and status message to inventory and
+// returns request.Fail
 func (kc *Controller) writeKvmError(
 	ctx context.Context,
 	request rec_v2.Request[ID],
@@ -540,7 +540,7 @@ func (kc *Controller) updateHost(
 	return nil
 }
 
-// clientCallback injects the tenantId ActiveProjectId header into MPS requests
+// clientCallback injects the tenantId ActiveProjectId header into MPS requests.
 func clientCallback() mps.RequestEditorFn {
 	return func(ctx context.Context, req *http.Request) error {
 		tenantID, ok := ctx.Value(contextValue("tenantId")).(string)
