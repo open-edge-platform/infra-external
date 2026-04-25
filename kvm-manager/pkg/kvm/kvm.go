@@ -5,7 +5,6 @@
 // It watches Inventory for desired_kvm_state changes and drives the
 // session start/stop/consent flow.
 //
-// relay token acquisition. kvm-manager only handles:
 //   - Feature check and consent trigger (KVM_STATE_AWAITING_CONSENT)
 //   - Acknowledgement of KVM_STATE_CONSENT_RECEIVED
 //   - KVM_STATE_REDIRECTION_RECEIVED and sets current_kvm_state=KVM_STATE_START
@@ -155,16 +154,10 @@ func (kc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 		return request.Fail(err)
 	}
 
-	log.Debug().Msgf("host %v: desiredKvmState=%v currentKvmState=%v desiredPowerState=%v",
+	log.Debug().Msgf("host %v: desiredKvmState=%v currentKvmState=%v",
 		request.ID,
 		invHost.GetDesiredKvmState(),
-		invHost.GetCurrentKvmState(),
-		invHost.GetDesiredPowerState())
-
-	// reject power ops while a KVM session is active.
-	if blocked, dir := kc.blockDisruptivePowerOp(ctx, request, invHost); blocked {
-		return dir
-	}
+		invHost.GetCurrentKvmState())
 
 	switch {
 	case kc.shouldStartKVMSession(invHost):
@@ -183,75 +176,6 @@ func (kc *Controller) Reconcile(ctx context.Context, request rec_v2.Request[ID])
 			request.ID, invHost.GetDesiredKvmState(), invHost.GetCurrentKvmState())
 	}
 	return request.Ack()
-}
-
-// isDisruptivePowerOp returns true for power states that
-// would terminate an active KVM session.
-func isDisruptivePowerOp(ps computev1.PowerState) bool {
-	switch ps { //nolint:exhaustive
-	case computev1.PowerState_POWER_STATE_OFF,
-		computev1.PowerState_POWER_STATE_RESET,
-		computev1.PowerState_POWER_STATE_RESET_REPEAT:
-		return true
-	default:
-		return false
-	}
-}
-
-// kvmStartInProgress returns true whenever a KVM start has been requested.
-func kvmStartInProgress(invHost *computev1.HostResource) bool {
-	switch invHost.GetDesiredKvmState() { //nolint:exhaustive
-	case computev1.KvmState_KVM_STATE_START,
-		computev1.KvmState_KVM_STATE_CONSENT_RECEIVED,
-		computev1.KvmState_KVM_STATE_REDIRECTION_RECEIVED:
-		return true
-	}
-	switch invHost.GetCurrentKvmState() { //nolint:exhaustive
-	case computev1.KvmState_KVM_STATE_AWAITING_CONSENT,
-		computev1.KvmState_KVM_STATE_START:
-		return true
-	}
-	return false
-}
-
-// blockDisruptivePowerOp checks whether a disruptive power operation has been
-// requested at any point during the KVM start phase
-// then it resets desired_power_state to UNSPECIFIED,
-// writes warning to kvm_session_status and returns true so that operator can
-// Ack without further action.
-func (kc *Controller) blockDisruptivePowerOp(
-	ctx context.Context,
-	request rec_v2.Request[ID],
-	invHost *computev1.HostResource,
-) (bool, rec_v2.Directive[ID]) {
-	if !kvmStartInProgress(invHost) {
-		return false, request.Ack()
-	}
-	desiredPower := invHost.GetDesiredPowerState()
-	if !isDisruptivePowerOp(desiredPower) {
-		return false, request.Ack()
-	}
-	tenantID := request.ID.GetTenantID()
-	resourceID := invHost.GetResourceId()
-	hostUUID := request.ID.GetHostUUID()
-	msg := fmt.Sprintf(
-		"power operation %v rejected: KVM session is active on host %v — stop KVM session before changing power state",
-		desiredPower, hostUUID)
-	log.Warn().Msg(msg)
-	if updateErr := kc.updateHost(ctx, tenantID, resourceID,
-		&fieldmaskpb.FieldMask{Paths: []string{
-			computev1.HostResourceFieldDesiredPowerState,
-			computev1.HostResourceFieldKvmSessionStatus,
-		}},
-		&computev1.HostResource{
-			DesiredPowerState: computev1.PowerState_POWER_STATE_UNSPECIFIED,
-			KvmSessionStatus:  msg,
-		},
-	); updateErr != nil {
-		log.Err(updateErr).Msgf("failed to reset desired_power_state for host %v", hostUUID)
-		return true, request.Fail(updateErr)
-	}
-	return true, request.Ack()
 }
 
 // shouldStartKVMSession returns true when the operator requested KVM_STATE_START
@@ -478,7 +402,7 @@ func (kc *Controller) handleStopKVMSession(
 }
 
 // writeKvmError writes KVM_STATE_ERROR and status message to inventory and
-// returns request.Fail
+// returns request.Fail.
 func (kc *Controller) writeKvmError(
 	ctx context.Context,
 	request rec_v2.Request[ID],
