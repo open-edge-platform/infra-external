@@ -56,4 +56,9 @@ generate: ## Regenerate MPS client and mocks
 	oapi-codegen -generate client,types -o pkg/api/mps/client.gen.go -package mps pkg/api/mps/swagger.json
 	mockery
 
-oasdiff-breaking: common-oasdiff-breaking ## Check for breaking changes in openapi using oasdiff
+oasdiff-breaking: ## Check for breaking changes in openapi using oasdiff
+	@if git archive origin/$(BASE_BRANCH) $(OPENAPI_PATH) 2>/dev/null | tar -t 2>/dev/null | grep -q '.'; then \
+		$(MAKE) common-oasdiff-breaking; \
+	else \
+		echo "oasdiff: no OpenAPI baseline found on origin/$(BASE_BRANCH) — skipping (new component or first PR)"; \
+	fi
