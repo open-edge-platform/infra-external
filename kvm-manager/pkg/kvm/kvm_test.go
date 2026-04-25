@@ -47,9 +47,7 @@ func newHost(t *testing.T,
 	host := dao.CreateHostWithOpts(t, client.FakeTenantID, true, func(c *computev1.HostResource) {
 		c.Uuid = hostUUID
 		c.DesiredKvmState = desired
-		c.CurrentKvmState = current
 		c.AmtControlMode = controlMode
-		c.CurrentAmtState = amtState
 	})
 	// flush current state via Update so inventory reflects it
 	_, err := dao.GetRMClient().Update(
