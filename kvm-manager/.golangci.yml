@@ -114,6 +114,7 @@ linters:
             - github.com/prometheus
             - github.com/stretchr/testify
             - github.com/rs/zerolog
+            - github.com/google/uuid
             - google.golang.org/grpc
             - google.golang.org/grpc/codes
             - google.golang.org/protobuf/types/known/fieldmaskpb
