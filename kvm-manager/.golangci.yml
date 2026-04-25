@@ -148,4 +148,3 @@ formatters:
         github.com/open-edge-platform/infra-external/kvm-manager
   exclusions:
     generated: lax
-
