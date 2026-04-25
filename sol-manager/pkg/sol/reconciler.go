@@ -288,7 +288,7 @@ func (sc *Controller) handleStartSOLSession(
 // handleConsentFlow manages the CCM user-consent sub-flow.
 // Triggers the on-screen code display and writes SOL_STATE_AWAITING_CONSENT.
 // orch-cli is responsible for prompting the operator, submitting the code
-// directly to MPS, and signalling SOL_STATE_CONSENT_RECEIVED.
+// directly to MPS, and signaling SOL_STATE_CONSENT_RECEIVED.
 func (sc *Controller) handleConsentFlow(
 	ctx context.Context,
 	updatedCtx context.Context,
@@ -311,7 +311,10 @@ func (sc *Controller) handleConsentFlow(
 		// causing a JSON unmarshal error. The parser only runs after HTTP 200 is confirmed,
 		// so a json/unmarshal error here means the request succeeded. Proceed.
 		if consentResp != nil && (strings.Contains(err.Error(), "json") || strings.Contains(err.Error(), "unmarshal")) {
-			log.Info().Msgf("host %v: GET /amt/userConsentCode HTTP 200 received (response parse skipped due to Header.RelatesTo type mismatch), proceeding", hostUUID)
+			log.Info().Msgf(
+				"host %v: GET /amt/userConsentCode HTTP 200 received "+
+					"(response parse skipped due to Header.RelatesTo type mismatch), proceeding",
+				hostUUID)
 		} else {
 			log.Err(err).Msgf("GET /amt/userConsentCode failed for host %v", hostUUID)
 			return request.Fail(err)

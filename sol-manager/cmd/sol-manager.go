@@ -21,7 +21,6 @@ import (
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/logging"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/metrics"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/oam"
-	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/policy/rbac"
 	"github.com/open-edge-platform/infra-core/inventory/v2/pkg/tracing"
 	"github.com/open-edge-platform/infra-external/sol-manager/pkg/api/mps"
 	"github.com/open-edge-platform/infra-external/sol-manager/pkg/flags"
@@ -64,8 +63,6 @@ var (
 	caCertPath   = flag.String(invClient.CaCertPath, "", invClient.CaCertPathDescription)
 	tlsCertPath  = flag.String(invClient.TLSCertPath, "", invClient.TLSCertPathDescription)
 	tlsKeyPath   = flag.String(invClient.TLSKeyPath, "", invClient.TLSKeyPathDescription)
-	enableAuth   = flag.Bool(rbac.EnableAuth, true, rbac.EnableAuthDescription)
-	rbacRules    = flag.String(rbac.RbacRules, "/rego/authz.rego", rbac.RbacRulesDescription)
 )
 
 func main() {

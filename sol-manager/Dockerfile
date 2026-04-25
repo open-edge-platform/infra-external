@@ -13,7 +13,6 @@ COPY Makefile go.mod go.sum *.go *.mk /go/src/github.com/open-edge-platform/infr
 COPY cmd/ /go/src/github.com/open-edge-platform/infra-external/sol-manager/cmd/
 COPY vendor/ /go/src/github.com/open-edge-platform/infra-external/sol-manager/vendor/
 COPY pkg/ /go/src/github.com/open-edge-platform/infra-external/sol-manager/pkg/
-COPY rego/ /go/src/github.com/open-edge-platform/infra-external/sol-manager/rego/
 WORKDIR /go/src/github.com/open-edge-platform/infra-external/sol-manager/
 RUN LABEL_REPO_URL=${REPO_URL} LABEL_VERSION=${VERSION} LABEL_REVISION=${REVISION} LABEL_BUILD_DATE=${BUILD_DATE} make go-build
 
@@ -33,6 +32,5 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.created=${BUILD_DATE}
 
 COPY --from=build --chown=nobody:nobody /go/src/github.com/open-edge-platform/infra-external/sol-manager/out/sol-manager /usr/local/bin/sol-manager
-COPY --from=build --chown=nobody:nobody /go/src/github.com/open-edge-platform/infra-external/sol-manager/rego/authz.rego /rego/authz.rego
 
 ENTRYPOINT  ["sol-manager"]
