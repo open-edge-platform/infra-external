@@ -1,0 +1,150 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+version: "2"
+run:
+  go: ""
+  modules-download-mode: readonly
+  issues-exit-code: 1
+  tests: true
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+    html:
+      path: out/golangci-lint_report.html
+linters:
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - copyloopvar
+    - cyclop
+    - depguard
+    - dogsled
+    - durationcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - fatcontext
+    - forbidigo
+    - funlen
+    - gocheckcompilerdirectives
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - govet
+    - importas
+    - ineffassign
+    - interfacebloat
+    - lll
+    - loggercheck
+    - maintidx
+    - makezero
+    - mirror
+    - misspell
+    - mnd
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
+    - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    - revive
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - testableexamples
+    - testifylint
+    - testpackage
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+  settings:
+    cyclop:
+      max-complexity: 15
+    depguard:
+      rules:
+        main:
+          files:
+            - $all
+            - '!$test'
+          allow:
+            - $gostd
+            - github.com/open-edge-platform
+            - github.com/prometheus
+            - github.com/rs/zerolog
+            - google.golang.org/grpc
+            - google.golang.org/grpc/codes
+            - google.golang.org/protobuf/proto
+            - google.golang.org/protobuf/types/known/fieldmaskpb
+        test:
+          files:
+            - $test
+          allow:
+            - $gostd
+            - github.com/open-edge-platform
+            - github.com/prometheus
+            - github.com/stretchr/testify
+            - github.com/rs/zerolog
+            - github.com/google/uuid
+            - google.golang.org/grpc
+            - google.golang.org/grpc/codes
+            - google.golang.org/protobuf/types/known/fieldmaskpb
+    funlen:
+      lines: 100
+      statements: 60
+    gomoddirectives:
+      replace-local: true
+    lll:
+      line-length: 130
+    mnd:
+      ignored-functions:
+        - flag.Duration
+        - flag.Int
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - funlen
+        - goerr113
+        - maintidx
+        - cyclop
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gofumpt:
+      module-path: |
+        github.com/open-edge-platform/infra-external/kvm-manager
+  exclusions:
+    generated: lax
