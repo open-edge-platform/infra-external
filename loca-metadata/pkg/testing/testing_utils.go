@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // Package testing provides testing utilities for LOC-A metadata integration tests.
-package tc_testing
+package locametadatatesting
 
 import (
 	"context"
