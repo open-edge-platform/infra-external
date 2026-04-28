@@ -8,15 +8,15 @@ go 1.26.1
 require (
 	github.com/google/uuid v1.6.0
 	github.com/oapi-codegen/runtime v1.4.0
-	github.com/open-edge-platform/infra-core/inventory/v2 v2.35.0
+	github.com/open-edge-platform/infra-core/inventory/v2 v2.35.1
 	github.com/open-edge-platform/infra-external/loca-onboarding/v2 v2.19.0
 	github.com/open-edge-platform/orch-library/go v0.6.3
 	github.com/prometheus/client_golang v1.23.2
 	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.80.0
-	google.golang.org/protobuf v1.36.11
-	k8s.io/apimachinery v0.35.4
+	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
+	k8s.io/apimachinery v0.36.0
 )
 
 require (
