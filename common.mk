@@ -89,7 +89,7 @@ ifeq ($(GOARCH),arm64)
 	# Note that arm64 (Apple, similar) does not support any spectre mititations.
   GOEXTRAFLAGS := -trimpath -gcflags="all=-spectre= -N -l" -asmflags="all=-spectre=" -ldflags="all=-s -w -X 'main.RepoURL=$(LABEL_REPO_URL)' -X 'main.Version=$(LABEL_VERSION)' -X 'main.Revision=$(LABEL_REVISION)' -X 'main.BuildDate=$(LABEL_BUILD_DATE)'"
 else
-  GOEXTRAFLAGS := -trimpath -gcflags="all=-spectre=all -N -l" -asmflags="all=-spectre=all" -ldflags="all=-s -w -X 'main.RepoURL=$(LABEL_REPO_URL)' -X 'main.Version=$(LABEL_VERSION)' -X 'main.Revision=$(LABEL_REVISION)' -X 'main.BuildDate=$(LABEL_BUILD_DATE)'"
+  GOEXTRAFLAGS := -trimpath -gcflags="all=-N -l" -gcflags="./cmd/...=-N -l -spectre=all" -gcflags="./internal/...=-N -l -spectre=all" -gcflags="./pkg/...=-N -l -spectre=all" -asmflags="./cmd/...=-spectre=all" -asmflags="./internal/...=-spectre=all" -asmflags="./pkg/...=-spectre=all" -ldflags="all=-s -w -X 'main.RepoURL=$(LABEL_REPO_URL)' -X 'main.Version=$(LABEL_VERSION)' -X 'main.Revision=$(LABEL_REVISION)' -X 'main.BuildDate=$(LABEL_BUILD_DATE)'"
 endif
 
 # Postgres DB configuration and credentials for testing. This mimics the Aurora
