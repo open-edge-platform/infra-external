@@ -1,0 +1,199 @@
+---
+# SPDX-FileCopyrightText: (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+version: "2"
+run:
+  go: ""
+  modules-download-mode: readonly
+  issues-exit-code: 1
+  tests: true
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+    html:
+      path: out/golangci-lint_report.html
+linters:
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - copyloopvar
+    - cyclop
+    - depguard
+    - dogsled
+    - durationcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - goheader
+    - goprintffuncname
+    - gosec
+    - lll
+    - misspell
+    - mnd
+    - nakedret
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - prealloc
+    - predeclared
+    - revive
+    - staticcheck
+    - tagliatelle
+    - testableexamples
+    - testpackage
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - whitespace
+  settings:
+    cyclop:
+      max-complexity: 10
+    depguard:
+      rules:
+        main:
+          files:
+            - $all
+            - '!$test'
+          allow:
+            - $gostd
+            - github.com/open-edge-platform
+            - github.com/prometheus
+            - github.com/rs/zerolog
+            - k8s.io/apimachinery/pkg
+            - github.com/google/uuid
+            - google.golang.org/grpc
+            - google.golang.org/grpc/codes
+            - google.golang.org/grpc/reflection
+            - google.golang.org/protobuf/proto
+            - google.golang.org/protobuf/types/known/fieldmaskpb
+        test:
+          files:
+            - $test
+          allow:
+            - $gostd
+            - github.com/open-edge-platform
+            - github.com/prometheus
+            - github.com/stretchr/testify
+            - github.com/google/uuid
+            - github.com/rs/zerolog
+            - k8s.io/apimachinery/pkg
+            - google.golang.org/grpc
+            - google.golang.org/grpc/codes
+            - google.golang.org/grpc/status
+            - google.golang.org/grpc/credentials/insecure
+            - google.golang.org/protobuf/types/known/fieldmaskpb
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+      exclude-functions:
+        - io/ioutil.ReadFile
+        - io.Copy(*bytes.Buffer)
+        - io.Copy(os.Stdout)
+        - (*github.com/open-edge-platform/infra-external/dm-manager/pkg/grpc.DMHandler).Start
+    exhaustive:
+      default-signifies-exhaustive: true
+    funlen:
+      lines: 100
+      statements: 50
+    gocritic:
+      disabled-checks:
+        - hugeParam
+        - rangeExprCopy
+        - rangeValCopy
+        - whyNoLint
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+    govet:
+      enable:
+        - shadow
+    lll:
+      line-length: 130
+      tab-width: 4
+    misspell:
+      locale: US
+    nakedret:
+      max-func-lines: 1
+    tagliatelle:
+      case:
+        rules:
+          avro: snake
+          bson: camel
+          json: snake
+          mapstructure: kebab
+          xml: camel
+          yaml: snake
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - testpackage
+        path: pkg/tenant/controller_test.go
+      - linters:
+          - testpackage
+        path: pkg/tenant/utils_test.go
+      - linters:
+          - tagliatelle
+          - testpackage
+        path: pkg/device/device_test.go
+      - path: (.+)\.go$
+        text: Error return value of `.*Close` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `.*Flush` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `.*Write` is not checked
+      - path: (.+)\.go$
+        text: Error return value of `.*Stop` is not checked
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  uniq-by-line: false
+  new: false
+  fix: false
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/open-edge-platform)
+    gofumpt:
+      module-path: |
+        github.com/open-edge-platform/infra-external/dm-manager
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
