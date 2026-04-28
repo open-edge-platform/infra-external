@@ -3,7 +3,7 @@
 
 module github.com/open-edge-platform/infra-external/sol-manager
 
-go 1.25.7
+go 1.26.1
 
 require (
 	github.com/oapi-codegen/runtime v1.1.1
@@ -130,5 +130,3 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
-
-replace github.com/open-edge-platform/infra-external/loca-onboarding/v2 => ../loca-onboarding
