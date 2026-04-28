@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-FROM golang:1.26.1-bookworm AS build
+FROM golang:1.25.7-bookworm AS build
 
 ARG REPO_URL
 ARG VERSION
@@ -9,11 +9,11 @@ ARG REVISION
 ARG BUILD_DATE
 
 COPY common.mk version.mk /go/src/github.com/open-edge-platform/infra-external/
-COPY Makefile go.mod go.sum *.go *.mk /go/src/github.com/open-edge-platform/infra-external/loca-templates/
-COPY cmd/ /go/src/github.com/open-edge-platform/infra-external/loca-templates/cmd/
-COPY vendor/ /go/src/github.com/open-edge-platform/infra-external/loca-templates/vendor/
-COPY pkg/ /go/src/github.com/open-edge-platform/infra-external/loca-templates/pkg/
-WORKDIR /go/src/github.com/open-edge-platform/infra-external/loca-templates/
+COPY Makefile go.mod go.sum *.mk /go/src/github.com/open-edge-platform/infra-external/kvm-manager/
+COPY cmd/ /go/src/github.com/open-edge-platform/infra-external/kvm-manager/cmd/
+COPY pkg/ /go/src/github.com/open-edge-platform/infra-external/kvm-manager/pkg/
+COPY vendor/ /go/src/github.com/open-edge-platform/infra-external/kvm-manager/vendor/
+WORKDIR /go/src/github.com/open-edge-platform/infra-external/kvm-manager/
 RUN LABEL_REPO_URL=${REPO_URL} LABEL_VERSION=${VERSION} LABEL_REVISION=${REVISION} LABEL_BUILD_DATE=${BUILD_DATE} make go-build
 
 
@@ -31,6 +31,8 @@ LABEL org.opencontainers.image.version=${VERSION} \
       org.opencontainers.image.revision=${REVISION} \
       org.opencontainers.image.created=${BUILD_DATE}
 
-COPY --from=build --chown=nobody:nobody /go/src/github.com/open-edge-platform/infra-external/loca-templates/out/loca-templates-manager /usr/local/bin/loca-templates-manager
+COPY --from=build --chown=nobody:nobody \
+  /go/src/github.com/open-edge-platform/infra-external/kvm-manager/out/kvm-manager \
+  /usr/local/bin/kvm-manager
 
-ENTRYPOINT  ["loca-templates-manager"]
+ENTRYPOINT ["kvm-manager"]
