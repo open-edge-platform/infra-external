@@ -198,6 +198,11 @@ func (tc *Controller) createProfile(ctx context.Context, tenantID, profileName, 
 	if profile.JSON404 != nil {
 		log.Info().Msgf("profile %v not found for %v tenant, creating it", profileName, tenantID)
 
+		userConsent := rps.ProfilePOSTUserConsentAll
+		if activation == "acmactivate" {
+			userConsent = rps.ProfilePOSTUserConsentNone
+		}
+
 		postProfileBody := rps.CreateProfileJSONRequestBody{
 			Activation:          activation,
 			CiraConfigName:      Ptr(tenantID),
@@ -208,6 +213,7 @@ func (tc *Controller) createProfile(ctx context.Context, tenantID, profileName, 
 			SolEnabled:          Ptr(true),
 			TlsMode:             nil,
 			TlsSigningAuthority: "SelfSigned",
+			UserConsent:         &userConsent,
 		}
 
 		amtPassword := tc.SecretProvider.GetSecret(AmtPasswordSecretName, passwordKey)
