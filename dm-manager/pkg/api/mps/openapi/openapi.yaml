@@ -1,11 +1,11 @@
 openapi: 3.0.3
 info:
-  version: 2.26.0
+  version: 2.13.0
   title: Management Presence Server (MPS) API
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
-  description: 'Device Management Toolkit supports MPS API methods for authorization,
+  description: 'Open AMT Cloud Toolkit supports MPS API methods for authorization,
     user authentication, device-specific actions, such as power actions, and general
     device information.
 
@@ -44,7 +44,7 @@ info:
     '
 servers:
 - description: SwaggerHub API Auto Mocking
-  url: https://virtserver.swaggerhub.com/rbheopenamt/mps/2.22.0
+  url: https://virtserver.swaggerhub.com/rbheopenamt/mps/2.13.0
 security:
 - BearerAuth: []
 tags:
@@ -124,9 +124,9 @@ paths:
                     type: string
   /api/v1/amt/log/audit/{guid}:
     get:
-      summary: Return Intel┬« AMT Audit Log
-      description: Returns Intel┬« AMT Audit Log data in blocks of 10 records for
-        a specified guid.  Reference [AMT SDK](https://software.intel.com/sites/manageability/AMT_Implementation_and_Reference_Guide/default.htm?turl=WordDocuments%2Freadingtheauditlog.htm)
+      summary: Return Intel® AMT Audit Log
+      description: Returns Intel® AMT Audit Log data in blocks of 10 records for a
+        specified guid.  Reference [AMT SDK](https://software.intel.com/sites/manageability/AMT_Implementation_and_Reference_Guide/default.htm?turl=WordDocuments%2Freadingtheauditlog.htm)
         for definition of property return codes.
       tags:
       - AMT
@@ -142,11 +142,9 @@ paths:
         in: query
         description: number of items to skip
         example: startIndex=0
-        required: false
+        required: true
         schema:
           type: integer
-          minimum: 0
-          default: 0
       responses:
         '200':
           description: Successful operation
@@ -156,8 +154,8 @@ paths:
                 $ref: '#/components/schemas/AuditLogResponse'
   /api/v1/amt/log/event/{guid}:
     get:
-      summary: Return Intel┬« AMT Event Log
-      description: Return sensor and hardware event data from the Intel┬« AMT event
+      summary: Return Intel® AMT Event Log
+      description: Return sensor and hardware event data from the Intel® AMT event
         log.  Reference [AMT SDK](https://software.intel.com/sites/manageability/AMT_Implementation_and_Reference_Guide/default.htm?turl=HTMLDocuments%2FWS-Management_Class_Reference%2FAMT_EventLogEntry.htm)
         for definition of property return codes.
       tags:
@@ -179,9 +177,9 @@ paths:
                 $ref: '#/components/schemas/EventLogResponse'
   /api/v1/amt/version/{guid}:
     get:
-      summary: Return Intel┬« AMT Version
-      description: Retrieves hardware version information for Intel┬« AMT and the
-        current activation state.
+      summary: Return Intel® AMT Version
+      description: Retrieves hardware version information for Intel® AMT and the current
+        activation state.
       tags:
       - AMT
       parameters:
@@ -201,8 +199,8 @@ paths:
                 $ref: '#/components/schemas/AMTVersionResponse'
   /api/v1/amt/generalSettings/{guid}:
     get:
-      summary: Return Intel┬« AMT General Settings
-      description: Retrieve the Intel┬« AMT general settings.
+      summary: Return Intel® AMT General Settings
+      description: Retrieve the Intel® AMT general settings.
       tags:
       - AMT
       parameters:
@@ -243,9 +241,9 @@ paths:
                 $ref: '#/components/schemas/HardwareInfoResponse'
   /api/v1/amt/features/{guid}:
     post:
-      summary: Set Intel┬« AMT Features
-      description: Enable/Disable Intel┬« AMT User Consent, Redirection, KVM, SOL,
-        IDE-R and OCR features.
+      summary: Set Intel® AMT Features
+      description: Enable/Disable Intel® AMT User Consent, Redirection, KVM, SOL,
+        and IDE-R features.
       tags:
       - AMT
       parameters:
@@ -271,9 +269,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/SetAMTFeaturesResponse'
     get:
-      summary: Return Intel┬« AMT Features
-      description: 'Retrieves the current Intel┬« AMT Enable/Disable state for User
-        Consent, Redirection, KVM, SOL, IDE-R and One Click Recovery (OCR).
+      summary: Return Intel® AMT Features
+      description: 'Retrieves the current Intel® AMT Enable/Disable state for User
+        Consent, Redirection, KVM, SOL, and IDE-R.
 
 
         `optInState` refers to the current Opt In State if the device has User Consent
@@ -408,20 +406,18 @@ paths:
   /api/v1/amt/power/state/{guid}:
     get:
       summary: Return Current Device Power State
-      description: "Retrieve current power state of Intel┬« AMT device, returns a\
-        \ number that maps to a device power state. \nPossible power state values:\
-        \ \n* 2 = On - corresponding to ACPI state G0 or S0 or D0 \n* 3 = Sleep -\
-        \ Light, corresponding to ACPI state G1, S1/S2, or D1 \n* 4 = Sleep - Deep,\
-        \ corresponding to ACPI state G1, S3, or D2 \n* 6 = Off - Hard, corresponding\
-        \ to ACPI state G3, S5, or D3 \n* 7 = Hibernate (Off - Soft), corresponding\
-        \ to ACPI state S4, where the state of the managed element is preserved and\
-        \ will be recovered upon powering on \n* 8 = Off - Soft, corresponding to\
-        \ ACPI state G2, S5, or D3 \n* 9 = Power Cycle (Off-Hard), corresponds to\
-        \ the managed element reaching the ACPI state G3 followed by ACPI state S0\
-        \ \n* 13 = Off - Hard Graceful, equivalent to Off Hard but preceded by a request\
-        \ to the managed element to perform an orderly shutdown\n\nOSPowerSavingState\
-        \ values mapping:\n* 0 = UNKNOWN\n* 1 = UNSUPPORTED\n* 2 = FULL_POWER\n* 3\
-        \ = OS_POWER_SAVING\n"
+      description: "Retrieve current power state of Intel® AMT device, returns a number\
+        \ that maps to a device power state. \nPossible power state values: \n* 2\
+        \ = On - corresponding to ACPI state G0 or S0 or D0 \n* 3 = Sleep - Light,\
+        \ corresponding to ACPI state G1, S1/S2, or D1 \n* 4 = Sleep - Deep, corresponding\
+        \ to ACPI state G1, S3, or D2 \n* 6 = Off - Hard, corresponding to ACPI state\
+        \ G3, S5, or D3 \n* 7 = Hibernate (Off - Soft), corresponding to ACPI state\
+        \ S4, where the state of the managed element is preserved and will be recovered\
+        \ upon powering on \n* 8 = Off - Soft, corresponding to ACPI state G2, S5,\
+        \ or D3 \n* 9 = Power Cycle (Off-Hard), corresponds to the managed element\
+        \ reaching the ACPI state G3 followed by ACPI state S0 \n* 13 = Off - Hard\
+        \ Graceful, equivalent to Off Hard but preceded by a request to the managed\
+        \ element to perform an orderly shutdown\n"
       tags:
       - AMT
       parameters:
@@ -463,8 +459,9 @@ paths:
   /api/v1/amt/power/action/{guid}:
     post:
       summary: Perform OOB Power Action (1 to 99)
-      description: 'Perform an OOB power actions.  Execute a [GET /power/capabilities/{guid}](#/AMT/get_api_v1_amt_power_capabilities__guid_)
-        call first to get the list of available power actions. See [AMT Power States](https://device-management-toolkit.github.io/docs/2.27/Reference/powerstates/)
+      description: 'Perform an OOB power actions numbered 1 thru 99.  Execute a [GET
+        /power/capabilities/{guid}](#/AMT/get_api_v1_amt_power_capabilities__guid_)
+        call first to get the list of available power actions. See [AMT Power States](https://open-amt-cloud-toolkit.github.io/docs/2.11/Reference/powerstates/)
         for ALL potential power actions. <br /><br />
 
         '
@@ -479,10 +476,12 @@ paths:
         schema:
           type: string
       requestBody:
-        description: "**Standard Power Actions:**\n* 2 = Power up/on\n* 5 = Power\
-          \ cycle  \n* 8 = Power down/off\n* 10 = Reset\n* 500 = OS to full power\n\
-          * 501 = OS to power saving\n\n**Power Actions Requiring Intel LMS:**\n*\
-          \ 4 = Sleep\n* 7 = Hibernate\n* 12 = Soft power down/off\n* 14 = Soft reset\n"
+        description: "Possible 1 thru 99 Power Actions:\n* 2   = Power up/on\n* 5\
+          \   = Power cycle\n* 8   = Power down/off\n* 10 = Reset\n\nIn-band power\
+          \ actions require the presence of an agent running while the operating system\
+          \ is up and operational like the Intel Local Manageability Service (LMS):\n\
+          * 4   = Sleep\n* 7   = Hibernate\n* 12 = Soft power down/off\n* 14 = Soft\
+          \ reset        \n"
         required: true
         content:
           application/json:
@@ -495,11 +494,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PowerActionResponse'
-  /api/v1/amt/power/bootOptions/{guid}:
+  /api/v1/amt/power/bootoptions/{guid}:
     post:
       summary: Perform OOB Power Action (100+)
       description: 'Perform an OOB power actions numbered 100+.  Execute a [GET /power/capabilities/{guid}](#/AMT/get_api_v1_amt_power_capabilities__guid_)
-        call first to get the list of available power actions. See [AMT Power States](https://device-management-toolkit.github.io/docs/2.27/Reference/powerstates/)
+        call first to get the list of available power actions. See [AMT Power States](https://open-amt-cloud-toolkit.github.io/docs/2.11/Reference/powerstates/)
         for ALL potential power actions.
 
         '
@@ -514,23 +513,17 @@ paths:
         schema:
           type: string
       requestBody:
-        description: 'Possible Power Actions:
+        description: 'Possible 100+ Power Actions:
 
           * 100  = Power up to BIOS settings
 
-          * 101  = Reset to BIOS settings
+          * 101 =  Reset to BIOS settings
 
-          * 105  = Reset to HTTPS Boot
+          * 104 = Reset to secure erase
 
-          * 106  = Power on HTTPS Boot
+          * 200  = Reset to IDE-R floppy disc
 
-          * 107  = Reset to PBA Boot
-
-          * 108  = Power on to PBA Boot
-
-          * 109  = Reset to Win-Re
-
-          * 110  = Power up to Win-Re
+          * 201  = Power on to IDE-R floppy disc
 
           * 202  = Reset to IDE-R CD-ROM
 
@@ -553,27 +546,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PowerActionResponse'
-  /api/v1/amt/power/bootSources/{guid}:
-    get:
-      summary: Request for boot source settings information
-      description: Boot Source settings information for OCR(HTTPs, PBA and Win-Re)
-      tags:
-      - AMT
-      parameters:
-      - name: guid
-        in: path
-        description: GUID of device
-        example: 123e4567-e89b-12d3-a456-426614174000
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BootSourcesResponse'
   /api/v1/amt/userConsentCode/{guid}:
     get:
       summary: Request an user consent code on client device
@@ -674,232 +646,6 @@ paths:
                 $ref: '#/components/schemas/DeleteErrorResponse'
         '500':
           description: Internal Server Error
-  /api/v1/amt/certificates/{guid}:
-    get:
-      summary: Get device certificates
-      description: Retrieve all certificates associated with the specified AMT device
-      tags:
-      - AMT
-      parameters:
-      - name: guid
-        in: path
-        description: GUID of device
-        example: 123e4567-e89b-12d3-a456-426614174000
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetCertificatesResponse'
-        '404':
-          description: Device not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisconnectErrorResponse'
-        '500':
-          description: Internal server error
-    post:
-      summary: Add device certificates
-      description: Add new certificates to the specified AMT device
-      tags:
-      - AMT
-      parameters:
-      - name: guid
-        in: path
-        description: GUID of device
-        example: 123e4567-e89b-12d3-a456-426614174000
-        required: true
-        schema:
-          type: string
-      requestBody:
-        description: Certificate data to add
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddCertificatesRequest'
-      responses:
-        '200':
-          description: Certificates added successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AddCertificatesResponse'
-        '400':
-          description: Invalid certificate format (not valid DER or PEM)
-        '404':
-          description: Device not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisconnectErrorResponse'
-        '500':
-          description: Internal server error
-  /api/v1/amt/certificates/{guid}/{instanceId}:
-    delete:
-      summary: Delete Device Certificate
-      description: 'Delete a certificate from the specified AMT device by its handle/instanceId.
-
-        **Validation checks performed before deletion:**
-
-        - Certificate must exist on the device
-
-        - Certificate must not be read-only
-
-        - Certificate must not be referenced by any AMT profiles (TLS, 802.1X Wireless,
-        or 802.1X Wired)
-
-        '
-      tags:
-      - AMT
-      parameters:
-      - name: guid
-        in: path
-        description: GUID of device
-        example: 123e4567-e89b-12d3-a456-426614174000
-        required: true
-        schema:
-          type: string
-      - name: instanceId
-        in: path
-        description: InstanceID/handle of the certificate to delete
-        example: Intel(r) AMT Certificate Handle 1
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Certificate deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteCertificateResponse'
-        '400':
-          description: Certificate is read-only or validation error
-        '404':
-          description: Certificate or device not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisconnectErrorResponse'
-        '409':
-          description: Certificate is referenced by AMT profiles and cannot be deleted
-        '500':
-          description: Internal server error
-  /api/v1/amt/kvm/displays/{guid}:
-    get:
-      summary: Get number of displays information from AMT
-      description: Retrieve all display information of KVM from AMT
-      tags:
-      - AMT
-      parameters:
-      - name: guid
-        in: path
-        description: GUID of device
-        example: 123e4567-e89b-12d3-a456-426614174000
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetDisplaysResponse'
-        '404':
-          description: Device not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisconnectErrorResponse'
-        '500':
-          description: Internal server error
-    put:
-      summary: Put the changed settings for KVM in AMT
-      description: Modify screen settings for KVM in AMT device
-      tags:
-      - AMT
-      parameters:
-      - name: guid
-        in: path
-        description: GUID of device
-        example: 123e4567-e89b-12d3-a456-426614174000
-        required: true
-        schema:
-          type: string
-      requestBody:
-        description: Screen Setting data to update
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateDisplaySettingsRequest'
-      responses:
-        '200':
-          description: ''
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UpdateDisplaySettingsResponse'
-        '404':
-          description: Device not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisconnectErrorResponse'
-        '500':
-          description: Internal server error
-  /api/v1/amt/network/linkPreference/{guid}:
-    post:
-      summary: Set WiFi Link Preference
-      description: 'Set Ethernet Link Preference for WiFi ports only.
-
-        - **LinkPreference 1 (ME)**: Routes traffic through Management Engine for
-        the specified timeout duration
-
-        - **LinkPreference 2 (HOST)**: Routes traffic through host OS
-
-        '
-      tags:
-      - AMT
-      parameters:
-      - name: guid
-        in: path
-        description: GUID of device
-        example: 123e4567-e89b-12d3-a456-426614174000
-        required: true
-        schema:
-          type: string
-      requestBody:
-        description: Payload to set Link Preference
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SetLinkPreferenceRequest'
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SetLinkPreferenceResponse'
-        '400':
-          description: Port is not a WiFi port or validation error
-        '404':
-          description: Device not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DisconnectErrorResponse'
-        '500':
-          description: Internal server error
   /api/v1/devices:
     get:
       summary: List All Known Devices
@@ -970,11 +716,9 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                - type: array
-                  items:
-                    $ref: '#/components/schemas/Device'
-                - $ref: '#/components/schemas/CountDevicesResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Device'
         '500':
           description: Internal server error
     post:
@@ -1176,7 +920,7 @@ paths:
         the cache from the secret store.
 
 
-        Internal API. After running the RPC [changePassword](https://device-management-toolkit.github.io/docs/2.27/Reference/RPC/commandsRPC/#changepassword)
+        Internal API. After running the RPC [changePassword](https://open-amt-cloud-toolkit.github.io/docs/2.11/Reference/RPC/commandsRPC/#changepassword)
         maintenance command, RPS must call this MPS endpoint to update the stored
         password secrets. Otherwise, all MPS API calls that require device credentials
         (e.g. Power Actions) will fail due to MPS using the old AMT password.
@@ -1257,16 +1001,6 @@ components:
   schemas:
     AuditLogResponse:
       title: AuditLogResponse
-      type: object
-      properties:
-        totalCnt:
-          type: integer
-          description: Total number of audit log records
-        records:
-          type: array
-          items:
-            $ref: '#/components/schemas/AuditLogRecord'
-          description: Array of audit log records
       example:
         totalCnt: 2
         records:
@@ -1290,12 +1024,14 @@ components:
           Time: '2017-12-21T17:30:39.000Z'
           MCLocationType: 1
           NetAddress: ::1
-          Ex: ''
+          Ex:
+            type: Buffer
           ExStr: Remote WSMAN
-    AuditLogRecord:
-      title: AuditLogRecord
-      type: object
       properties:
+        totalCnt:
+          type: integer
+        records:
+          type: string
         AuditAppID:
           type: integer
         EventID:
@@ -1310,21 +1046,23 @@ components:
           type: string
         Time:
           type: string
-          format: date-time
         MCLocationType:
           type: integer
         NetAddress:
           type: string
         Ex:
-          type: string
+          type: object
+          properties:
+            type:
+              type: string
+            data:
+              type: array
+              items:
+                type: integer
         ExStr:
           type: string
-          nullable: true
     EventLogResponse:
       title: EventLogResponse
-      type: array
-      items:
-        $ref: '#/components/schemas/EventLogRecord'
       example:
       - DeviceAddress: 255
         EventSensorType: 15
@@ -1347,30 +1085,6 @@ components:
         TimeStamp: '2019-04-11T17:57:40.000Z'
         EntityStr: BIOS
         Desc: USB resource configuration
-      - DeviceAddress: 255
-        EventSensorType: 6
-        EventType: 111
-        EventOffset: 1
-        EventSourceType: 104
-        EventSeverity: 1
-        SensorNumber: 255
-        Entity: 34
-        EntityInstance: 0
-        EventData:
-        - 32
-        - 3
-        - 0
-        - 0
-        - 0
-        - 0
-        - 0
-        - 0
-        TimeStamp: '2019-04-11T17:58:15.000Z'
-        EntityStr: BIOS
-        Desc: Authentication failed 3 times. The system may be under attack.
-    EventLogRecord:
-      title: EventLogRecord
-      type: object
       properties:
         DeviceAddress:
           type: integer
@@ -2400,8 +2114,6 @@ components:
           type: boolean
         enableAll:
           type: boolean
-        ocr:
-          type: boolean
     SetAMTFeaturesResponse:
       type: string
       example:
@@ -2431,16 +2143,6 @@ components:
           - 3
           - 4
           - 5
-        ocr:
-          type: boolean
-        httpsBootSupported:
-          type: boolean
-        localPBABootSupported:
-          type: boolean
-        winREBootSupported:
-          type: boolean
-        remoteErase:
-          type: boolean
       example:
         userConsent: kvm
         redirection: false
@@ -2448,11 +2150,6 @@ components:
         SOL: true
         IDER: true
         optInState: 0
-        ocr: true
-        httpsBootSupported: true
-        winREBootSupported: true
-        localPBABootSupported: true
-        remoteErase: false
     SetAlarmClockRequest:
       title: SetAlarmClockRequest
       required:
@@ -2527,11 +2224,8 @@ components:
       title: PowerStateResponse
       example:
         powerstate: 2
-        OSPowerSavingState: 2
       properties:
         powerstate:
-          type: integer
-        OSPowerSavingState:
           type: integer
     PowerCapabilitiesResponse:
       title: PowerCapabilitiesResponse
@@ -2611,12 +2305,6 @@ components:
           - 100
           - 101
           - 104
-          - 105
-          - 106
-          - 107
-          - 108
-          - 109
-          - 110
           - 200
           - 201
           - 202
@@ -2625,37 +2313,13 @@ components:
           - 301
           - 400
           - 401
-          - 500
-          - 501
         useSOL:
           type: boolean
-        bootDetails:
-          type: object
-          properties:
-            url:
-              type: string
-            username:
-              type: string
-            password:
-              type: string
-              description: Password for authentication
-            bootPath:
-              type: string
-              description: Boot path for PBA and WinRE boot scenarios
-            enforceSecureBoot:
-              type: boolean
     PowerActionResponse:
       title: PowerActionResponse
       example:
-        Header:
-          To: http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous
-          RelatesTo: 0
-          Action: http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService/RequestPowerStateChangeResponse
-          MessageID: uuid:00000000-8086-8086-8086-0000000450A6
-          ResourceURI: http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService
-        Body:
-          ReturnValue: 0
-          ReturnValueStr: SUCCESS
+        returnValue: 0
+        returnValueStr: SUCCESS
       properties:
         Body:
           type: object
@@ -3197,371 +2861,3 @@ components:
           type: string
       example:
         serviceVersion: 2.8.0
-    GetCertificatesResponse:
-      title: GetCertificatesResponse
-      type: object
-      properties:
-        certificates:
-          type: object
-          properties:
-            keyManagementItems:
-              type: array
-              items:
-                type: object
-              description: Array of key management items
-            publicKeyCertificateItems:
-              type: array
-              items:
-                type: object
-                properties:
-                  elementName:
-                    type: string
-                    description: Name of the certificate element
-                  instanceID:
-                    type: string
-                    description: Unique instance identifier for the certificate
-                  x509Certificate:
-                    type: string
-                    description: Base64 encoded X.509 certificate
-                  trustedRootCertificate:
-                    type: boolean
-                    description: Whether this is a trusted root certificate
-                  issuer:
-                    type: string
-                    description: Certificate issuer distinguished name
-                  subject:
-                    type: string
-                    description: Certificate subject distinguished name
-                  readOnlyCertificate:
-                    type: boolean
-                    description: Whether the certificate is read-only
-                  publicKeyHandle:
-                    type: string
-                    description: Handle to the associated public key
-                  associatedProfiles:
-                    type: array
-                    items:
-                      type: string
-                    description: List of profiles associated with this certificate
-                  displayName:
-                    type: string
-                    description: Human-readable display name for the certificate
-                required:
-                - elementName
-                - instanceID
-                - x509Certificate
-                - trustedRootCertificate
-                - issuer
-                - subject
-                - readOnlyCertificate
-                - associatedProfiles
-                - displayName
-        publicKeys:
-          type: object
-          properties:
-            publicPrivateKeyPairItems:
-              type: array
-              items:
-                type: object
-                properties:
-                  elementName:
-                    type: string
-                    description: Name of the key element
-                  instanceID:
-                    type: string
-                    description: Unique instance identifier for the key pair
-                  derKey:
-                    type: string
-                    description: DER-encoded public key
-                required:
-                - elementName
-                - instanceID
-                - derKey
-        profileAssociation:
-          type: array
-          items:
-            type: object
-            properties:
-              type:
-                type: string
-                description: Type of profile association
-                enum:
-                - TLS
-              profileID:
-                type: string
-                description: Identifier of the associated profile
-              clientCertificate:
-                type: object
-                properties:
-                  elementName:
-                    type: string
-                  instanceID:
-                    type: string
-                  x509Certificate:
-                    type: string
-                  trustedRootCertificate:
-                    type: boolean
-                  issuer:
-                    type: string
-                  subject:
-                    type: string
-                  readOnlyCertificate:
-                    type: boolean
-                  publicKeyHandle:
-                    type: string
-                  associatedProfiles:
-                    type: array
-                    items:
-                      type: string
-                  displayName:
-                    type: string
-                description: Client certificate used for this profile association
-            required:
-            - type
-            - profileID
-            - clientCertificate
-      required:
-      - certificates
-      - publicKeys
-      - profileAssociation
-      example:
-        certificates:
-          keyManagementItems: []
-          publicKeyCertificateItems:
-          - elementName: Intel(r) AMT Certificate
-            instanceID: 'Intel(r) AMT Certificate: Handle: 0'
-            x509Certificate: base64_encoded_certificate
-            trustedRootCertificate: false
-            issuer: C=US,S=California,L=Santa Clara,O=Intel Corporation,CN=Intel┬«
-              AMT self-signed certificate
-            subject: C=US,S=California,L=Santa Clara,O=Intel Corporation,CN=Intel┬«
-              AMT self-signed certificate
-            readOnlyCertificate: true
-            publicKeyHandle: ''
-            associatedProfiles:
-            - TLS
-            displayName: Intel┬« AMT self-signed certificate
-          publicKeys:
-            publicPrivateKeyPairItems:
-            - elementName: Intel(r) AMT Key
-              instanceID: 'Intel(r) AMT Key: Handle: 0'
-              derKey: base64_encoded_public_key
-          profileAssociation:
-          - type: TLS
-            profileID: TLSProtocolEndpoint Instances Collection
-            clientCertificate:
-              elementName: Intel(r) AMT Certificate
-              instanceID: 'Intel(r) AMT Certificate: Handle: 0'
-              x509Certificate: base64_encoded_certificate
-              trustedRootCertificate: false
-              issuer: C=US,S=California,L=Santa Clara,O=Intel Corporation,CN=Intel┬«
-                AMT self-signed certificate
-              subject: C=US,S=California,L=Santa Clara,O=Intel Corporation,CN=Intel┬«
-                AMT self-signed certificate
-              readOnlyCertificate: true
-              publicKeyHandle: ''
-              associatedProfiles:
-              - TLS
-              displayName: Intel┬« AMT self-signed certificate
-    AddCertificatesRequest:
-      title: AddCertificateRequest
-      type: object
-      properties:
-        cert:
-          type: string
-          description: Base64-encoded X.509 certificate to be added
-        isTrusted:
-          type: boolean
-          description: Whether the certificate should be marked as trusted
-      required:
-      - cert
-      - isTrusted
-      example:
-        cert: base64_encoded_certificate
-        isTrusted: true
-    AddCertificatesResponse:
-      type: object
-      properties:
-        handle:
-          type: string
-          description: Unique handle identifier for the newly added certificate
-      required:
-      - handle
-      example:
-        handle: 'Intel(r) AMT Certificate: Handle: 2'
-    GetDisplaysResponse:
-      type: object
-      properties:
-        displays:
-          type: array
-          items:
-            $ref: '#/components/schemas/Display'
-          description: List of display configurations
-    Display:
-      type: object
-      required:
-      - displayIndex
-      - isActive
-      - upperLeftX
-      - upperLeftY
-      - resolutionX
-      - resolutionY
-      - isDefault
-      properties:
-        displayIndex:
-          type: integer
-          description: Index of the display
-          example: 0
-        isActive:
-          type: boolean
-          description: Whether the display is currently active
-          example: true
-        upperLeftX:
-          type: integer
-          description: X coordinate of the upper left corner
-          example: 1
-        upperLeftY:
-          type: integer
-          description: Y coordinate of the upper left corner
-          example: 2
-        resolutionX:
-          type: integer
-          description: Horizontal resolution in pixels
-          example: 3
-        resolutionY:
-          type: integer
-          description: Vertical resolution in pixels
-          example: 4
-        isDefault:
-          type: boolean
-          description: Whether this is the default display
-          example: true
-        role:
-          type: string
-          enum:
-          - primary
-          - secondary
-          - tertiary
-          - quaternary
-          description: Role of the display in multi-display setup
-          example: primary
-    UpdateDisplaySettingsRequest:
-      type: object
-      required:
-      - displayIndex
-      properties:
-        displayIndex:
-          type: integer
-          description: Index of the display to update
-          example: 0
-    UpdateDisplaySettingsResponse:
-      type: object
-      properties:
-        IPS_KVMRedirectionSettingData:
-          $ref: '#/components/schemas/KVMRedirectionSettingData'
-    KVMRedirectionSettingData:
-      type: object
-      properties:
-        BackToBackFbMode:
-          type: boolean
-          example: false
-        DefaultScreen:
-          type: integer
-          example: 0
-        DoubleBufferActive:
-          type: boolean
-          example: true
-        DoubleBufferEnabled:
-          type: boolean
-          example: true
-        ElementName:
-          type: string
-          example: Intel(r) KVM Redirection Settings
-        EnabledByMEBx:
-          type: boolean
-          example: true
-        GrayscalePixelFormatSupported:
-          type: boolean
-          example: true
-        InitialDecimationModeForLowRes:
-          type: integer
-          example: 2
-        InstanceID:
-          type: string
-          example: Intel(r) KVM Redirection Settings
-        Is5900PortEnabled:
-          type: boolean
-          example: false
-        OptInPolicy:
-          type: boolean
-          example: false
-        RFBPassword:
-          type: string
-          example: ''
-        SessionTimeout:
-          type: integer
-          example: 3
-        ZlibControlSupported:
-          type: boolean
-          example: true
-    BootSourcesResponse:
-      type: array
-      items:
-        $ref: '#/components/schemas/BootSource'
-    BootSource:
-      type: object
-      properties:
-        biosBootString:
-          type: string
-          example: ''
-        bootString:
-          type: string
-          example: ''
-        elementName:
-          type: string
-          example: ''
-        failThroughSupported:
-          type: integer
-          example: 0
-        instanceID:
-          type: string
-          example: ''
-        structuredBiosBootString:
-          type: string
-          example: ''
-    SetLinkPreferenceRequest:
-      type: object
-      required:
-      - linkPreference
-      - timeout
-      properties:
-        linkPreference:
-          type: integer
-          enum:
-          - 1
-          - 2
-          description: Link preference - 1 = ME, 2 = HOST
-          example: 1
-        timeout:
-          type: integer
-          minimum: 0
-          description: Timeout in seconds
-          example: 300
-    SetLinkPreferenceResponse:
-      type: object
-      properties:
-        ReturnValue:
-          type: integer
-          example: 0
-        ReturnValueStr:
-          type: string
-          example: SUCCESS
-    DeleteCertificateResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          example: Certificate deleted successfully
-        handle:
-          type: string
-          example: Intel(r) AMT Certificate Handle 1

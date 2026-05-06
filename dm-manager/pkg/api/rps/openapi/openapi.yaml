@@ -2,8 +2,8 @@ openapi: 3.0.0
 info:
   title: Remote Provisioning  (RPS) API
   contact: {}
-  version: 2.31.3
-  description: 'Device Management Toolkit supports RPS API methods for domains, CIRA
+  version: 2.22.0
+  description: 'Open AMT Cloud Toolkit supports RPS API methods for domains, CIRA
     configuration, wireless, profiles, and version information.
 
 
@@ -74,11 +74,9 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                - type: array
-                  items:
-                    $ref: '#/components/schemas/CIRAConfigResponse'
-                - $ref: '#/components/schemas/CountCIRAResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/CIRAConfigResponse'
         '404':
           description: not found
           content:
@@ -116,7 +114,7 @@ paths:
           and is how the MPS and AMT device will authenticate to communicate.
 
 
-          **mpsRootCertificate** can be gotten by calling the MPS API endpoint `/api/v1/ciracert`.
+          **mpsRootCertificate** can be gotten by calling the MPS API endpoint `/api/vi/ciracert`.
 
           '
         content:
@@ -485,11 +483,9 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                - type: array
-                  items:
-                    $ref: '#/components/schemas/ProfileResponse'
-                - $ref: '#/components/schemas/CountProfileResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfileResponse'
         '404':
           description: not found
           content:
@@ -514,7 +510,7 @@ paths:
 
 
         **Warning:** Choosing CIRA or TLS is **highly recommended**. By choosing ''none'',
-        an unsecure and unsafe channel is used for communication between the AMT device
+        an unsecure and unsafe channel is used for communcation between the AMT device
         and MPS and is vulnerable to attacks.  To use neither, set both ''tlsMode''
         and ''ciraConfigName'' to **null**.
 
@@ -566,9 +562,9 @@ paths:
         \ a secrets manager and are only used during activation and configuration,\
         \ respectively, to set these credentials in the AMT device.\n\n**Warning:**\
         \ Choosing CIRA or TLS is **highly recommended**. By choosing 'none', an unsecure\
-        \ and unsafe channel is used for communication between the AMT device and\
-        \ MPS and is vulnerable to attacks.  To use neither, set both 'tlsMode' and\
-        \ 'ciraConfigName' to **null**.\n"
+        \ and unsafe channel is used for communcation between the AMT device and MPS\
+        \ and is vulnerable to attacks.  To use neither, set both 'tlsMode' and 'ciraConfigName'\
+        \ to **null**.\n"
       requestBody:
         description: '**userConsent** valid values:
 
@@ -659,54 +655,6 @@ paths:
         '204':
           description: successful operation
           headers: {}
-        '404':
-          description: not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-        '500':
-          description: internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-      deprecated: false
-  /api/v1/admin/profiles/export/{profileName}:
-    get:
-      tags:
-      - Profiles
-      summary: Export Profile
-      operationId: ExportProfile
-      description: 'Exports an AMT profile and its associated configurations as an
-        AES-256-GCM encrypted YAML file. Returns the base64-encoded ciphertext and
-        a one-time decryption key.
-
-        For ACM activation profiles, provide the domainName query parameter to include
-        the provisioning certificate in the export.
-
-        '
-      parameters:
-      - name: profileName
-        in: path
-        description: Name of profile to export
-        required: true
-        schema:
-          type: string
-      - name: domainName
-        in: query
-        description: Name of domain to include provisioning certificate for ACM activation
-          profiles
-        required: false
-        schema:
-          type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ExportProfileResponse'
         '404':
           description: not found
           content:
@@ -1174,199 +1122,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/APIResponse'
       deprecated: false
-  /api/v1/admin/proxyconfigs:
-    get:
-      tags:
-      - Proxyconfigs
-      summary: Get All Proxyconfigs
-      operationId: GetAllProxyconfigs
-      description: Retrives all the proxy configuration profiles stored in the database.
-      parameters:
-      - in: query
-        name: $skip
-        schema:
-          type: integer
-        description: The number of items to skip before starting to collect the result
-          set
-      - in: query
-        name: $top
-        schema:
-          type: integer
-        description: The numbers of items to return
-      - in: query
-        name: $count
-        schema:
-          type: boolean
-        description: The total number of proxy configurations
-      responses:
-        '200':
-          description: successful operation
-          headers: {}
-          content:
-            application/json:
-              schema:
-                oneOf:
-                - type: array
-                  items:
-                    $ref: '#/components/schemas/ProxyConfigResponse'
-                - $ref: '#/components/schemas/CountProxyConfigResponse'
-        '404':
-          description: not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-        '500':
-          description: internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-      deprecated: false
-    post:
-      tags:
-      - Proxyconfigs
-      summary: Create Proxyconfig
-      operationId: CreateProxyconfig
-      description: Creates a new proxy configuration profile in the database. The
-        infoFormat is auto-detected based on the address.
-      requestBody:
-        description: ''
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProxyConfigPOST'
-        required: true
-      responses:
-        '201':
-          description: successful operation
-          headers: {}
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProxyConfigResponse'
-        '400':
-          description: bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-        '500':
-          description: internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-      deprecated: false
-    patch:
-      tags:
-      - Proxyconfigs
-      summary: Update Proxyconfig
-      operationId: UpdateProxyconfig
-      description: 'Edits an existing proxy configuration profile in the database.
-
-
-        The name field can''t be changed. The infoFormat is auto-detected based on
-        the address.
-
-        '
-      requestBody:
-        description: ''
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProxyConfigPATCH'
-        required: true
-      responses:
-        '200':
-          description: successful operation
-          headers: {}
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProxyConfigResponse'
-        '400':
-          description: bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-        '500':
-          description: internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-      deprecated: false
-  /api/v1/admin/proxyconfigs/{name}:
-    get:
-      tags:
-      - Proxyconfigs
-      summary: Get Proxyconfig
-      operationId: GetProxyconfig
-      description: Retrives the specific proxy configuration profile.
-      parameters:
-      - name: name
-        in: path
-        description: Name of proxy configuration profile to return
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: successful operation
-          headers: {}
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProxyConfigResponse'
-        '404':
-          description: not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-        '500':
-          description: internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-      deprecated: false
-    delete:
-      tags:
-      - Proxyconfigs
-      summary: Delete Proxyconfig
-      operationId: DeleteProxyconfig
-      description: Deletes the specific proxy configuration profile.
-      parameters:
-      - name: name
-        in: path
-        description: Name of proxy configuration profile to delete
-        required: true
-        schema:
-          type: string
-      responses:
-        '204':
-          description: successful operation
-          headers: {}
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProxyConfigResponse'
-        '404':
-          description: not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-        '500':
-          description: internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse'
-      deprecated: false
   /api/v1/admin/health:
     get:
       summary: Return Status of DB and Secret Store
@@ -1495,7 +1250,6 @@ components:
           format: int32
         mpsRootCertificate:
           type: string
-          format: byte
         proxyDetails:
           type: string
       example:
@@ -1726,12 +1480,6 @@ components:
           type: boolean
         localWifiSyncEnabled:
           type: boolean
-        uefiWifiSyncEnabled:
-          type: boolean
-        proxyConfigs:
-          type: array
-          items:
-            type: object
       example:
         profileName: profile1
         activation: acmactivate
@@ -1758,10 +1506,6 @@ components:
         ieee8021xProfile: wired8021xProfile
         ipSyncEnabled: false
         localWifiSyncEnabled: true
-        uefiWifiSyncEnabled: false
-        proxyConfigs:
-        - priority: 1
-          name: proxy1
     ProfilePOST:
       title: ProfilePOST
       required:
@@ -1831,12 +1575,6 @@ components:
           type: boolean
         localWifiSyncEnabled:
           type: boolean
-        uefiWifiSyncEnabled:
-          type: boolean
-        proxyConfigs:
-          type: array
-          items:
-            type: object
       example:
         profileName: profile1
         amtPassword: G@ppm0ym
@@ -1863,10 +1601,6 @@ components:
         ieee8021xProfile: wired8021xProfile
         ipSyncEnabled: false
         localWifiSyncEnabled: true
-        uefiWifiSyncEnabled: false
-        proxyConfigs:
-        - priority: 1
-          name: proxy1
     ProfilePATCH:
       title: ProfilePATCH
       required:
@@ -1943,12 +1677,6 @@ components:
           type: boolean
         localWifiSyncEnabled:
           type: boolean
-        uefiWifiSyncEnabled:
-          type: boolean
-        proxyConfigs:
-          type: array
-          items:
-            type: object
       example:
         profileName: profile1
         amtPassword: G@ppm0ym
@@ -1975,10 +1703,6 @@ components:
         tlsSigningAuthority: MicrosoftCA
         ipSyncEnabled: false
         localWifiSyncEnabled: true
-        uefiWifiSyncEnabled: false
-        proxyConfigs:
-        - priority: 1
-          name: proxy1
     WirelessConfigResponse:
       title: WirelessConfigResponse
       required:
@@ -2199,7 +1923,6 @@ components:
             type: integer
             enum:
             - 0
-            - 2
             - 3
             - 5
             - 10
@@ -2268,16 +1991,6 @@ components:
             $ref: '#/components/schemas/IEEE8021xConfigResponse'
         totalCount:
           type: integer
-    CountProxyConfigResponse:
-      title: CountProxyConfigResponse
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProxyConfigResponse'
-        totalCount:
-          type: integer
     APIResponse:
       title: APIResponse
       type: object
@@ -2341,105 +2054,6 @@ components:
                   type: string
                 cluster_id:
                   type: string
-    ProxyConfigResponse:
-      title: ProxyConfigResponse
-      type: object
-      required:
-      - name
-      - address
-      - infoFormat
-      - port
-      - networkDnsSuffix
-      - tenantId
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 32
-        address:
-          type: string
-        infoFormat:
-          type: integer
-          description: Address format auto-detected by server (3=IPv4, 4=IPv6, 201=FQDN)
-          enum:
-          - 3
-          - 4
-          - 201
-        port:
-          type: integer
-          minimum: 1
-          maximum: 65535
-        networkDnsSuffix:
-          type: string
-          minLength: 1
-          maxLength: 192
-        tenantId:
-          type: string
-      example:
-        name: proxyName1
-        address: www.vprodemo.com
-        infoFormat: 201
-        port: 900
-        networkDnsSuffix: intel.com
-        tenantId: ''
-    ProxyConfigPOST:
-      title: ProxyConfigPOST
-      type: object
-      required:
-      - name
-      - address
-      - port
-      - networkDnsSuffix
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 32
-        address:
-          type: string
-          description: IP address or FQDN of the server (infoFormat will be auto-detected)
-        port:
-          type: integer
-          minimum: 1
-          maximum: 65535
-        networkDnsSuffix:
-          type: string
-          minLength: 1
-          maxLength: 192
-      example:
-        name: proxyName1
-        address: www.vprodemo.com
-        port: 900
-        networkDnsSuffix: intel.com
-    ProxyConfigPATCH:
-      title: ProxyConfigPATCH
-      type: object
-      required:
-      - name
-      - address
-      - port
-      - networkDnsSuffix
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 32
-        address:
-          type: string
-          description: IP address or FQDN of the server (infoFormat will be auto-detected)
-        port:
-          type: integer
-          minimum: 1
-          maximum: 65535
-        networkDnsSuffix:
-          type: string
-          minLength: 1
-          maxLength: 192
-      example:
-        name: proxyName1
-        address: www.vprodemo.com
-        port: 900
-        networkDnsSuffix: intel.com
     VersionResponse:
       title: VersionResponse
       required:
@@ -2454,33 +2068,11 @@ components:
       example:
         serviceVersion: 2.9.0
         protocolVersion: 4.0.0
-    ExportProfileResponse:
-      type: object
-      required:
-      - filename
-      - content
-      - key
-      properties:
-        filename:
-          type: string
-          description: The suggested filename for the export (e.g. "profile1.yaml")
-          example: profile1.yaml
-        content:
-          type: string
-          description: Base64-encoded AES-256-GCM encrypted YAML content. Format is
-            [nonce (12 bytes)][ciphertext][auth tag (16 bytes)], all base64-encoded.
-          example: dGhpcyBpcyBhIGJhc2U2NCBlbmNvZGVkIGVuY3J5cHRlZCBzdHJpbmc=
-        key:
-          type: string
-          description: Base64-encoded AES-256-GCM decryption key (24 random bytes,
-            base64-encoded to 32 ASCII characters, used as the key)
-          example: YmFzZTY0ZW5jb2RlZHJhbmRvbWtleQ==
 tags:
 - name: CIRA
 - name: Domains
 - name: Profiles
 - name: Wireless
 - name: IEEE802.1x
-- name: Proxyconfigs
 - name: Misc
   description: ''
