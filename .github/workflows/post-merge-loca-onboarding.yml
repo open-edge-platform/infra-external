@@ -11,6 +11,8 @@ on:
       - release-*
     paths:
       - "loca-onboarding/**"
+    tags:
+      - '*'
   workflow_dispatch:
 
 permissions: {}

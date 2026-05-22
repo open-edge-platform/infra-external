@@ -11,6 +11,8 @@ on:
       - release-*
     paths:
       - "RPS/**"
+    tags:
+      - '*'
   workflow_dispatch:
 
 permissions: {}

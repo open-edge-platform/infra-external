@@ -11,6 +11,8 @@ on:
       - release-*
     paths:
       - "loca-plugin/**"
+    tags:
+      - '*'
   workflow_dispatch:
 
 permissions: {}
