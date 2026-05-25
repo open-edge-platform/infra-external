@@ -11,6 +11,8 @@ on:
       - release-*
     paths:
       - "dm-manager/**"
+    tags:
+      - '*'
   workflow_dispatch:
 
 permissions: {}
