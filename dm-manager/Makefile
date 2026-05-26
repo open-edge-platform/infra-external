@@ -46,6 +46,9 @@ TEMP_BASE_OPENAPI_DIR := /tmp/dm-manager-main
 OPENAPI_PATH          := pkg/api/**/*.json
 
 
+# Exclude downloaded/generated OpenAPI specs from yamllint
+YAML_IGNORE = vendor, .github/workflows, $(VENV_NAME), pkg/api
+
 # Include shared makefile
 include ../common.mk
 

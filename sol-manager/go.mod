@@ -3,7 +3,7 @@
 
 module github.com/open-edge-platform/infra-external/sol-manager
 
-go 1.26.1
+go 1.26.3
 
 require (
 	github.com/oapi-codegen/runtime v1.1.1
