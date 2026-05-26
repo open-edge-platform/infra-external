@@ -11,8 +11,6 @@ on:
       - release-*
     paths:
       - "MPS/**"
-    tags:
-      - '*'
   workflow_dispatch:
 
 permissions: {}
